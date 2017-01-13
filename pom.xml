@@ -11,20 +11,12 @@
 	<url>http://maven.apache.org</url>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.biojava</groupId>
-			<artifactId>biojava-structure</artifactId>
-			<version>5.0.0-alpha2</version>
-		</dependency>
+	  <dependency>
+	    <groupId>org.pharmgkb</groupId>
+	    <artifactId>vcf-parser</artifactId>
+	    <version>0.2.0</version>
+	  </dependency>  
 	</dependencies>
-
-	<repositories>
-		<repository>
-			<id>bintray-nitram509-jbrotli</id>
-			<name>bintray-nitram</name>
-			<url>http://dl.bintray.com/nitram509/jbrotli</url>
-		</repository>
-	</repositories>
 
 	<build>
 		<plugins>
