@@ -8,9 +8,11 @@ import org.pharmgkb.parser.vcf.VcfParser;
 
 public class Test {
 	
+	private final static String userHome = System.getProperty("user.home");
+	
 	public static void main(String[] args) throws IOException {
 		
-		String path = "/Users/yana/data/genevariation/vcfExample.vcf";
+		String path = userHome+"/data/genevariation/vcfExample.vcf";
 		Path file = Paths.get(path);
 				
 		VcfParser parser = new VcfParser
