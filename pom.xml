@@ -15,7 +15,12 @@
 	    <groupId>org.pharmgkb</groupId>
 	    <artifactId>vcf-parser</artifactId>
 	    <version>0.2.0</version>
-	  </dependency>  
+	  </dependency>
+	  	<dependency>
+	      <groupId>org.biojava</groupId>
+	      <artifactId>biojava-spark</artifactId>
+	      <version>0.1.1</version>
+	    </dependency>  
 	</dependencies>
 
 	<build>
