@@ -5,7 +5,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
 
-public class VcfConsumer {
+public class VcfDataConsumer {
 	
 	private final static String userHome = System.getProperty("user.home");
 	private static int cores = Runtime.getRuntime().availableProcessors();
@@ -19,8 +19,7 @@ public class VcfConsumer {
 		setSpark();
 		
 		readUniprot();
-		readSNP(21, 33031822);
-		
+		readSNP(21, 38108049);	
 	}
 	
 	public static void setSpark() {
@@ -36,7 +35,7 @@ public class VcfConsumer {
 		
 		readChromosome(chr);
 		
-		DataFrame snp = sqlContext.sql("select * from chr"+chr+" where position = "+position);
+		DataFrame snp = sqlContext.sql("select * from chr"+chr+" where position="+position);
         snp.registerTempTable("snp");
         System.out.println("human genome mapping to UniProt for SNP:");
         snp.show();
@@ -47,6 +46,7 @@ public class VcfConsumer {
 
         DataFrame chr = sqlContext.read().parquet(userHome+"/data/genevariation/hg37/chr"+chrn);
         chr.registerTempTable("chr"+chrn);
+        chr.show();
 	}
 	
 	public static void readUniprot() {
