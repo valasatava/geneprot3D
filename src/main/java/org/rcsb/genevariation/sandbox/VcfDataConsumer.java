@@ -3,6 +3,7 @@ package org.rcsb.genevariation.sandbox;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 
 public class VcfDataConsumer {
@@ -18,8 +19,14 @@ public class VcfDataConsumer {
 		
 		setSpark();
 		
-		readUniprot();
-		readSNP(21, 38108049);	
+		readChromosome("21");
+//		DataFrame snp = sqlContext.sql("select * from chr21 where position > 7900000").orderBy("position");
+//      snp.registerTempTable("snp");
+//      snp.show();	
+       
+		//readUniprot();
+		//readSNP("21", 10413531);
+		getPhaseSNP("21", 10413531);
 	}
 	
 	public static void setSpark() {
@@ -31,22 +38,31 @@ public class VcfDataConsumer {
         sqlContext = new SQLContext(sc);
 	}
 	
-	public static void readSNP(int chr, int position) {
-		
-		readChromosome(chr);
+	public static void readSNP(String chr, long position) {
 		
 		DataFrame snp = sqlContext.sql("select * from chr"+chr+" where position="+position);
         snp.registerTempTable("snp");
-        System.out.println("human genome mapping to UniProt for SNP:");
         snp.show();
 		
 	}
 	
-	public static void readChromosome(int chrn) {
+	public static int getPhaseSNP(String chr, long position) {
+		
+		DataFrame snp = sqlContext.sql("select phase from chr"+chr+" where position="+position);
+        snp.registerTempTable("snp");
+        int phase = -2;
+        Row[] rows = snp.collect();
+        if (rows.length != 0) {
+        	phase = (int) rows[0].get(0);
+        }
+        return phase;
+	}
+	
+	public static void readChromosome(String chrn) {
 
-        DataFrame chr = sqlContext.read().parquet(userHome+"/data/genevariation/hg37/chr"+chrn);
+        DataFrame chr = sqlContext.read().parquet(userHome+"/data/genevariation/hg38/chr"+chrn);
         chr.registerTempTable("chr"+chrn);
-        chr.show();
+//      chr.show();
 	}
 	
 	public static void readUniprot() {
@@ -54,7 +70,7 @@ public class VcfDataConsumer {
 		//register the Uniprot to PDB mapping
 	    DataFrame uniprotPDB = sqlContext.read().parquet(userHome+"/data/genevariation/uniprotpdb/20161104");
 	    uniprotPDB.registerTempTable("uniprotPDB");
-	    uniprotPDB.show();
+//	    uniprotPDB.show();
 	}
 
 }

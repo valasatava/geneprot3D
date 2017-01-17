@@ -20,7 +20,12 @@
 	      <groupId>org.biojava</groupId>
 	      <artifactId>biojava-spark</artifactId>
 	      <version>0.1.1</version>
-	    </dependency>  
+	    </dependency> 
+	    		<dependency>
+			<groupId>org.biojava</groupId>
+			<artifactId>biojava-genome</artifactId>
+			<version>5.0.0-alpha2</version>
+		</dependency> 
 	</dependencies>
 
 	<build>
