@@ -25,8 +25,9 @@ public class VcfDataConsumer {
 //      snp.show();	
        
 		//readUniprot();
-		//readSNP("21", 10413531);
-		getPhaseSNP("21", 10413531);
+		//readSNP("21", 10413613);
+		int phase = getPhaseSNP("21", 10413613);
+		System.out.println(phase);
 	}
 	
 	public static void setSpark() {

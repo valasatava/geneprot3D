@@ -5,6 +5,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.biojava.nbio.core.sequence.DNASequence;
+import org.biojava.nbio.core.sequence.ProteinSequence;
+import org.biojava.nbio.core.sequence.RNASequence;
 import org.pharmgkb.parser.vcf.VcfParser;
 
 public class ReadVcfData {
@@ -32,6 +35,7 @@ public class ReadVcfData {
 					long pos = position.getPosition();
 					List<String> bases = position.getAltBases();
 					
+					if ( pos >=10413531 ) {
 					System.out.println(chr +
 							" " + pos+
 							" " + bases.toString());
@@ -41,12 +45,19 @@ public class ReadVcfData {
 						try {
 							String codon = twoBitParser.readCodonFromChromosome(chr, pos, phase);
 							System.out.println(codon);
+							
+							DNASequence dnaBases = new DNASequence(codon);
+							RNASequence rna = dnaBases.getRNASequence();
+							ProteinSequence aa = rna.getProteinSequence();
+							System.out.println(aa.getSequenceAsString());
+							
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
 					System.out.println();
+					}
 				})
 				.build();
 		parser.parse();
