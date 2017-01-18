@@ -20,10 +20,24 @@ public class TwoBitGeneDataConsumer {
 		parser = new TwoBitParser(f);
 	}
 	
+	public String readBaseFromChromosome(String chr, long position) throws Exception {
+		
+		String base = "";
+		String[] names = parser.getSequenceNames();
+		for(int i=0;i<names.length;i++) {
+			if ( !names[i].equals("chr"+chr) ) {
+				continue;
+			}
+			parser.setCurrentSequence(names[i]);
+			base = parser.loadFragment(position-1, 1);
+			parser.close();
+		}
+		return base;
+	}
+	
 	public String readCodonFromChromosome(String chr, long position, int phase) throws Exception {
 		
 		String codone = "";
-		
 		String[] names = parser.getSequenceNames();
 		for(int i=0;i<names.length;i++) {
 			if ( !names[i].equals("chr"+chr) ) {

@@ -24,8 +24,7 @@ public class ReadVcfData {
 		VcfDataConsumer.readChromosome("21");
 		
 		TwoBitGeneDataConsumer twoBitParser = new TwoBitGeneDataConsumer();
-		
-		
+
 		VcfParser parser = new VcfParser
 				.Builder()
 				.fromFile(file)
@@ -34,28 +33,34 @@ public class ReadVcfData {
 					String chr = position.getChromosome();
 					long pos = position.getPosition();
 					List<String> bases = position.getAltBases();
+					String refBase = position.getRef();
 					
 					if ( pos >=10413531 ) {
-					System.out.println(chr +
-							" " + pos+
-							" " + bases.toString());
-					
-					int phase = VcfDataConsumer.getPhaseSNP(position.getChromosome(), pos);
-					if (phase >= 0) {
-						try {
-							String codon = twoBitParser.readCodonFromChromosome(chr, pos, phase);
-							System.out.println(codon);
-							
-							DNASequence dnaBases = new DNASequence(codon);
-							RNASequence rna = dnaBases.getRNASequence();
-							ProteinSequence aa = rna.getProteinSequence();
-							System.out.println(aa.getSequenceAsString());
-							
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+						
+					System.out.println(chr + " " + pos + " " + refBase + " " + bases.toString());
+					try {
+						System.out.println(twoBitParser.readBaseFromChromosome(chr, pos));
+					} catch (Exception e1) {
+						e1.printStackTrace();
 					}
+					
+//					SnpBean snpData = VcfDataConsumer.getPhaseSNP(position.getChromosome(), pos);
+//					if (snpData.getPhase() >= 0) {
+//						try {
+//							String codon = twoBitParser.readCodonFromChromosome(chr, pos, snpData.getPhase());
+//							
+//							System.out.println(refBase);
+//							System.out.println(codon);
+//							
+//							DNASequence dnaBases = new DNASequence(codon);
+//							RNASequence rna = dnaBases.getRNASequence();
+//							ProteinSequence aa = rna.getProteinSequence();
+//							System.out.println(aa.getSequenceAsString());
+//							
+//						} catch (Exception e) {
+//							e.printStackTrace();
+//						}
+//					}
 					System.out.println();
 					}
 				})

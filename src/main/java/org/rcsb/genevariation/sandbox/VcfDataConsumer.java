@@ -25,9 +25,9 @@ public class VcfDataConsumer {
 //      snp.show();	
        
 		//readUniprot();
-		//readSNP("21", 10413613);
-		int phase = getPhaseSNP("21", 10413613);
-		System.out.println(phase);
+		readSNP("21", 10413613);
+		//int phase = getPhaseSNP("21", 10413613);
+		//System.out.println(phase);
 	}
 	
 	public static void setSpark() {
@@ -47,16 +47,20 @@ public class VcfDataConsumer {
 		
 	}
 	
-	public static int getPhaseSNP(String chr, long position) {
+	public static SnpBean getPhaseSNP(String chr, long position) {
 		
-		DataFrame snp = sqlContext.sql("select phase from chr"+chr+" where position="+position);
+		DataFrame snp = sqlContext.sql("select phase, orientation, uniProtId from chr"+chr+" where position="+position);
         snp.registerTempTable("snp");
-        int phase = -2;
+        
+        SnpBean snpData=null;
         Row[] rows = snp.collect();
         if (rows.length != 0) {
-        	phase = (int) rows[0].get(0);
+        	int phase = (int) rows[0].get(0);
+        	String orientation = (String) rows[0].get(1);
+        	String uniProtId = (String) rows[0].get(2);
+        	snpData = new SnpBean(phase, orientation, uniProtId);
         }
-        return phase;
+		return snpData;
 	}
 	
 	public static void readChromosome(String chrn) {
