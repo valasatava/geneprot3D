@@ -1,6 +1,7 @@
 package org.rcsb.genevariation.sandbox;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.biojava.nbio.genome.parsers.twobit.TwoBitParser;
 
@@ -34,8 +35,18 @@ public class TwoBitGeneDataConsumer {
 		}
 		return base;
 	}
+
+	private String readForward(long position, int len) throws IOException {
+		// read the forward strand of a DNA chromosome in the 5' to 3' direction (reading left-to-right)
+		return parser.loadFragment(position, 3);
+	}
 	
-	public String readCodonFromChromosome(String chr, long position, int phase) throws Exception {
+	private String readReverse(long position, int len) throws IOException {
+		// read the reverse strand of a DNA chromosome in the 3' to 5' direction (reading right-to-left)
+		return parser.loadFragment(position-2, 3);
+	}
+	
+	public String readCodonFromChromosome(String chr, long position, int phase, String orientation) throws Exception {
 		
 		String codone = "";
 		String[] names = parser.getSequenceNames();
@@ -43,9 +54,16 @@ public class TwoBitGeneDataConsumer {
 			if ( !names[i].equals("chr"+chr) ) {
 				continue;
 			}
-			long p = position+phase;
+			long p = 0;
 			parser.setCurrentSequence(names[i]);
-			codone = parser.loadFragment(p, 3);
+			if (orientation.equals("+")) {
+				p = position+phase-1;
+				codone = readForward(p,3);
+			}
+			else {
+				p = position-phase+1;
+				readReverse(p,3);
+			}
 			parser.close();
 		}
 		return codone;

@@ -2,7 +2,9 @@ package org.rcsb.genevariation.sandbox;
 
 public class SnpBean {
 	
+	// overlap between an exon and previous intron 
 	private int phase = -2;
+	// a gene can live on a DNA strand in one of two orientations: forward ("+") and reverse ("-")
 	private String orientation = "";
 	private String uniProtId = "";
 	

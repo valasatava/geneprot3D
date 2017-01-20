@@ -1,10 +1,10 @@
 package org.rcsb.genevariation.sandbox;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.ProteinSequence;
 import org.biojava.nbio.core.sequence.RNASequence;
@@ -13,14 +13,33 @@ import org.pharmgkb.parser.vcf.VcfParser;
 public class ReadVcfData {
 
 	private final static String userHome = System.getProperty("user.home");
-
+	
+	public static RNASequence transcript(String sequence) throws CompoundNotFoundException{
+		DNASequence dna = new DNASequence(sequence);
+		return dna.getRNASequence();
+	}
+	
+	public static ProteinSequence translate(RNASequence sequence) throws CompoundNotFoundException{
+		return sequence.getProteinSequence();
+	}
+	
+	public static String mutatePosition(String codonRef, int phase, String orientation, String variation) {
+		String codonVar;
+		if (orientation.equals("+")) {
+			codonVar = codonRef.substring(0, phase)+variation+codonRef.substring(phase, 3);
+		} else {
+			codonVar = codonRef.substring(0, 3-phase)+variation+codonRef.substring(3-phase, 3);
+		}
+		return codonVar;
+	}
+	
 	public static void main(String[] args) throws Exception {
-
-		String path = userHome+"/data/genevariation/ALL.chr21.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf";
+		
+		String path = userHome+"/data/genevariation/common_all_20161122.vcf";
 		Path file = Paths.get(path);
 
 		VcfDataConsumer.setSpark();
-		//		VcfDataConsumer.readUniprot();
+//		VcfDataConsumer.readUniprot();
 		VcfDataConsumer.readChromosome("21");
 		
 		TwoBitGeneDataConsumer twoBitParser = new TwoBitGeneDataConsumer();
@@ -35,37 +54,41 @@ public class ReadVcfData {
 					List<String> bases = position.getAltBases();
 					String refBase = position.getRef();
 					
-					if ( pos >=10413531 ) {
+					if ( chr.equals("21") ) {
 						
 					System.out.println(chr + " " + pos + " " + refBase + " " + bases.toString());
-					try {
-						System.out.println(twoBitParser.readBaseFromChromosome(chr, pos));
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
 					
-//					SnpBean snpData = VcfDataConsumer.getPhaseSNP(position.getChromosome(), pos);
-//					if (snpData.getPhase() >= 0) {
-//						try {
-//							String codon = twoBitParser.readCodonFromChromosome(chr, pos, snpData.getPhase());
-//							
-//							System.out.println(refBase);
-//							System.out.println(codon);
-//							
-//							DNASequence dnaBases = new DNASequence(codon);
-//							RNASequence rna = dnaBases.getRNASequence();
-//							ProteinSequence aa = rna.getProteinSequence();
-//							System.out.println(aa.getSequenceAsString());
-//							
-//						} catch (Exception e) {
-//							e.printStackTrace();
-//						}
-//					}
+					SnpBean snpData = VcfDataConsumer.getSNPData(position.getChromosome(), pos);
+					System.out.println(snpData.getPhase());
+					System.out.println(snpData.getOrientation());
+					if (snpData.getPhase() >= 0) {
+						try {
+							String codonRef = twoBitParser.readCodonFromChromosome(chr, pos, snpData.getPhase(), snpData.getOrientation());
+							
+							System.out.println(refBase);
+							System.out.println(codonRef);
+							
+							RNASequence rnaRef = transcript(codonRef);
+							ProteinSequence aaRef = translate(rnaRef);
+							System.out.println("Reference AA: "+aaRef.getSequenceAsString());
+							
+							String codonVar = mutatePosition(codonRef, snpData.getPhase(), snpData.getOrientation(), bases.get(0));
+							System.out.println(codonVar);
+							
+							RNASequence rnaVar = transcript(codonVar);
+							ProteinSequence aaVar = translate(rnaVar);
+							System.out.println("Variation AA: "+aaVar.getSequenceAsString());
+							
+							System.out.println();
+							
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
 					System.out.println();
 					}
 				})
 				.build();
 		parser.parse();
-
 	}
 }

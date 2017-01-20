@@ -20,12 +20,13 @@ public class VcfDataConsumer {
 		setSpark();
 		
 		readChromosome("21");
-//		DataFrame snp = sqlContext.sql("select * from chr21 where position > 7900000").orderBy("position");
-//      snp.registerTempTable("snp");
-//      snp.show();	
+		DataFrame snp = sqlContext.sql("select * from chr21"
+				+ " where orientation = '-'").orderBy("position");
+        snp.registerTempTable("snp");
+        snp.show();
        
 		//readUniprot();
-		readSNP("21", 10413613);
+		//readSNP("21", 10413613);
 		//int phase = getPhaseSNP("21", 10413613);
 		//System.out.println(phase);
 	}
@@ -47,7 +48,7 @@ public class VcfDataConsumer {
 		
 	}
 	
-	public static SnpBean getPhaseSNP(String chr, long position) {
+	public static SnpBean getSNPData(String chr, long position) {
 		
 		DataFrame snp = sqlContext.sql("select phase, orientation, uniProtId from chr"+chr+" where position="+position);
         snp.registerTempTable("snp");
@@ -67,7 +68,6 @@ public class VcfDataConsumer {
 
         DataFrame chr = sqlContext.read().parquet(userHome+"/data/genevariation/hg38/chr"+chrn);
         chr.registerTempTable("chr"+chrn);
-//      chr.show();
 	}
 	
 	public static void readUniprot() {
