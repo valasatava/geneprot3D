@@ -5,6 +5,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
+import org.rcsb.genevariation.datastructures.Variation;
 
 public class VcfDataConsumer {
 	
@@ -48,25 +49,26 @@ public class VcfDataConsumer {
 		
 	}
 	
-	public static SnpBean getSNPData(String chr, long position) {
+	public static Variation getSNPData(String chr, long position) {
 		
 		DataFrame snp = sqlContext.sql("select phase, orientation, uniProtId from chr"+chr+" where position="+position);
         snp.registerTempTable("snp");
         
-        SnpBean snpData=null;
+        Variation snpData=null;
         Row[] rows = snp.collect();
         if (rows.length != 0) {
         	int phase = (int) rows[0].get(0);
         	String orientation = (String) rows[0].get(1);
         	String uniProtId = (String) rows[0].get(2);
-        	snpData = new SnpBean(phase, orientation, uniProtId);
+        	snpData = new Variation(phase, orientation, uniProtId);
         }
 		return snpData;
 	}
 	
 	public static void readChromosome(String chrn) {
-
-        DataFrame chr = sqlContext.read().parquet(userHome+"/data/genevariation/hg38/chr"+chrn);
+		String path = "/data/genevariation/hg38/";
+		//String path = "/data/genevariation/dataframes.rcsb.org/parquet/humangenome/20161105/hg38/";
+        DataFrame chr = sqlContext.read().parquet(userHome+path+"chr"+chrn);
         chr.registerTempTable("chr"+chrn);
 	}
 	

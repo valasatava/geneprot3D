@@ -1,6 +1,6 @@
-package org.rcsb.genevariation.sandbox;
+package org.rcsb.genevariation.datastructures;
 
-public class SnpBean {
+public class Variation {
 	
 	// overlap between an exon and previous intron 
 	private int phase = -2;
@@ -8,7 +8,7 @@ public class SnpBean {
 	private String orientation = "";
 	private String uniProtId = "";
 	
-	public SnpBean(int phase, String orientation, String uniProtId) {
+	public Variation(int phase, String orientation, String uniProtId) {
 		setPhase(phase);
 		setOrientation(orientation);
 		setUniProtId(uniProtId);
