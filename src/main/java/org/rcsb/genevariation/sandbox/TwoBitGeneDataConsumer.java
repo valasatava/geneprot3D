@@ -11,10 +11,6 @@ public class TwoBitGeneDataConsumer {
 	private final static String userHome = System.getProperty("user.home");
 	private final static String path = userHome+"/data/genevariation/hg38.2bit";
 	
-	public static void main(String[] args) throws Exception {
-		
-	}
-	
 	public TwoBitGeneDataConsumer() throws Exception {
 		
 		File f = new File(path);

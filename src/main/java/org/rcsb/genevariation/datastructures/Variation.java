@@ -7,11 +7,22 @@ public class Variation {
 	// a gene can live on a DNA strand in one of two orientations: forward ("+") and reverse ("-")
 	private String orientation = "";
 	private String uniProtId = "";
+	private boolean coding;
+	private String chromosomeName = "";
 	
 	public Variation(int phase, String orientation, String uniProtId) {
 		setPhase(phase);
 		setOrientation(orientation);
 		setUniProtId(uniProtId);
+		setCoding(false);
+	}
+	
+	public void setCoding(boolean coding) {
+		this.coding = coding;
+	}
+
+	public boolean getCoding() {
+		return coding;
 	}
 	
 	public int getPhase() {
@@ -36,5 +47,12 @@ public class Variation {
 
 	public void setUniProtId(String uniProtId) {
 		this.uniProtId = uniProtId;
+	}
+
+	public void setChromosomeName(String chromosomeName) {
+		this.chromosomeName = chromosomeName;
+	}
+	public String getChromosomeName() {
+		return chromosomeName;
 	}
 }
