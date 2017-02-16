@@ -1,11 +1,13 @@
 package org.rcsb.genevariation.constants;
 
+import java.io.Serializable;
+
 /**
  * An enum defining the types of variants reported in VCF file
  * 
  * @author Yana Valasatava
  */
-public enum VariantType {
+public enum VariantType implements Serializable {
 	
 	/**
 	 * Lists an array of Strings to define the type of variation reported in VCF file.

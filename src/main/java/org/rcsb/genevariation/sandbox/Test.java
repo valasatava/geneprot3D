@@ -3,14 +3,20 @@ package org.rcsb.genevariation.sandbox;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.rcsb.genevariation.datastructures.SNP;
 import org.rcsb.genevariation.datastructures.Variant;
 import org.rcsb.genevariation.io.VariantsDataProvider;
 import org.rcsb.genevariation.utils.DataProviderFilterChromosome;
 import org.rcsb.genevariation.utils.DataProviderFilterInsertion;
 import org.rcsb.genevariation.utils.DataProviderFilterSNP;
 import org.rcsb.genevariation.utils.IDataProviderFilter;
+import org.rcsb.genevariation.utils.SaprkUtils;
 
 /**
  * Test class
@@ -25,13 +31,26 @@ public class Test {
 	
 	public static void main(String[] args) throws IOException {
 		
-		testChromosomeSNPFilter(21);
+		test();
+		//testChromosomeSNPFilter("21");
 		
 		//testSNPFilter();
 		//testInsertionFilter();
 	}
-
-	public static void testChromosomeSNPFilter(int chr) throws IOException {
+	
+	public static void test() {
+		List<SNP> allSNP = new ArrayList<>();
+		for (int i=1; i<5; i++) {
+			 SNP snp = new SNP();
+			 snp.setChromosome(Integer.toString(i));
+			 allSNP.add(snp);
+		}
+		
+		Dataset<Row> snp = SaprkUtils.getSparkSession().createDataFrame(allSNP, SNP.class);
+		snp.show();
+	}
+	
+	public static void testChromosomeSNPFilter(String chr) throws IOException {
 
 		VariantsDataProvider vdp = new VariantsDataProvider();
 		vdp.readVariantsFromVCF(file);
@@ -43,11 +62,11 @@ public class Test {
 		Iterator<Variant> vars = vdp.getVariantsByFilter(dataFilterVar);
 		while (vars.hasNext()) {
 			Variant snp = vars.next();
-			System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
+			//System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
 		}
 	}
 	
-	public static void testChromosomeInsertionFilter(int chr) throws IOException {
+	public static void testChromosomeInsertionFilter(String chr) throws IOException {
 
 		VariantsDataProvider vdp = new VariantsDataProvider();
 		vdp.readVariantsFromVCF(file);
@@ -59,11 +78,11 @@ public class Test {
 		Iterator<Variant> vars = vdp.getVariantsByFilter(dataFilterVar);
 		while (vars.hasNext()) {
 			Variant snp = vars.next();
-			System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
+			//System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
 		}
 	}
 	
-	public static void testChromosomeFilter(int chr) throws IOException {
+	public static void testChromosomeFilter(String chr) throws IOException {
 
 		VariantsDataProvider vdp = new VariantsDataProvider();
 		vdp.readVariantsFromVCF(file);
@@ -72,7 +91,7 @@ public class Test {
 		Iterator<Variant> vars = vdp.getVariantsByFilter(dataFilter);
 		while (vars.hasNext()) {
 			Variant snp = vars.next();
-			System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
+			//System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
 		}
 	}
 	
@@ -85,7 +104,7 @@ public class Test {
 		Iterator<Variant> vars = vdp.getVariantsByFilter(dataFilter);
 		while (vars.hasNext()) {
 			Variant snp = vars.next();
-			System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
+			//System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
 		}
 	}
 	
@@ -98,7 +117,7 @@ public class Test {
 		Iterator<Variant> vars = vdp.getVariantsByFilter(dataFilter);
 		while (vars.hasNext()) {
 			Variant snp = vars.next();
-			System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
+			//System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
 		}
 	}
 }

@@ -1,17 +1,27 @@
 package org.rcsb.genevariation.datastructures;
 
+import java.io.Serializable;
+
 import org.rcsb.genevariation.constants.VariantType;
 
-public class SNP extends VariantImpl {
+public class SNP extends VariantImpl implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2668841493971870661L;
+
 	private String refBase;
 	private String altBase;
+	
+	public SNP() {
+		super();
+	}
 	
 	public SNP(String chromosome, long position, VariantType type) {
 		super(chromosome, position, type);
 	}
-
-	@Override
+	
 	public void setVariation(String ref, String alt) {
 		setRefBase(ref);
 		setAltBase(alt);

@@ -48,8 +48,7 @@ public class VariantsDataProvider {
 			
 			for (String alt : alts) {
 
-				Variant variant = new VariantImpl();
-				
+				Variant variant = null;
 				VariantType type = VariationUtils.checkType(ref, alt);
 
 				switch (type) {
@@ -74,6 +73,7 @@ public class VariantsDataProvider {
 					break;
 				}
 				variant.setVariation(ref, alt);
+				
 				addVariant(variant);
 			}
 		}).build();
@@ -113,7 +113,7 @@ public class VariantsDataProvider {
 	}
 	
 	public Dataset<Row> getVariantsDataframe() {
-		Dataset<Row> df = SaprkUtils.getSparkSession().createDataFrame(variants, Variant.class);
+		Dataset<Row> df = SaprkUtils.getSparkSession().createDataFrame(variants, SNP.class);
 		return df;
 	}
 	
