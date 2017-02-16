@@ -9,4 +9,5 @@ public interface Variant {
 	VariantType getType();
 	
 	void setVariation(String ref, String alt);
+
 }

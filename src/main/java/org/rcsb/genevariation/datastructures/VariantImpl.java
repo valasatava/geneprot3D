@@ -40,5 +40,4 @@ public class VariantImpl implements Variant {
 	@Override
 	public void setVariation(String ref, String alt) {
 	}
-
 }
