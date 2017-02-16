@@ -3,7 +3,7 @@ package org.rcsb.genevariation.utils;
 import org.rcsb.genevariation.constants.VariantType;
 import org.rcsb.genevariation.datastructures.Variant;
 
-public class DataProviderFilterINSERTION implements IDataProviderFilter {
+public class DataProviderFilterInsertion implements IDataProviderFilter {
 
 	@Override
 	public boolean filter(Variant variant) {

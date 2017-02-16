@@ -7,7 +7,7 @@ package org.rcsb.genevariation.constants;
  */
 public enum StartPhase {
 	/**
-	 * Phase the start phase is the place where the intron lands inside the codon : 
+	 * Phase the start phase is the place where the intron lands inside the codon: 
 	 * 0 between codons, 
 	 * 1 between the 1st and second base, 
 	 * 2 between the second and 3rd base.

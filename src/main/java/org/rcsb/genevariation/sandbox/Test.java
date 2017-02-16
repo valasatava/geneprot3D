@@ -8,7 +8,7 @@ import java.util.Iterator;
 import org.rcsb.genevariation.datastructures.Variant;
 import org.rcsb.genevariation.io.VariantsDataProvider;
 import org.rcsb.genevariation.utils.DataProviderFilterChromosome;
-import org.rcsb.genevariation.utils.DataProviderFilterINSERTION;
+import org.rcsb.genevariation.utils.DataProviderFilterInsertion;
 import org.rcsb.genevariation.utils.DataProviderFilterSNP;
 import org.rcsb.genevariation.utils.IDataProviderFilter;
 
@@ -53,7 +53,7 @@ public class Test {
 		vdp.readVariantsFromVCF(file);
 		
 		IDataProviderFilter dataFilterChr = new DataProviderFilterChromosome(chr);
-		IDataProviderFilter dataFilterVar = new DataProviderFilterINSERTION();
+		IDataProviderFilter dataFilterVar = new DataProviderFilterInsertion();
 
 		vdp.setVariants(vdp.getVariantsByFilter(dataFilterChr));
 		Iterator<Variant> vars = vdp.getVariantsByFilter(dataFilterVar);
@@ -94,7 +94,7 @@ public class Test {
 		VariantsDataProvider vdp = new VariantsDataProvider();
 		vdp.readVariantsFromVCF(file);
 		
-		IDataProviderFilter dataFilter = new DataProviderFilterINSERTION();
+		IDataProviderFilter dataFilter = new DataProviderFilterInsertion();
 		Iterator<Variant> vars = vdp.getVariantsByFilter(dataFilter);
 		while (vars.hasNext()) {
 			Variant snp = vars.next();
