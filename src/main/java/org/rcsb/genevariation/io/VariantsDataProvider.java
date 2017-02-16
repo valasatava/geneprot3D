@@ -1,17 +1,23 @@
 package org.rcsb.genevariation.io;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.io.IOException;
-import java.nio.file.Path;
 
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.pharmgkb.parser.vcf.VcfParser;
 import org.rcsb.genevariation.constants.VariantType;
+import org.rcsb.genevariation.datastructures.Deletion;
 import org.rcsb.genevariation.datastructures.Insertion;
+import org.rcsb.genevariation.datastructures.Monomorphism;
 import org.rcsb.genevariation.datastructures.SNP;
 import org.rcsb.genevariation.datastructures.Variant;
+import org.rcsb.genevariation.datastructures.VariantImpl;
 import org.rcsb.genevariation.utils.IDataProviderFilter;
+import org.rcsb.genevariation.utils.SaprkUtils;
 import org.rcsb.genevariation.utils.VariationUtils;
 
 /**
@@ -42,32 +48,32 @@ public class VariantsDataProvider {
 			
 			for (String alt : alts) {
 
-				Variant variant = null;
-				VariantType type = VariationUtils.checkType(ref, alt);
+				Variant variant = new VariantImpl();
 				
+				VariantType type = VariationUtils.checkType(ref, alt);
+
 				switch (type) {
 				case SNP:
 					variant = new SNP(chromosome, pos, type);
-					variant.setVariation(ref, alt);
 					break;
 				
 				case MONOMORPHIC:
-					System.out.println("MONOMORPHIC");
+					variant = new Monomorphism(chromosome, pos, type);
 					break;
 					
 				case INSERTION:
 					variant = new Insertion(chromosome, pos, type);
-					variant.setVariation(ref, alt);
 					break;
 
 				case DELETION:
-					System.out.println("DELETION");
+					variant = new Deletion(chromosome, pos, type);
 					break;
 					
 				default:
-					System.out.println("DEFAULT");
+					System.out.println("NEW!");
 					break;
 				}
+				variant.setVariation(ref, alt);
 				addVariant(variant);
 			}
 		}).build();
@@ -104,6 +110,11 @@ public class VariantsDataProvider {
 		for (Variant variant : variants) {
 			this.variants.add(variant);
 		}
+	}
+	
+	public Dataset<Row> getVariantsDataframe() {
+		Dataset<Row> df = SaprkUtils.getSparkSession().createDataFrame(variants, Variant.class);
+		return df;
 	}
 	
 	public void setVariants(Iterator<Variant> variants) {

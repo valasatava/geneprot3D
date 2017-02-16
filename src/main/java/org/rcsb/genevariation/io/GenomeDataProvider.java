@@ -1,16 +1,18 @@
 package org.rcsb.genevariation.io;
 
+import org.biojava.nbio.core.sequence.DNASequence;
+
 public class GenomeDataProvider {
 	
-	private static String base;
-	
+
 	public GenomeDataProvider() { }
 	
-	public GenomeDataProvider(String path) {
-		setBase(path);
-	}
-	private void setBase(String path) {
-		base = path;
+	
+	
+	public static DNASequence name() {
+		
+		DNASequence dna = new DNASequence(sequence);
+		
 	}
 
 }

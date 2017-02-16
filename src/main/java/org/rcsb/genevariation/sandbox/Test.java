@@ -25,10 +25,26 @@ public class Test {
 	
 	public static void main(String[] args) throws IOException {
 		
-		testChromosomeInsertionFilter(21);
+		testChromosomeSNPFilter(21);
 		
 		//testSNPFilter();
 		//testInsertionFilter();
+	}
+
+	public static void testChromosomeSNPFilter(int chr) throws IOException {
+
+		VariantsDataProvider vdp = new VariantsDataProvider();
+		vdp.readVariantsFromVCF(file);
+		
+		IDataProviderFilter dataFilterChr = new DataProviderFilterChromosome(chr);
+		IDataProviderFilter dataFilterVar = new DataProviderFilterSNP();
+
+		vdp.setVariants(vdp.getVariantsByFilter(dataFilterChr));
+		Iterator<Variant> vars = vdp.getVariantsByFilter(dataFilterVar);
+		while (vars.hasNext()) {
+			Variant snp = vars.next();
+			System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
+		}
 	}
 	
 	public static void testChromosomeInsertionFilter(int chr) throws IOException {
@@ -37,10 +53,10 @@ public class Test {
 		vdp.readVariantsFromVCF(file);
 		
 		IDataProviderFilter dataFilterChr = new DataProviderFilterChromosome(chr);
-		IDataProviderFilter dataFilterIns = new DataProviderFilterINSERTION();
+		IDataProviderFilter dataFilterVar = new DataProviderFilterINSERTION();
 
 		vdp.setVariants(vdp.getVariantsByFilter(dataFilterChr));
-		Iterator<Variant> vars = vdp.getVariantsByFilter(dataFilterIns);
+		Iterator<Variant> vars = vdp.getVariantsByFilter(dataFilterVar);
 		while (vars.hasNext()) {
 			Variant snp = vars.next();
 			System.out.println(snp.getChromosome()+" "+snp.getPosition()+" "+snp.getType());
