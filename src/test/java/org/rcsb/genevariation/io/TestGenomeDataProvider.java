@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-import org.rcsb.genevariation.datastructures.Exon;
+import org.rcsb.genevariation.datastructures.mRNA;
 
 public class TestGenomeDataProvider {
 	
@@ -14,16 +14,16 @@ public class TestGenomeDataProvider {
 	 * 
 	 * @author Yana Valasatava
 	 */
-	public static List<Exon> getExonData() {
-		List<Exon> exons = new ArrayList<Exon>();
-		exons.add(new Exon(2356, 5432));
-		exons.add(new Exon(1233, 3445));
-		exons.add(new Exon(6789, 98652));
+	public static List<mRNA> getExonData() {
+		List<mRNA> exons = new ArrayList<mRNA>();
+		exons.add(new mRNA(2356, 5432));
+		exons.add(new mRNA(1233, 3445));
+		exons.add(new mRNA(6789, 98652));
 		return exons;
 	}
 
-	private List<Exon> testGettingExonBoundariesForPosition(long position) {
-		List<Exon> exons = getExonData();
+	private List<mRNA> testGettingExonBoundariesForPosition(long position) {
+		List<mRNA> exons = getExonData();
 		return GenomeDataProvider.filterExonsHavingPosition(exons, position);
 	}
 
@@ -33,7 +33,7 @@ public class TestGenomeDataProvider {
 	@Test
 	public void testNotIncluded() {
 		long position = 5;
-		List<Exon> exons = testGettingExonBoundariesForPosition(position);
+		List<mRNA> exons = testGettingExonBoundariesForPosition(position);
 		assertEquals(exons.size(), 0);
 	}
 
@@ -43,7 +43,7 @@ public class TestGenomeDataProvider {
 	@Test
 	public void testIncludedInOne() {
 		long position = 94352;
-		List<Exon> exons = testGettingExonBoundariesForPosition(position);
+		List<mRNA> exons = testGettingExonBoundariesForPosition(position);
 		assertEquals(exons.get(0).getStart(), 6789);
 		assertEquals(exons.get(0).getEnd(), 98652);
 	}
@@ -54,7 +54,7 @@ public class TestGenomeDataProvider {
 	@Test
 	public void testIncludedInTwo() {
 		long position = 2356; // border case
-		List<Exon> exons = testGettingExonBoundariesForPosition(position);
+		List<mRNA> exons = testGettingExonBoundariesForPosition(position);
 		assertEquals(exons.get(0).getStart(), 2356);
 		assertEquals(exons.get(0).getEnd(), 5432); 
 		assertEquals(exons.get(1).getStart(), 1233);

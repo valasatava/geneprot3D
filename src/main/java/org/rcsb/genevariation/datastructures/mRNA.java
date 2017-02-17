@@ -1,22 +1,26 @@
 package org.rcsb.genevariation.datastructures;
 
+import java.util.List;
+
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
 import org.biojava.nbio.core.sequence.template.SequenceView;
 import org.rcsb.genevariation.constants.StrandOrientation;
 
-public class Exon {
+public class mRNA {
 	
 	private String chromosome;
-	private int start;
-	private int end;
+	private int codingStart;
+	private int codingEnd;
+	private List<Integer> exonStarts;
+	private int exonEnds;
 	private StrandOrientation orientation;
 	private DNASequence sequence;
 	
-	public Exon() { }
+	public mRNA() { }
 	
-	public Exon(int start, int end) {
+	public mRNA(int start, int end) {
 		setStart(start);
 		setEnd(end);
 	}
@@ -28,16 +32,16 @@ public class Exon {
 		this.chromosome = chromosome;
 	}
 	public int getStart() {
-		return start;
+		return exonStarts;
 	}
 	public void setStart(int start) {
-		this.start = start;
+		this.exonStarts = start;
 	}
 	public int getEnd() {
-		return end;
+		return exonEnds;
 	}
 	public void setEnd(int end) {
-		this.end = end;
+		this.exonEnds = end;
 	}
 	public StrandOrientation getOrientation() {
 		return orientation;

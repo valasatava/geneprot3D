@@ -5,9 +5,11 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.rcsb.genevariation.datastructures.mRNA;
 import org.rcsb.genevariation.datastructures.Variant;
 import org.rcsb.genevariation.io.GenomeDataProvider;
 import org.rcsb.genevariation.io.PDBDfDataProvider;
@@ -46,9 +48,10 @@ public class ReadVcfData {
 		vdp.setVariants(vdp.getVariantsByFilter(dataFilterChr));
 		vdp.setVariants(vdp.getVariantsByFilter(dataFilterVar));
 		
-		
-		GenomeDataProvider.readGenome();
-		GenomeDataProvider.setChromosome(chrN);
+		List<mRNA> exons = GenomeDataProvider.getExonsFromChromosome(chrN);
+		for (mRNA exon : exons) {
+			System.out.println(exon.getStart() + " " + exon.getEnd() + " " + exon.getDNASequenceAsString());
+		}
 		
 		Iterator<Variant> vars = vdp.getAllVariants();
 		while (vars.hasNext()) {
