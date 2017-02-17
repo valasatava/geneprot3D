@@ -4,9 +4,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Iterator;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.rcsb.genevariation.datastructures.Variant;
+import org.rcsb.genevariation.io.GenomeDataProvider;
 import org.rcsb.genevariation.io.PDBDfDataProvider;
 import org.rcsb.genevariation.io.VariantsDataProvider;
 import org.rcsb.genevariation.utils.DataProviderFilterChromosome;
@@ -16,7 +19,6 @@ import org.rcsb.genevariation.utils.IDataProviderFilter;
 public class ReadVcfData {
 
 	private final static String userHome = System.getProperty("user.home");
-
 
 	public static void main(String[] args) throws Exception {
 		
@@ -43,8 +45,15 @@ public class ReadVcfData {
 		
 		vdp.setVariants(vdp.getVariantsByFilter(dataFilterChr));
 		vdp.setVariants(vdp.getVariantsByFilter(dataFilterVar));
-		Dataset<Row> vars = vdp.getVariantsDataframe();
-		System.out.println(vars.count());
+		
+		
+		GenomeDataProvider.readGenome();
+		GenomeDataProvider.setChromosome(chrN);
+		
+		Iterator<Variant> vars = vdp.getAllVariants();
+		while (vars.hasNext()) {
+			Variant v = vars.next();		
+		}
 		
 		System.out.println("Time to filter the variation data: " + (System.nanoTime() - start2)/1E9 + " sec.");
 		long start3 = System.nanoTime();

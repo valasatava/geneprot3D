@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
 import org.pharmgkb.parser.vcf.VcfParser;
 import org.rcsb.genevariation.constants.VariantType;
 import org.rcsb.genevariation.datastructures.Deletion;
@@ -15,9 +13,7 @@ import org.rcsb.genevariation.datastructures.Insertion;
 import org.rcsb.genevariation.datastructures.Monomorphism;
 import org.rcsb.genevariation.datastructures.SNP;
 import org.rcsb.genevariation.datastructures.Variant;
-import org.rcsb.genevariation.datastructures.VariantImpl;
 import org.rcsb.genevariation.utils.IDataProviderFilter;
-import org.rcsb.genevariation.utils.SaprkUtils;
 import org.rcsb.genevariation.utils.VariationUtils;
 
 /**
@@ -110,11 +106,6 @@ public class VariantsDataProvider {
 		for (Variant variant : variants) {
 			this.variants.add(variant);
 		}
-	}
-	
-	public Dataset<Row> getVariantsDataframe() {
-		Dataset<Row> df = SaprkUtils.getSparkSession().createDataFrame(variants, SNP.class);
-		return df;
 	}
 	
 	public void setVariants(Iterator<Variant> variants) {
