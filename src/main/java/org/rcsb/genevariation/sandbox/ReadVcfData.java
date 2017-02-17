@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.rcsb.genevariation.datastructures.mRNA;
+import org.rcsb.genevariation.datastructures.Gene;
 import org.rcsb.genevariation.datastructures.Variant;
 import org.rcsb.genevariation.io.GenomeDataProvider;
 import org.rcsb.genevariation.io.PDBDfDataProvider;
@@ -48,9 +48,9 @@ public class ReadVcfData {
 		vdp.setVariants(vdp.getVariantsByFilter(dataFilterChr));
 		vdp.setVariants(vdp.getVariantsByFilter(dataFilterVar));
 		
-		List<mRNA> exons = GenomeDataProvider.getExonsFromChromosome(chrN);
-		for (mRNA exon : exons) {
-			System.out.println(exon.getStart() + " " + exon.getEnd() + " " + exon.getDNASequenceAsString());
+		List<Gene> genes = GenomeDataProvider.getGenesFromChromosome(chrN);
+		for (Gene gene : genes) {
+			System.out.println(gene.getName() + " " + gene.getDNASequenceAsString());
 		}
 		
 		Iterator<Variant> vars = vdp.getAllVariants();

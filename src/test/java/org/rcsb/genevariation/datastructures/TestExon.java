@@ -21,7 +21,7 @@ public class TestExon {
 	public void testSetForwardDNASequence() throws CompoundNotFoundException {
 		
 		String dnaSequence = "ATTCG";
-		mRNA exon = new mRNA();
+		Gene exon = new Gene();
 		exon.setOrientation(StrandOrientation.FORWARD);
 		exon.setDNASequence(dnaSequence);
 		
@@ -40,7 +40,7 @@ public class TestExon {
 		//String dnaComplement = "TAAGC";
 		String dnaComplementRev = "CGAAT";
 				
-		mRNA exon = new mRNA();
+		Gene exon = new Gene();
 		exon.setOrientation(StrandOrientation.REVERSE);
 		exon.setDNASequence(dnaSequence);
 		

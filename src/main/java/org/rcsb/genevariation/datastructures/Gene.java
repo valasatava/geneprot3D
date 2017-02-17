@@ -1,5 +1,6 @@
 package org.rcsb.genevariation.datastructures;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
@@ -8,53 +9,89 @@ import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
 import org.biojava.nbio.core.sequence.template.SequenceView;
 import org.rcsb.genevariation.constants.StrandOrientation;
 
-public class mRNA {
+public class Gene {
 	
 	private String chromosome;
 	private int codingStart;
 	private int codingEnd;
-	private List<Integer> exonStarts;
-	private int exonEnds;
+	private List<Exon> exons;
+	
 	private StrandOrientation orientation;
 	private DNASequence sequence;
-	
-	public mRNA() { }
-	
-	public mRNA(int start, int end) {
-		setStart(start);
-		setEnd(end);
-	}
-	
+	private String name;
+		
 	public String getChromosome() {
 		return chromosome;
 	}
+	
 	public void setChromosome(String chromosome) {
 		this.chromosome = chromosome;
 	}
-	public int getStart() {
+	
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public int getCodingStart() {
+		return codingStart;
+	}
+	
+	public void setCodingStart(int start) {
+		this.codingStart = start;
+	}
+	
+	public int getCodingEnd() {
+		return codingEnd;
+	}
+	
+	public void setCodingEnd(int end) {
+		this.codingEnd = end;
+	}
+	
+	public List<Exon> getExons() {
+		return exons;
+	}
+
+	public void setExons(List<Exon> exons) {
+		this.exons = exons;
+	}
+
+	public List<Integer> getExonStarts() {
+		List<Integer> exonStarts = new ArrayList<Integer>();
+		for (Exon exon : exons) {
+			exonStarts.add(exon.getStart());
+		}
 		return exonStarts;
 	}
-	public void setStart(int start) {
-		this.exonStarts = start;
-	}
-	public int getEnd() {
+	
+	public List<Integer> getExonEnds() {
+		List<Integer> exonEnds = new ArrayList<Integer>();
+		for (Exon exon : exons) {
+			exonEnds.add(exon.getEnd());
+		}
 		return exonEnds;
 	}
-	public void setEnd(int end) {
-		this.exonEnds = end;
-	}
+	
 	public StrandOrientation getOrientation() {
 		return orientation;
 	}
+	
 	public void setOrientation(StrandOrientation orientation) {
 		this.orientation = orientation;
 	}
+	
 	public DNASequence getDNASequence() {
 		return sequence;
 	}
+	
 	public String getDNASequenceAsString() {
 		return sequence.getSequenceAsString();
 	}
+	
 	public void setDNASequence(String sequence) throws CompoundNotFoundException {
 		
 		DNASequence dna = new DNASequence(sequence);
@@ -68,6 +105,7 @@ public class mRNA {
 			this.sequence = new DNASequence(reverseSequence);
 		}
 	}
+	
 	public void setDNASequence(DNASequence sequence) {
 		this.sequence = sequence;
 	}

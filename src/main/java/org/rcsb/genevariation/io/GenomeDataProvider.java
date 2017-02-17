@@ -5,14 +5,14 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.biojava.nbio.core.util.InputStreamProvider;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePositionParser;
 import org.biojava.nbio.genome.parsers.twobit.TwoBitParser;
 import org.rcsb.genevariation.constants.StrandOrientation;
-import org.rcsb.genevariation.datastructures.mRNA;
+import org.rcsb.genevariation.datastructures.Exon;
+import org.rcsb.genevariation.datastructures.Gene;
 
 /**
  * This class provides methods to retrieve genetic data from files.
@@ -61,7 +61,7 @@ public class GenomeDataProvider {
 	 * @throws Exception 
 	 * 
 	 */
-	public static List<mRNA> getExonsFromChromosome(String chr) throws Exception {
+	public static List<Gene> getGenesFromChromosome(String chr) throws Exception {
 		
 		readGenome();
 		setChromosome(chr);
@@ -71,61 +71,75 @@ public class GenomeDataProvider {
 		InputStreamProvider prov = new InputStreamProvider();
 		InputStream inStream = prov.getInputStream(url);
 		
-		List<mRNA> exons = new ArrayList<mRNA>();
+		List<Gene> genes = new ArrayList<Gene>();
 		List<GeneChromosomePosition> gcps = GeneChromosomePositionParser.getChromosomeMappings(inStream);
 		
+		String sequence;
 		for (GeneChromosomePosition gcp : gcps) {
 			
-			Integer cdsStart = gcp.getCdsStart();
-			Integer cdsEnd = gcp.getCdsEnd();
+			if ( !gcp.getChromosome().equals("chr"+chr) ) {
+				continue;
+			}
+			
+			Gene gene = new Gene();
+			gene.setChromosome(gcp.getChromosome());
+			
+			gene.setName(gcp.getGeneName());
+			gene.setCodingStart(gcp.getCdsStart());
+			gene.setCodingEnd(gcp.getCdsEnd());
+			
+			switch (gcp.getOrientation()) {
+			case '+':
+				gene.setOrientation(StrandOrientation.FORWARD);
+				break;
+			case '-':
+				gene.setOrientation(StrandOrientation.REVERSE);
+				break;
+			}
 			
 			List<Integer> starts = gcp.getExonStarts();
 			List<Integer> ends = gcp.getExonEnds();
 			
-			mRNA e = new mRNA();
-			e.setChromosome(gcp.getChromosome());
-			
-			// set the orientation of the DNA strand
-			switch (gcp.getOrientation()) {
-			case '+':
-				e.setOrientation(StrandOrientation.FORWARD);
-				break;
-			case '-':
-				e.setOrientation(StrandOrientation.REVERSE);
-				break;
+			List<Exon> exons = new ArrayList<Exon>();
+			for ( int i=0; i < starts.size(); i++ ) {
+				Exon e = new Exon();
+				e.setStart(starts.get(i));
+				e.setEnd(ends.get(i));
+				exons.add(e);
 			}
+			gene.setExons(exons);
 			
-			// get the mRNA sequence from DNA sequence for a given gene
-			for (int i=0; i < starts.size(); i++) {
-				
-				// set the exon boundaries for a gene
-				mRNA e = new mRNA(starts.get(i), ends.get(i));
-				
+			// DNA sequence covered by a gene: exons and introns
+			Integer start = starts.get(0);
+			Integer end = ends.get(ends.size()-1);
+			
+			int len = end - start;
+			sequence = parser.loadFragment(start-1, len);
+			gene.setDNASequence(sequence);
 
-				
-				
-				// set the DNA sequence
-				int len = ends.get(i) - starts.get(i);
-				String sequence = parser.loadFragment(starts.get(i) - 1, len);
-				e.setDNASequence(sequence);
-				
-				
-			}
-			
-			exons.add(e);
+			genes.add(gene);
 		}
-		return exons;
+		return genes;
 	}
 	
-	public static List<mRNA> filterExonsHavingPosition(List<mRNA> exons, long position) {
-		List<mRNA> filtered = exons.stream().filter(t -> (t.getStart() <= position 
-				&& t.getEnd() >= position)).collect(Collectors.toList());
+	public static List<Gene> getGenesAtPosition(List<Gene> genes, long position) {
+		
+		List<Gene> filtered = new ArrayList<Gene>();
+		for (Gene gene : genes) {
+			List<Exon> exons = gene.getExons();
+			for (Exon exon : exons) {
+				if ( (exon.getStart() <= position) && (position <= exon.getEnd()) ) {
+					filtered.add(gene);
+					break;
+				}
+			}
+		}
 		return filtered; 
 	}
 	
-	public static List<mRNA> getExonBoundariesForPosition(String chr, long position) throws Exception {
-		List<mRNA> exons = getExonsFromChromosome(chr);
-		return filterExonsHavingPosition(exons, position);
+	public static List<Gene> getExonBoundariesForPosition(String chr, long position) throws Exception {
+		List<Gene> exons = getGenesFromChromosome(chr);
+		return getGenesAtPosition(exons, position);
 	}
 	
 	public String readBaseFromChromosome(long position) throws Exception {
@@ -135,5 +149,4 @@ public class GenomeDataProvider {
 	public static String readDNASequenceFromChromosome(long startPos, long endPos) {
 		return null;		
 	}
-
 }
