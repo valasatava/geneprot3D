@@ -5,7 +5,7 @@ package org.rcsb.genevariation.constants;
  * 
  * @author Yana Valasatava
  */
-public enum Orientation {
+public enum StrandOrientation {
 	/**
 	 * A gene can live on a DNA strand in one of two orientations: forward ("+") and reverse ("-").
 	 * 
