@@ -11,7 +11,7 @@ import org.rcsb.genevariation.constants.StrandOrientation;
  * 
  * @author Yana Valasatava
  */
-public class TestExon {
+public class TestTranscript {
 	
 	/**
 	 * Test the method to set a forward DNA sequence
@@ -21,11 +21,11 @@ public class TestExon {
 	public void testSetForwardDNASequence() throws CompoundNotFoundException {
 		
 		String dnaSequence = "ATTCG";
-		Gene exon = new Gene();
-		exon.setOrientation(StrandOrientation.FORWARD);
-		exon.setDNASequence(dnaSequence);
+		Transcript transcript = new Transcript();
+		transcript.setOrientation(StrandOrientation.FORWARD);
+		transcript.setDNASequence(dnaSequence);
 		
-		String exonSequence = exon.getDNASequenceAsString();
+		String exonSequence = transcript.getDNASequenceAsString();
 		assertEquals(dnaSequence, exonSequence);
 	}
 	
@@ -40,11 +40,11 @@ public class TestExon {
 		//String dnaComplement = "TAAGC";
 		String dnaComplementRev = "CGAAT";
 				
-		Gene exon = new Gene();
-		exon.setOrientation(StrandOrientation.REVERSE);
-		exon.setDNASequence(dnaSequence);
+		Transcript transcript = new Transcript();
+		transcript.setOrientation(StrandOrientation.REVERSE);
+		transcript.setDNASequence(dnaSequence);
 		
-		String exonSequence = exon.getDNASequenceAsString();
+		String exonSequence = transcript.getDNASequenceAsString();
 		assertEquals(dnaComplementRev, exonSequence);
 	}
 }

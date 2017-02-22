@@ -31,11 +31,22 @@ public class Test {
 	
 	public static void main(String[] args) throws IOException {
 		
-		test();
+		testSPAT();
 		//testChromosomeSNPFilter("21");
 		
 		//testSNPFilter();
 		//testInsertionFilter();
+	}
+
+	public static void testSPAT() {
+		List<SPA> all = new ArrayList<>();
+		for (int i=1; i<5; i++) {
+			 SPA snp = new SPA();
+			 all.add(snp);
+		}
+		
+		Dataset<Row> snp = SaprkUtils.getSparkSession().createDataFrame(all, SPA.class);
+		snp.show();
 	}
 	
 	public static void test() {

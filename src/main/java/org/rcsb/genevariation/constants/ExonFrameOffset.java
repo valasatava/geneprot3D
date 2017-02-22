@@ -5,7 +5,7 @@ package org.rcsb.genevariation.constants;
  * 
  * @author Yana Valasatava
  */
-public enum StartPhase {
+public enum ExonFrameOffset {
 	/**
 	 * Phase the start phase is the place where the intron lands inside the codon: 
 	 * 0 between codons, 
@@ -18,7 +18,7 @@ public enum StartPhase {
 	
 	private final int value;
 
-	StartPhase(final int val) {
+	ExonFrameOffset(final int val) {
         value = val;
     }
     public int getValue() { return value; }

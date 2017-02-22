@@ -9,7 +9,9 @@ import java.util.List;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.rcsb.genevariation.constants.StrandOrientation;
 import org.rcsb.genevariation.datastructures.Gene;
+import org.rcsb.genevariation.datastructures.Transcript;
 import org.rcsb.genevariation.datastructures.Variant;
 import org.rcsb.genevariation.io.GenomeDataProvider;
 import org.rcsb.genevariation.io.PDBDfDataProvider;
@@ -18,7 +20,7 @@ import org.rcsb.genevariation.utils.DataProviderFilterChromosome;
 import org.rcsb.genevariation.utils.DataProviderFilterSNP;
 import org.rcsb.genevariation.utils.IDataProviderFilter;
 
-public class ReadVcfData {
+public class ProcessDataVCF {
 
 	private final static String userHome = System.getProperty("user.home");
 
@@ -34,39 +36,36 @@ public class ReadVcfData {
 		String path = userHome + "/data/genevariation/common_and_clinical_20170130.vcf";
 		Path file = Paths.get(path);
 
-		VariantsDataProvider vdp = new VariantsDataProvider();
-		vdp.readVariantsFromVCF(file);
+//		VariantsDataProvider vdp = new VariantsDataProvider();
+//		vdp.readVariantsFromVCF(file);
 		
 		System.out.println("Time to read VCF file: " + (System.nanoTime() - start)/1E9 + " sec.");
 		long start2 = System.nanoTime();
 		
-		String chrN = "17";
+		String chrN = "14";
 		
-		IDataProviderFilter dataFilterChr = new DataProviderFilterChromosome(chrN);
-		IDataProviderFilter dataFilterVar = new DataProviderFilterSNP();
+//		IDataProviderFilter dataFilterChr = new DataProviderFilterChromosome(chrN);
+//		IDataProviderFilter dataFilterVar = new DataProviderFilterSNP();
+//		
+//		vdp.setVariants(vdp.getVariantsByFilter(dataFilterChr));
+//		vdp.setVariants(vdp.getVariantsByFilter(dataFilterVar));
+//		
+//		Iterator<Variant> vars = vdp.getAllVariants();
 		
-		vdp.setVariants(vdp.getVariantsByFilter(dataFilterChr));
-		vdp.setVariants(vdp.getVariantsByFilter(dataFilterVar));
-		
+		int i = 0;
+		// Get all genes from a given chromosome
 		List<Gene> genes = GenomeDataProvider.getGenesFromChromosome(chrN);
 		for (Gene gene : genes) {
-			System.out.println(gene.getName() + " " + gene.getDNASequenceAsString());
-		}
-		
-		Iterator<Variant> vars = vdp.getAllVariants();
-		while (vars.hasNext()) {
-			Variant v = vars.next();		
+ 
 		}
 		
 		System.out.println("Time to filter the variation data: " + (System.nanoTime() - start2)/1E9 + " sec.");
 		long start3 = System.nanoTime();
 		
-		Dataset<Row> chromosome = PDBDfDataProvider.readChromosome(chrN);
+//		Dataset<Row> chromosome = PDBDfDataProvider.readChromosome(chrN);
 		
 		System.out.println("Time to get chromosome data: " + (System.nanoTime() - start3)/1E9 + " sec.");
-		
-		
-		
+
 		System.out.println("DONE!");
 		System.out.println("Total time: " + (System.nanoTime() - start)/1E9 + " sec.");
 		

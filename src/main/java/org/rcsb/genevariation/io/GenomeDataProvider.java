@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.biojava.nbio.core.util.InputStreamProvider;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
@@ -13,6 +14,7 @@ import org.biojava.nbio.genome.parsers.twobit.TwoBitParser;
 import org.rcsb.genevariation.constants.StrandOrientation;
 import org.rcsb.genevariation.datastructures.Exon;
 import org.rcsb.genevariation.datastructures.Gene;
+import org.rcsb.genevariation.datastructures.Transcript;
 
 /**
  * This class provides methods to retrieve genetic data from files.
@@ -57,9 +59,9 @@ public class GenomeDataProvider {
 	}
 	
 	/**
-	 * Gets a List of Exon instances.
-	 * @throws Exception 
+	 * Gets a list of genes on a given chromosome
 	 * 
+	 * @throws Exception
 	 */
 	public static List<Gene> getGenesFromChromosome(String chr) throws Exception {
 		
@@ -80,22 +82,28 @@ public class GenomeDataProvider {
 			if ( !gcp.getChromosome().equals("chr"+chr) ) {
 				continue;
 			}
-			
-			Gene gene = new Gene();
-			gene.setChromosome(gcp.getChromosome());
-			
-			gene.setName(gcp.getGeneName());
-			gene.setCodingStart(gcp.getCdsStart());
-			gene.setCodingEnd(gcp.getCdsEnd());
-			
-			switch (gcp.getOrientation()) {
-			case '+':
-				gene.setOrientation(StrandOrientation.FORWARD);
-				break;
-			case '-':
-				gene.setOrientation(StrandOrientation.REVERSE);
-				break;
+
+			if ( !gcp.getGeneName().contains("HHIPL1") ) {
+				continue;
 			}
+			
+			Gene gene;
+			List<Gene> gList = genes.stream().filter(t -> t.getName().equals(gcp.getGeneName())).collect(Collectors.toList());
+			if ( gList.size() == 0 ) {
+				gene = new Gene();
+				gene.setChromosome(gcp.getChromosome());
+				gene.setName(gcp.getGeneName());
+				genes.add(gene);
+			}
+			else {
+				gene = gList.get(0);
+			}
+			
+			Transcript transcript = new Transcript();
+			transcript.setGeneBankId(gcp.getGenebankId());
+			
+			transcript.setCodingStart(gcp.getCdsStart());
+			transcript.setCodingEnd(gcp.getCdsEnd());
 			
 			List<Integer> starts = gcp.getExonStarts();
 			List<Integer> ends = gcp.getExonEnds();
@@ -107,17 +115,25 @@ public class GenomeDataProvider {
 				e.setEnd(ends.get(i));
 				exons.add(e);
 			}
-			gene.setExons(exons);
+			transcript.setExons(exons);
 			
+			switch (gcp.getOrientation()) {
+			case '+':
+				transcript.setOrientation(StrandOrientation.FORWARD);
+				break;
+			case '-':
+				transcript.setOrientation(StrandOrientation.REVERSE);
+				break;
+			}	
 			// DNA sequence covered by a gene: exons and introns
 			Integer start = starts.get(0);
 			Integer end = ends.get(ends.size()-1);
 			
 			int len = end - start;
-			sequence = parser.loadFragment(start-1, len);
-			gene.setDNASequence(sequence);
-
-			genes.add(gene);
+			sequence = parser.loadFragment(start, len);
+			transcript.setDNASequence(sequence);
+			
+			gene.addTranscript(transcript);
 		}
 		return genes;
 	}
@@ -126,20 +142,19 @@ public class GenomeDataProvider {
 		
 		List<Gene> filtered = new ArrayList<Gene>();
 		for (Gene gene : genes) {
-			List<Exon> exons = gene.getExons();
-			for (Exon exon : exons) {
-				if ( (exon.getStart() <= position) && (position <= exon.getEnd()) ) {
-					filtered.add(gene);
-					break;
+			
+			List<Transcript> transcripts = gene.getTranscripts();
+			for (Transcript transcript : transcripts) {
+				List<Exon> exons = transcript.getExons();
+				for (Exon exon : exons) {
+					if ( (exon.getStart() <= position) && (position <= exon.getEnd()) ) {
+						filtered.add(gene);
+						break;
+					}
 				}
 			}
 		}
 		return filtered; 
-	}
-	
-	public static List<Gene> getExonBoundariesForPosition(String chr, long position) throws Exception {
-		List<Gene> exons = getGenesFromChromosome(chr);
-		return getGenesAtPosition(exons, position);
 	}
 	
 	public String readBaseFromChromosome(long position) throws Exception {
