@@ -37,7 +37,7 @@ public class VariantsDataProvider {
 
 		VcfParser parser = new VcfParser.Builder().fromFile(filepath).parseWith((metadata, position, sampleData) -> {
 			
-			String chromosome = position.getChromosome();
+			String chromosome = "chr"+position.getChromosome();
 			long pos = position.getPosition();
 			String ref = position.getRef();
 			List<String> alts = position.getAltBases();

@@ -1,6 +1,7 @@
 package org.rcsb.genevariation.io;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
@@ -58,6 +59,16 @@ public class GenomeDataProvider {
 		}
 	}
 	
+	public static List<GeneChromosomePosition> getGeneChromosomePositions() throws IOException {
+		
+		URL url = new URL(DEFAULT_MAPPING_URL);
+
+		InputStreamProvider prov = new InputStreamProvider();
+		InputStream inStream = prov.getInputStream(url);
+		
+		return GeneChromosomePositionParser.getChromosomeMappings(inStream);
+	}
+	
 	/**
 	 * Gets a list of genes on a given chromosome
 	 * 
@@ -67,16 +78,11 @@ public class GenomeDataProvider {
 		
 		readGenome();
 		setChromosome(chr);
-		
-		URL url = new URL(DEFAULT_MAPPING_URL);
 
-		InputStreamProvider prov = new InputStreamProvider();
-		InputStream inStream = prov.getInputStream(url);
-		
 		List<Gene> genes = new ArrayList<Gene>();
-		List<GeneChromosomePosition> gcps = GeneChromosomePositionParser.getChromosomeMappings(inStream);
 		
-		String sequence;
+		List<GeneChromosomePosition> gcps = getGeneChromosomePositions();
+		
 		for (GeneChromosomePosition gcp : gcps) {
 			
 			if ( !gcp.getChromosome().equals("chr"+chr) ) {
@@ -130,7 +136,7 @@ public class GenomeDataProvider {
 			Integer end = ends.get(ends.size()-1);
 			
 			int len = end - start;
-			sequence = parser.loadFragment(start, len);
+			String sequence = parser.loadFragment(start, len);
 			transcript.setDNASequence(sequence);
 			
 			gene.addTranscript(transcript);
@@ -138,21 +144,11 @@ public class GenomeDataProvider {
 		return genes;
 	}
 	
-	public static List<Gene> getGenesAtPosition(List<Gene> genes, long position) {
+	public static List<Transcript> getGeneChromosomePositionsForCoordinate(long coordinate, List<Transcript> gcps) {
 		
-		List<Gene> filtered = new ArrayList<Gene>();
-		for (Gene gene : genes) {
-			
-			List<Transcript> transcripts = gene.getTranscripts();
-			for (Transcript transcript : transcripts) {
-				List<Exon> exons = transcript.getExons();
-				for (Exon exon : exons) {
-					if ( (exon.getStart() <= position) && (position <= exon.getEnd()) ) {
-						filtered.add(gene);
-						break;
-					}
-				}
-			}
+		List<Transcript> filtered = new ArrayList<Transcript>();
+		for (Transcript gcp : gcps) {
+			//ChromosomeMappingTools.getCDSPosForChromosomeCoordinate(coordinate, gcp);
 		}
 		return filtered; 
 	}

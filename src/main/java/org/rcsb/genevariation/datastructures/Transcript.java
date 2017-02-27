@@ -11,13 +11,36 @@ import org.rcsb.genevariation.constants.StrandOrientation;
 
 public class Transcript {
 	
+	private String chromosomeName; // e.g., chr21
+	private String geneName;
 	private String geneBankId;
+	
+	private StrandOrientation orientation;
+	
+	private int exonsCount;
+	private List<Exon> exons;
+	
 	private int codingStart;
 	private int codingEnd;
-	private List<Exon> exons;
-	private StrandOrientation orientation;
+	
 	private DNASequence sequence;
 	
+	public String getChromosomeName() {
+		return chromosomeName;
+	}
+
+	public void setChromosomeName(String chromosomeName) {
+		this.chromosomeName = chromosomeName;
+	}
+
+	public String getGeneName() {
+		return geneName;
+	}
+
+	public void setGeneName(String geneName) {
+		this.geneName = geneName;
+	}
+
 	public String getGeneBankId() {
 		return geneBankId;
 	}
@@ -50,6 +73,18 @@ public class Transcript {
 		this.exons = exons;
 	}
 	
+	public int getExonsCount() {
+		return exonsCount;
+	}
+	
+	public void setExonsCount() {
+		this.exonsCount = exons.size();
+	}
+	
+	public void setExonsCount(int exonsCount) {
+		this.exonsCount = exonsCount;
+	}
+
 	public int getExonNumber() {
 		return exons.size();
 	}
@@ -79,6 +114,15 @@ public class Transcript {
 	
 	public StrandOrientation getOrientation() {
 		return orientation;
+	}
+	
+	public void setOrientation(String orientation) {
+		if (orientation.equals("+")) {
+			this.orientation = StrandOrientation.FORWARD;
+		}
+		else {
+			this.orientation = StrandOrientation.REVERSE;
+		}
 	}
 	
 	public void setOrientation(StrandOrientation orientation) {

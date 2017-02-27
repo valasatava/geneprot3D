@@ -11,7 +11,7 @@ public class DataProviderFilterChromosome implements IDataProviderFilter {
 
 	@Override
 	public boolean filter(Variant variant) {
-		if ( variant.getChromosome().equals(chr) ) { 
+		if ( variant.getChromosomeName().equals(chr) ) { 
 			return true;
 		}
 		return false;

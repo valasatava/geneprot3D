@@ -16,7 +16,7 @@ public class VariantImpl implements Variant {
 		setType(type);
 	}
 
-	public String getChromosome() {
+	public String getChromosomeName() {
 		return chromosome;
 	}
 	public void setChromosome(String chromosome) {
@@ -39,5 +39,15 @@ public class VariantImpl implements Variant {
 
 	@Override
 	public void setVariation(String ref, String alt) {
+	}
+
+	@Override
+	public String getRefBase() {
+		return "";
+	}
+
+	@Override
+	public String getAltBase() {
+		return "";
 	}
 }

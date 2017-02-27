@@ -31,7 +31,10 @@ public class Insertion extends VariantImpl {
 	public String getRefBase() {
 		return refBase;
 	}
-	public String[] getAltBase() {
+	public String[] getAltBaseArray() {
 		return insBases;
+	}
+	public String getAltBase() {
+		return insBases.toString();
 	}
 }

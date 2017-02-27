@@ -23,6 +23,24 @@ public class Exon {
 	public ExonFrameOffset getPhase() {
 		return phase;
 	}
+	
+	public void setPhase(int phase) {
+		switch (phase) {
+			case -1:
+				this.phase = ExonFrameOffset.PHASE_UTR;
+				break;
+			case 0:
+				this.phase = ExonFrameOffset.PHASE_ZERO;
+				break;
+			case 1:
+				this.phase = ExonFrameOffset.PHASE_ONE;
+				break;
+			case 2:
+				this.phase = ExonFrameOffset.PHASE_TWO;
+				break;
+		}
+	}
+	
 	public void setPhase(ExonFrameOffset phase) {
 		this.phase = phase;
 	}

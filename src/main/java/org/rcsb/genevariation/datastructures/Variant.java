@@ -4,10 +4,12 @@ import org.rcsb.genevariation.constants.VariantType;
 
 public interface Variant {
 	
-	String getChromosome();
+	String getChromosomeName();
 	long getPosition();
 	VariantType getType();
 	
 	void setVariation(String ref, String alt);
-
+	
+	String getRefBase();
+	String getAltBase();
 }
