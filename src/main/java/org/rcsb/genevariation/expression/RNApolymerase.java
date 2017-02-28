@@ -7,6 +7,8 @@ import java.util.List;
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.RNASequence;
+import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
+import org.biojava.nbio.core.sequence.template.SequenceView;
 import org.biojava.nbio.genome.parsers.twobit.TwoBitParser;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.rcsb.genevariation.constants.StrandOrientation;
@@ -54,7 +56,7 @@ public class RNApolymerase {
 		}
 	}
 	
-	public static int getmRNAPositionForGeneticCoordinate(int coordinate, Transcript transcript) {
+	public int getmRNAPositionForGeneticCoordinate(int coordinate, Transcript transcript) {
 		
 		if ( transcript.getOrientation().equals(StrandOrientation.FORWARD)) {
         	return ChromosomeMappingTools.getCDSPosForward(coordinate,
@@ -72,19 +74,16 @@ public class RNApolymerase {
 	
 	public static RNASequence getmRNAsequence(Transcript transcript) throws CompoundNotFoundException {
 		
-		
 		DNASequence dna = new DNASequence("");
 		return dna.getRNASequence();
 		
 	}
 	
-	public String getCodingCodon(int coordinate, Transcript transcript) throws IOException {
+	public String getCodon(int cds, String codingSequence) throws IOException {
 		
-		int cds = getmRNAPositionForGeneticCoordinate(coordinate, transcript);
-		String codingSequence = getCodingSequence(transcript);
+		int offset = cds%3;
 		
 		CharSequence codon = "";
-		int offset = cds%3;
 		if (offset==0) {
 			codon = codingSequence.subSequence(cds-3, cds);
 		}
@@ -97,7 +96,7 @@ public class RNApolymerase {
 		return codon.toString();
 	}
 	
-	public String getCodingSequence(Transcript transcript) throws IOException {
+	public String getCodingSequence(Transcript transcript) throws IOException, CompoundNotFoundException {
 		
 		List<Range<Integer>> cdsRegion = ChromosomeMappingTools.getCDSRegionsReverse(transcript.getExonStarts(), transcript.getExonEnds(), 
 				transcript.getCodingStart(), transcript.getCodingEnd());
@@ -106,6 +105,12 @@ public class RNApolymerase {
 		for (Range<Integer> range : cdsRegion) {
 			int length = range.upperEndpoint() - range.lowerEndpoint();
 			transcription += parser.loadFragment(range.lowerEndpoint(), length);
+		}
+		if (transcript.getOrientation().equals(StrandOrientation.REVERSE)) {
+			transcription = new StringBuilder(transcription).reverse().toString();
+			DNASequence dna = new DNASequence(transcription);
+			SequenceView<NucleotideCompound> compliment = dna.getComplement();
+			transcription = compliment.getSequenceAsString();
 		}
 		return transcription;
 	}
