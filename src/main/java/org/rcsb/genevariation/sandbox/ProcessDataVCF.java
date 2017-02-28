@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
-import org.apache.spark.sql.SparkSession;
 import org.rcsb.genevariation.constants.StrandOrientation;
 import org.rcsb.genevariation.datastructures.Mutation;
 import org.rcsb.genevariation.datastructures.Transcript;
@@ -23,6 +22,7 @@ import org.rcsb.genevariation.parser.GenePredictionsParser;
 import org.rcsb.genevariation.utils.DataProviderFilterChromosome;
 import org.rcsb.genevariation.utils.DataProviderFilterSNP;
 import org.rcsb.genevariation.utils.IDataProviderFilter;
+import org.rcsb.genevariation.utils.SaprkUtils;
 import org.rcsb.genevariation.utils.VariationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,18 +122,7 @@ public class ProcessDataVCF {
 			allMutations.addAll(mutations);
 		}
 
-		int cores = Runtime.getRuntime().availableProcessors();
-		SparkSession sparkSession = SparkSession
-				.builder()
-				.master("local[" + cores + "]")
-				.appName("My Application")
-				// the default in spark 2 seems to be 1g (see http://spark.apache.org/docs/latest/configuration.html) - JD 2016-10-06
-				.config("spark.driver.maxResultSize", "4g")
-				.config("spark.executor.memory", "4g")
-				.config("spark.debug.maxToStringFields",80)
-				.getOrCreate();
-
-		Dataset<Row> mydf = sparkSession.createDataFrame(allMutations, Mutation.class);
+		Dataset<Row> mydf = SaprkUtils.getSparkSession().createDataFrame(allMutations, Mutation.class);
 		mydf.write().mode(SaveMode.Overwrite).parquet(userHome + "/data/genevariation/mutations");
 
 		System.out.println("DONE!");
