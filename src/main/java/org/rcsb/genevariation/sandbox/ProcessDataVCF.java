@@ -17,11 +17,11 @@ import org.rcsb.genevariation.datastructures.Transcript;
 import org.rcsb.genevariation.datastructures.Variant;
 import org.rcsb.genevariation.expression.RNApolymerase;
 import org.rcsb.genevariation.expression.Ribosome;
+import org.rcsb.genevariation.filters.DataProviderFilterChromosome;
+import org.rcsb.genevariation.filters.DataProviderFilterSNP;
+import org.rcsb.genevariation.filters.IDataProviderFilter;
 import org.rcsb.genevariation.io.VariantsDataProvider;
 import org.rcsb.genevariation.parser.GenePredictionsParser;
-import org.rcsb.genevariation.utils.DataProviderFilterChromosome;
-import org.rcsb.genevariation.utils.DataProviderFilterSNP;
-import org.rcsb.genevariation.utils.IDataProviderFilter;
 import org.rcsb.genevariation.utils.SaprkUtils;
 import org.rcsb.genevariation.utils.VariationUtils;
 import org.slf4j.Logger;
@@ -61,13 +61,10 @@ public class ProcessDataVCF {
 
 				if ( ( variant.getPosition() >= transcript.getCodingStart() ) && (variant.getPosition() <= transcript.getCodingEnd()) ) {
 
-//					System.out.println(transcript.getGeneName() + " " + transcript.getGeneBankId());
-//					System.out.println(transcript.getChromosomeName() + " "  + variant.getRefBase() + " -> "+ variant.getAltBase() + " " 
-//							+ variant.getPosition());
 					int mRNApos = polymerase.getmRNAPositionForGeneticCoordinate((int) variant.getPosition(), transcript);
-					if (mRNApos == -1) {
+					if (mRNApos == -1)
 						continue;
-					}
+					
 					String codingSequence = polymerase.getCodingSequence(transcript);
 					String codon = polymerase.getCodon(mRNApos, codingSequence);
 

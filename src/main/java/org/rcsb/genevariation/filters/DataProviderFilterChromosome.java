@@ -1,4 +1,4 @@
-package org.rcsb.genevariation.utils;
+package org.rcsb.genevariation.filters;
 
 import org.rcsb.genevariation.datastructures.Variant;
 

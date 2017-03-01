@@ -57,4 +57,18 @@ public class VariationUtils {
 		}
 		return codonMut;
 	}
+	
+	public static String reverseComplimentaryBase(String base) {	
+		switch (base) {
+			case "A":
+				return "T";
+			case "T":
+				return "A";
+			case "G":
+				return "C";
+			case "C":
+				return "G";
+		}
+		return "";
+	}
 }

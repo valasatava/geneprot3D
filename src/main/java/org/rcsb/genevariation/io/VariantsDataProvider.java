@@ -13,8 +13,10 @@ import org.rcsb.genevariation.datastructures.Insertion;
 import org.rcsb.genevariation.datastructures.Monomorphism;
 import org.rcsb.genevariation.datastructures.SNP;
 import org.rcsb.genevariation.datastructures.Variant;
-import org.rcsb.genevariation.utils.IDataProviderFilter;
+import org.rcsb.genevariation.filters.IDataProviderFilter;
 import org.rcsb.genevariation.utils.VariationUtils;
+
+import com.google.common.collect.ListMultimap;
 
 /**
  * This class provides methods to retrieve variation data from files.
@@ -41,7 +43,7 @@ public class VariantsDataProvider {
 			long pos = position.getPosition();
 			String ref = position.getRef();
 			List<String> alts = position.getAltBases();
-			
+
 			for (String alt : alts) {
 
 				Variant variant = null;
@@ -50,6 +52,13 @@ public class VariantsDataProvider {
 				switch (type) {
 				case SNP:
 					variant = new SNP(chromosome, pos, type);
+					
+					ListMultimap<String, String> inf = position.getInfo();
+					if (inf.asMap().containsKey("RV")) {
+						ref = VariationUtils.reverseComplimentaryBase(ref);
+						alt = VariationUtils.reverseComplimentaryBase(alt);
+					}
+					
 					break;
 				
 				case MONOMORPHIC:
@@ -69,7 +78,6 @@ public class VariantsDataProvider {
 					break;
 				}
 				variant.setVariation(ref, alt);
-				
 				addVariant(variant);
 			}
 		}).build();

@@ -143,16 +143,7 @@ public class GenomeDataProvider {
 		}
 		return genes;
 	}
-	
-	public static List<Transcript> getGeneChromosomePositionsForCoordinate(long coordinate, List<Transcript> gcps) {
 		
-		List<Transcript> filtered = new ArrayList<Transcript>();
-		for (Transcript gcp : gcps) {
-			//ChromosomeMappingTools.getCDSPosForChromosomeCoordinate(coordinate, gcp);
-		}
-		return filtered; 
-	}
-	
 	public String readBaseFromChromosome(long position) throws Exception {
 		return parser.loadFragment(position-1, 1);
 	}
