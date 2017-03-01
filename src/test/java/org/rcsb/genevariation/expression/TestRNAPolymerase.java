@@ -12,7 +12,8 @@ import org.rcsb.genevariation.parser.GenePredictionsParser;
 public class TestRNAPolymerase {
 	
 	/**
-	 * Test 
+	 * Test that RNAPolymerase class correctly gets coding sequence.
+	 * 
 	 * @throws Exception 
 	 */
 	@Test

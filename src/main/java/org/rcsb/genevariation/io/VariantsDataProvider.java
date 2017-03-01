@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.pharmgkb.parser.vcf.VcfParser;
 import org.rcsb.genevariation.constants.VariantType;
 import org.rcsb.genevariation.datastructures.Deletion;
@@ -14,6 +16,7 @@ import org.rcsb.genevariation.datastructures.Monomorphism;
 import org.rcsb.genevariation.datastructures.SNP;
 import org.rcsb.genevariation.datastructures.Variant;
 import org.rcsb.genevariation.filters.IDataProviderFilter;
+import org.rcsb.genevariation.utils.SaprkUtils;
 import org.rcsb.genevariation.utils.VariationUtils;
 
 import com.google.common.collect.ListMultimap;
@@ -35,6 +38,11 @@ public class VariantsDataProvider {
 		this.variants.add(variant);
 	}
 	
+	/** 
+	 * The method reads VCF file and builds a library of variations.
+	 * 
+	 * @param File path to VCF file as Path.
+	 */
 	public void readVariantsFromVCF(Path filepath) throws IOException {
 
 		VcfParser parser = new VcfParser.Builder().fromFile(filepath).parseWith((metadata, position, sampleData) -> {
@@ -52,13 +60,12 @@ public class VariantsDataProvider {
 				switch (type) {
 				case SNP:
 					variant = new SNP(chromosome, pos, type);
-					
+					// RV metadata tells if the variation is called on the reverse gene
 					ListMultimap<String, String> inf = position.getInfo();
 					if (inf.asMap().containsKey("RV")) {
 						ref = VariationUtils.reverseComplimentaryBase(ref);
 						alt = VariationUtils.reverseComplimentaryBase(alt);
 					}
-					
 					break;
 				
 				case MONOMORPHIC:
@@ -122,5 +129,16 @@ public class VariantsDataProvider {
 			Variant variant = variants.next();
 			this.variants.add(variant);
 		}
+	}
+	
+	public static Dataset<Row> getMissenseVariationDF(String path) {
+		
+        Dataset<Row> mutations = SaprkUtils.getSparkSession().read().parquet(path);
+        mutations.createOrReplaceTempView("mutations");
+        
+        Dataset<Row> missense = mutations.filter(mutations.col("refAA").notEqual(mutations.col("mutAA")));
+        missense.createOrReplaceTempView("missense");
+        
+        return missense;
 	}
 }

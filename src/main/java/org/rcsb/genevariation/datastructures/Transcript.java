@@ -3,10 +3,6 @@ package org.rcsb.genevariation.datastructures;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
-import org.biojava.nbio.core.sequence.DNASequence;
-import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
-import org.biojava.nbio.core.sequence.template.SequenceView;
 import org.rcsb.genevariation.constants.StrandOrientation;
 
 public class Transcript {
@@ -22,8 +18,6 @@ public class Transcript {
 	
 	private int codingStart;
 	private int codingEnd;
-	
-	private DNASequence sequence;
 	
 	public String getChromosomeName() {
 		return chromosomeName;
@@ -127,31 +121,5 @@ public class Transcript {
 	
 	public void setOrientation(StrandOrientation orientation) {
 		this.orientation = orientation;
-	}
-	
-	public DNASequence getDNASequence() {
-		return sequence;
-	}
-	
-	public String getDNASequenceAsString() {
-		return sequence.getSequenceAsString();
-	}
-	
-	public void setDNASequence(String sequence) throws CompoundNotFoundException {
-		
-		DNASequence dna = new DNASequence(sequence);
-		
-		if (getOrientation().equals(StrandOrientation.FORWARD)) {
-			this.sequence = dna;
-		}
-		else if (getOrientation().equals(StrandOrientation.REVERSE)) {
-			SequenceView<NucleotideCompound> reverse = dna.getReverseComplement();
-			String reverseSequence = reverse.getSequenceAsString();
-			this.sequence = new DNASequence(reverseSequence);
-		}
-	}
-	
-	public void setDNASequence(DNASequence sequence) {
-		this.sequence = sequence;
 	}
 }

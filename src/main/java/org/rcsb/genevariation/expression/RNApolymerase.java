@@ -20,8 +20,7 @@ public class RNApolymerase {
 	
 	static TwoBitParser parser;
 	private final static String userHome = System.getProperty("user.home");
-	private final static String DEFAULT_GENOME_URI = userHome+"/data/genevariation/hg38.2bit";
-	
+	private final static String DEFAULT_GENOME_URI = userHome+"/data/genevariation/hg38.2bit";	
 	public static final String DEFAULT_MAPPING_URL="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refGene.txt.gz";
 	
 	public RNApolymerase() throws Exception {
@@ -34,8 +33,7 @@ public class RNApolymerase {
 	}
 	
 	/**
-	 * Reads a genome from a locally stored .2bit file (hard-coded URI).
-	 * 
+	 * Reads a genome from a locally stored .2bit file (hard-coded URI). 
 	 */
 	private static void readGenome() throws Exception {
 		File f = new File(DEFAULT_GENOME_URI);
@@ -45,7 +43,7 @@ public class RNApolymerase {
 	/**
 	 * Sets a chromosome number for TwoBitParser.
 	 */
-	public static void setChromosome(String chr) throws Exception {
+	public void setChromosome(String chr) throws Exception {
 		
 		String[] names = parser.getSequenceNames();
 		for(int i=0;i<names.length;i++) {
@@ -72,11 +70,10 @@ public class RNApolymerase {
         		transcript.getCodingEnd());
 	}
 	
-	public static RNASequence getmRNAsequence(Transcript transcript) throws CompoundNotFoundException {
-		
-		DNASequence dna = new DNASequence("");
+	public RNASequence getmRNAsequence(Transcript transcript) throws CompoundNotFoundException, IOException {
+		String cs = this.getCodingSequence(transcript);
+		DNASequence dna = new DNASequence(cs);
 		return dna.getRNASequence();
-		
 	}
 	
 	public String getCodon(int cds, String codingSequence) throws IOException {

@@ -84,15 +84,7 @@ public class GenomeDataProvider {
 		List<GeneChromosomePosition> gcps = getGeneChromosomePositions();
 		
 		for (GeneChromosomePosition gcp : gcps) {
-			
-			if ( !gcp.getChromosome().equals("chr"+chr) ) {
-				continue;
-			}
-
-			if ( !gcp.getGeneName().contains("HHIPL1") ) {
-				continue;
-			}
-			
+						
 			Gene gene;
 			List<Gene> gList = genes.stream().filter(t -> t.getName().equals(gcp.getGeneName())).collect(Collectors.toList());
 			if ( gList.size() == 0 ) {
@@ -131,14 +123,6 @@ public class GenomeDataProvider {
 				transcript.setOrientation(StrandOrientation.REVERSE);
 				break;
 			}	
-			// DNA sequence covered by a gene: exons and introns
-			Integer start = starts.get(0);
-			Integer end = ends.get(ends.size()-1);
-			
-			int len = end - start;
-			String sequence = parser.loadFragment(start, len);
-			transcript.setDNASequence(sequence);
-			
 			gene.addTranscript(transcript);
 		}
 		return genes;
