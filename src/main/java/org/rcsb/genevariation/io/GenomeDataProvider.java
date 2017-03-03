@@ -22,14 +22,12 @@ import org.rcsb.genevariation.datastructures.Transcript;
  * 
  * @author Yana Valasatava
  */
-public class GenomeDataProvider {
+public class GenomeDataProvider extends DataProvider {
 	
 	static TwoBitParser parser;
 	
-	private final static String userHome = System.getProperty("user.home");
-	private final static String DEFAULT_GENOME_URI = userHome+"/data/genevariation/hg38.2bit";
-	
-	public static final String DEFAULT_MAPPING_URL="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refFlat.txt.gz";
+	private final static String DEFAULT_GENOME_URI = getProjecthome()+"hg38.2bit";
+	private static final String DEFAULT_MAPPING_URL="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refFlat.txt.gz";
 	
 	public static void readTwoBitFile(String path) throws Exception {
 		File f = new File(path);

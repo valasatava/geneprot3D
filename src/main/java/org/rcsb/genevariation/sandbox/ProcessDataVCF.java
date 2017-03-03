@@ -79,9 +79,10 @@ public class ProcessDataVCF {
 
 					Mutation mutation = new Mutation();
 					mutation.setChromosomeName(chrName);
+					mutation.setGeneBankId(transcript.getGeneBankId());
 					mutation.setPosition(variant.getPosition());
-					mutation.setRefAA(Ribosome.getCodingAminoAcid(codon));
-					mutation.setMutAA(Ribosome.getCodingAminoAcid(codonM));
+					mutation.setRefAminoAcid(Ribosome.getCodingAminoAcid(codon));
+					mutation.setMutAminoAcid(Ribosome.getCodingAminoAcid(codonM));
 					allMutations.add(mutation);
 				}
 			}
@@ -90,9 +91,9 @@ public class ProcessDataVCF {
 		System.out.println("Time to map chromosome coordinates to mRNA positions: " + (System.nanoTime() - start4) / 1E9 + " sec.");
 		return allMutations;
 	}
-
-	public static void main(String[] args) throws Exception {
-
+	
+	public static void run() throws Exception {
+		
 		logger.info("Started...");
 		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
 		System.out.println("Job ID:" + timeStamp);
@@ -122,5 +123,15 @@ public class ProcessDataVCF {
 
 		System.out.println("DONE!");
 		System.out.println("Total time: " + (System.nanoTime() - start) / 1E9 + " sec.");
+	}
+	
+	public static void main(String[] args) throws Exception {
+		
+		long start = System.nanoTime();
+		VariantsDataProvider vdp = new VariantsDataProvider();
+		vdp.readVariantsFromVCF();
+		List<Mutation> mutations = vdp.getSNPMutations();
+		vdp.createVariationDataFrame(mutations);
+		System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
 	}
 }

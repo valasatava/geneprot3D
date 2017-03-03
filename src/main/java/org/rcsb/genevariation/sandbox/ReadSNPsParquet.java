@@ -4,7 +4,11 @@ import java.io.IOException;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.rcsb.genevariation.io.DataProvider;
+import org.rcsb.genevariation.io.MetalBindingDataProvider;
+import org.rcsb.genevariation.io.PDBDataProvider;
 import org.rcsb.genevariation.io.VariantsDataProvider;
+import org.rcsb.genevariation.utils.SaprkUtils;
 
 /**
  * Test class
@@ -12,12 +16,56 @@ import org.rcsb.genevariation.io.VariantsDataProvider;
  * @author Yana Valasatava
  */
 public class ReadSNPsParquet {
-	
-	private final static String userHome = System.getProperty("user.home");
-	private final static String path = userHome + "/data/genevariation/mutations";
+
+	private final static String path = DataProvider.getProjecthome() + "variations.parquet";
 	
 	public static void main(String[] args) throws IOException {
-        Dataset<Row> mutations = VariantsDataProvider.getMissenseVariationDF(path);
-        mutations.show();
+		
+		System.out.println("started...");
+		VariantsDataProvider vdp = new VariantsDataProvider();
+        Dataset<Row> mutations = vdp.getMissenseVariationDF(path);
+        mutations.createOrReplaceTempView("mutations");
+        //mutations.show();
+        
+        System.out.println("missense muttations are mapped to the protein sequence");
+        
+        Dataset<Row> uniprotpdb = PDBDataProvider.readPdbUniprotMapping();
+        uniprotpdb.createOrReplaceTempView("uniprotpdb");
+        //uniprotpdb.show();
+
+        Dataset<Row> metals = MetalBindingDataProvider.readParquetFile();
+        metals.createOrReplaceTempView("metals");
+       // metals.show();
+        
+        String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",  
+				"chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",  "chr20", "chr21", "chr22", "chrX", "chrY"};		
+		for (String chr : chromosomes) {
+			
+			System.out.println("getting the data for the chromosome "+ chr);
+			Dataset<Row> chromMapping = PDBDataProvider.readHumanChromosomeMapping(chr);
+			chromMapping.createOrReplaceTempView("hgmapping");
+			System.out.println("...done");
+			
+			// uniprotpdb.pdbId, uniprotpdb.pdbAtomPos as pdbResNum,
+	        Dataset<Row> mutationsMapping = SaprkUtils.getSparkSession().sql("select hgmapping.geneSymbol, mutations.geneBankId, hgmapping.chromosome, hgmapping.position, "
+	        		+ "hgmapping.uniProtId, hgmapping.uniProtPos, uniprotpdb.pdbId, uniprotpdb.chainId, uniprotpdb.pdbAtomPos, mutations.refAminoAcid, mutations.mutAminoAcid from mutations " +
+	                "inner join hgmapping on ( hgmapping.chromosome = mutations.chromosomeName and hgmapping.position = mutations.position ) "+
+	        		"left join uniprotpdb on (uniprotpdb.uniProtId = hgmapping.uniProtId and uniprotpdb.uniProtPos = hgmapping.uniProtPos) order by position");
+	        mutationsMapping.createOrReplaceTempView("mutationsMapping");
+//	        mutationsMapping.show();
+//	        System.out.println();
+	        
+	        Dataset<Row> newdf = SaprkUtils.getSparkSession().sql("select mutationsMapping.geneSymbol, mutationsMapping.geneBankId, mutationsMapping.chromosome, mutationsMapping.position, "
+	        		+ "mutationsMapping.uniProtId, mutationsMapping.uniProtPos, mutationsMapping.pdbId, mutationsMapping.chainId, mutationsMapping.pdbAtomPos as pdbResNum, "
+	        		+ "metals.resName, metals.cofactorName, metals.cofactorResNumber, mutationsMapping.refAminoAcid, mutationsMapping.mutAminoAcid "
+	        		+ "from mutationsMapping left join metals on (mutationsMapping.pdbId=metals.pdbId and mutationsMapping.chainId=metals.chainId and mutationsMapping.pdbAtomPos=metals.resNumber)");
+	        newdf.createOrReplaceTempView("mutationsmetals");
+	        
+	        Dataset<Row> mutationsMappingPdb = SaprkUtils.getSparkSession().sql("select * from mutationsmetals where mutationsmetals.cofactorName is not null");
+	        mutationsMappingPdb.createOrReplaceTempView("mappingPDB");
+	        mutationsMappingPdb.show();
+	        
+	        System.out.println();
+		}
 	}
 }

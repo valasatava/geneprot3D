@@ -16,20 +16,19 @@ import org.rcsb.genevariation.datastructures.SwissHomology;
 import org.rcsb.genevariation.utils.CommonUtils;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
-public class HomologyModelsProvider {
+public class HomologyModelsProvider extends DataProvider {
 	
     /**
-     * Read homology models of all human proteins (~20.000) from SwissModel UniProt api into a DataFrame
-     * then write it into "uniprot_swissmodel_homology.parquet" file using SwissHomology class.
+     * Read homology models of all human proteins (~20.000) from SwissModel UniProt API into a DataFrame
+     * then write it into file using SwissHomology class.
      * @param
      * @return
      */
-	private final static String userHome = System.getProperty("user.home");
-	private final static String path = userHome + "/data/genevariation/humanhomologues";
+	private final static String path = getProjecthome() + "human_homology_models";
 	
     private static void createParquetFileHumanHomologues() throws Exception {
 
-        Dataset<Row> uniprotpdb = PDBDfDataProvider.readPdbUniprotMapping();
+        Dataset<Row> uniprotpdb = PDBDataProvider.readPdbUniprotMapping();
         uniprotpdb.persist().createOrReplaceTempView("humanuniprot");
 
         // First, get the list of all human uniprot ids
@@ -79,7 +78,15 @@ public class HomologyModelsProvider {
         mydf.write().mode(SaveMode.Overwrite).parquet(path);
     }
     
+    public static void readHumanHomologyModelsParquetFile() {
+    	
+    	Dataset<Row> df = SaprkUtils.getSparkSession().read().parquet(path);
+    	df.createOrReplaceTempView("humanHomologyModels");
+    	System.out.println(df.schema());
+	}
+    
     public static void main(String[] args) throws Exception {
-    	createParquetFileHumanHomologues();
+    	//createParquetFileHumanHomologues();
+    	readHumanHomologyModelsParquetFile();
 	}
 }

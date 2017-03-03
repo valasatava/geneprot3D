@@ -44,7 +44,7 @@ public class RNApolymerase {
 	 * Sets a chromosome number for TwoBitParser.
 	 */
 	public void setChromosome(String chr) throws Exception {
-		
+		parser.close();
 		String[] names = parser.getSequenceNames();
 		for(int i=0;i<names.length;i++) {
 			if ( names[i].equals(chr) ) {
