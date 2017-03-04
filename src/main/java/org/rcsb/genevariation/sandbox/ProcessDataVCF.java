@@ -14,7 +14,7 @@ import org.apache.spark.sql.SaveMode;
 import org.rcsb.genevariation.constants.StrandOrientation;
 import org.rcsb.genevariation.datastructures.Mutation;
 import org.rcsb.genevariation.datastructures.Transcript;
-import org.rcsb.genevariation.datastructures.Variant;
+import org.rcsb.genevariation.datastructures.VariantInterface;
 import org.rcsb.genevariation.expression.RNApolymerase;
 import org.rcsb.genevariation.expression.Ribosome;
 import org.rcsb.genevariation.filters.DataProviderFilterChromosome;
@@ -38,7 +38,7 @@ public class ProcessDataVCF {
 
 		// --> GET VARIANTS
 		long start2 = System.nanoTime();
-		Iterator<Variant> variations = vdp.getAllVariants();
+		Iterator<VariantInterface> variations = vdp.getAllVariants();
 		System.out.println("Time to filter the variation data: " + (System.nanoTime() - start2) / 1E9 + " sec.");
 
 		// --> GET CHROMOSOME POSITIONS
@@ -55,7 +55,7 @@ public class ProcessDataVCF {
 		RNApolymerase polymerase = new RNApolymerase(chrName);
 		while (variations.hasNext()) {
 
-			Variant variant = variations.next();
+			VariantInterface variant = variations.next();
 
 			for (Transcript transcript : transcripts) {
 
@@ -107,7 +107,7 @@ public class ProcessDataVCF {
 
 			// --> READ VCF FILE
 			VariantsDataProvider vdp = new VariantsDataProvider();
-			vdp.readVariantsFromVCF(Paths.get(variationDataPath));
+			vdp.readVariantsFromVCFWithParser(Paths.get(variationDataPath));
 			IDataProviderFilter dataFilterChr = new DataProviderFilterChromosome(chr);
 			IDataProviderFilter dataFilterVar = new DataProviderFilterSNP();
 			vdp.setVariants(vdp.getVariantsByFilter(dataFilterChr));
@@ -131,7 +131,7 @@ public class ProcessDataVCF {
 		VariantsDataProvider vdp = new VariantsDataProvider();
 		vdp.readVariantsFromVCF();
 		List<Mutation> mutations = vdp.getSNPMutations();
-		vdp.createVariationDataFrame(mutations);
+		vdp.createVariationDataFrame(mutations, "mutations.parquet");
 		System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
 	}
 }

@@ -25,17 +25,14 @@ public class ReadSNPsParquet {
 		VariantsDataProvider vdp = new VariantsDataProvider();
         Dataset<Row> mutations = vdp.getMissenseVariationDF(path);
         mutations.createOrReplaceTempView("mutations");
-        //mutations.show();
         
         System.out.println("missense muttations are mapped to the protein sequence");
         
         Dataset<Row> uniprotpdb = PDBDataProvider.readPdbUniprotMapping();
         uniprotpdb.createOrReplaceTempView("uniprotpdb");
-        //uniprotpdb.show();
 
         Dataset<Row> metals = MetalBindingDataProvider.readParquetFile();
         metals.createOrReplaceTempView("metals");
-       // metals.show();
         
         String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",  
 				"chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",  "chr20", "chr21", "chr22", "chrX", "chrY"};		
@@ -52,8 +49,6 @@ public class ReadSNPsParquet {
 	                "inner join hgmapping on ( hgmapping.chromosome = mutations.chromosomeName and hgmapping.position = mutations.position ) "+
 	        		"left join uniprotpdb on (uniprotpdb.uniProtId = hgmapping.uniProtId and uniprotpdb.uniProtPos = hgmapping.uniProtPos) order by position");
 	        mutationsMapping.createOrReplaceTempView("mutationsMapping");
-//	        mutationsMapping.show();
-//	        System.out.println();
 	        
 	        Dataset<Row> newdf = SaprkUtils.getSparkSession().sql("select mutationsMapping.geneSymbol, mutationsMapping.geneBankId, mutationsMapping.chromosome, mutationsMapping.position, "
 	        		+ "mutationsMapping.uniProtId, mutationsMapping.uniProtPos, mutationsMapping.pdbId, mutationsMapping.chainId, mutationsMapping.pdbAtomPos as pdbResNum, "

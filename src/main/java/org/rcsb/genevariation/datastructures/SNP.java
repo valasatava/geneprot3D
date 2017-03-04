@@ -3,8 +3,9 @@ package org.rcsb.genevariation.datastructures;
 import java.io.Serializable;
 
 import org.rcsb.genevariation.constants.VariantType;
+import org.rcsb.genevariation.utils.VariationUtils;
 
-public class SNP extends VariantImpl implements Serializable {
+public class SNP extends Variant implements Serializable {
 	
 	/**
 	 * 
@@ -35,9 +36,15 @@ public class SNP extends VariantImpl implements Serializable {
 	}
 	
 	public String getRefBase() {
+		if (isReverse()) {
+			return VariationUtils.reverseComplimentaryBase(refBase);
+		}
 		return refBase;
 	}
 	public String getAltBase() {
+		if (isReverse()) {
+			return VariationUtils.reverseComplimentaryBase(altBase);
+		}
 		return altBase;
 	}
 }

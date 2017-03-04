@@ -2,7 +2,7 @@ package org.rcsb.genevariation.datastructures;
 
 import org.rcsb.genevariation.constants.VariantType;
 
-public class Insertion extends VariantImpl {
+public class Insertion extends Variant {
 	
 	private String refBase;
 	private String[] insBases;

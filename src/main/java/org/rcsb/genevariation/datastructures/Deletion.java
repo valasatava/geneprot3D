@@ -2,7 +2,7 @@ package org.rcsb.genevariation.datastructures;
 
 import org.rcsb.genevariation.constants.VariantType;
 
-public class Deletion extends VariantImpl {
+public class Deletion extends Variant {
 	
 	private String refBase;
 	private String altBase;

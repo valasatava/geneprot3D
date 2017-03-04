@@ -1,6 +1,6 @@
 package org.rcsb.genevariation.filters;
 
-import org.rcsb.genevariation.datastructures.Variant;
+import org.rcsb.genevariation.datastructures.VariantInterface;
 
 public class DataProviderFilterChromosome implements IDataProviderFilter {
 
@@ -10,7 +10,7 @@ public class DataProviderFilterChromosome implements IDataProviderFilter {
 	}
 
 	@Override
-	public boolean filter(Variant variant) {
+	public boolean filter(VariantInterface variant) {
 		if ( variant.getChromosomeName().equals(chr) ) { 
 			return true;
 		}

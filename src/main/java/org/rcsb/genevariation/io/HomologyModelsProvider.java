@@ -84,9 +84,12 @@ public class HomologyModelsProvider extends DataProvider {
     	df.createOrReplaceTempView("humanHomologyModels");
     	System.out.println(df.schema());
 	}
+
+    public static void run() throws Exception {
+    	createParquetFileHumanHomologues();
+	}
     
     public static void main(String[] args) throws Exception {
-    	//createParquetFileHumanHomologues();
     	readHumanHomologyModelsParquetFile();
 	}
 }

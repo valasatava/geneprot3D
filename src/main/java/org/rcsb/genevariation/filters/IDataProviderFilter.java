@@ -1,6 +1,6 @@
 package org.rcsb.genevariation.filters;
 
-import org.rcsb.genevariation.datastructures.Variant;
+import org.rcsb.genevariation.datastructures.VariantInterface;
 
 /**
  * This Interface provides the facility to provide the custom filtering logic based on the needs. 
@@ -12,6 +12,6 @@ import org.rcsb.genevariation.datastructures.Variant;
 
 public interface IDataProviderFilter {
 
-	boolean filter(Variant variant);
+	boolean filter(VariantInterface variant);
 
 }

@@ -2,7 +2,7 @@ package org.rcsb.genevariation.datastructures;
 
 import org.rcsb.genevariation.constants.VariantType;
 
-public class Monomorphism extends VariantImpl {
+public class Monomorphism extends Variant {
 	
 	private String refBase;
 	private String altBase;
