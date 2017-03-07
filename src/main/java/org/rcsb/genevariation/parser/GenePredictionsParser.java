@@ -1,6 +1,8 @@
 package org.rcsb.genevariation.parser;
 
 import org.biojava.nbio.genome.App;
+import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
+import org.biojava.nbio.genome.parsers.genename.GeneChromosomePositionParser;
 import org.rcsb.genevariation.datastructures.Exon;
 import org.rcsb.genevariation.datastructures.Transcript;
 import org.rcsb.genevariation.utils.CommonUtils;
@@ -23,30 +25,14 @@ import java.util.List;
 public class GenePredictionsParser {
 
 	private static final Logger logger = LoggerFactory.getLogger(App.class);
-
-	public static final String DEFAULT_MAPPING_URL="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refGene.txt.gz";
 	
-	public static void main(String[] args){
-		try {
-
-			List<Transcript> genePositions=	getChromosomeMappings();
-			logger.info("got {} gene positions", genePositions.size());
-
-			for (Transcript pos : genePositions){
-				if ( pos.getGeneName().equals("FOLH1")) {
-					logger.info("Gene Position: {}", pos);
-					break;
-				}
-			}
-
-		} catch(Exception e){
-			logger.error("Exception: ", e);
-		}
-	}
+	public static final String DEFAULT_MAPPING_URL="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refFlat.txt.gz";
+	public static final String EXTENDED_MAPPING_URL="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refGene.txt.gz";
+	
 
 	public static List<Transcript> getChromosomeMappings() throws IOException {
 		
-		URL url = new URL(DEFAULT_MAPPING_URL);
+		URL url = new URL(EXTENDED_MAPPING_URL);
 		InputStreamProvider prov = new InputStreamProvider();
 		InputStream inStream = prov.getInputStream(url);
 		return getChromosomeMappings(inStream);
@@ -106,5 +92,13 @@ public class GenePredictionsParser {
 		}
 		t.setExons(exons);
 		return t;
+	}
+	
+	public static List<GeneChromosomePosition> getGeneChromosomePositions() throws IOException {
+		
+		URL url = new URL(DEFAULT_MAPPING_URL);
+		InputStreamProvider prov = new InputStreamProvider();
+		InputStream inStream = prov.getInputStream(url);
+		return GeneChromosomePositionParser.getChromosomeMappings(inStream);
 	}
 }

@@ -31,6 +31,10 @@ import org.rcsb.genevariation.utils.VariationUtils;
 
 import com.google.common.collect.ListMultimap;
 
+//import org.apache.spark.sql.catalyst.encoders.RowEncoder;
+//import org.apache.spark.sql.types._;
+//import org.apache.spark.sql.Row;
+
 /**
  * This class provides methods to retrieve variation data from files.
  * 
@@ -49,7 +53,7 @@ public class VariantsDataProvider extends DataProvider {
 		variants.add(variant);
 	}
 	
-	private static VariantInterface createVariant(String chromosome, long pos, String ref, String alt, boolean reverse) {
+	public static VariantInterface createVariant(String chromosome, long pos, String ref, String alt, boolean reverse) {
 		
 		VariantInterface variant = null;
 		VariantType type = VariationUtils.checkType(ref, alt);
@@ -80,9 +84,15 @@ public class VariantsDataProvider extends DataProvider {
 		return variant;
 	}
 	
+
 	public void readVariantsFromVCFWithSpark(String filepath) {
 		
-		Dataset<Row> df = SaprkUtils.getSparkSession().read().format("com.databricks.spark.csv").option("header", "false").option("delimiter", "\t").option("comment", "#").load(filepath);
+		Dataset<Row> df = SaprkUtils.getSparkSession().read()
+				.format("com.databricks.spark.csv")
+				.option("header", "false")
+				.option("delimiter", "\t")
+				.option("comment", "#")
+				.load(filepath);//.flatMap(new MapToSNPs(), encoder);
 
         for (Iterator<Row> iter = df.collectAsList().iterator(); iter.hasNext(); ) {
             
@@ -107,15 +117,20 @@ public class VariantsDataProvider extends DataProvider {
 	
 	public void readVariantsFromVCF() throws IOException {
 		readVariantsFromVCFWithParser(Paths.get(variationDataPath));
-	}
 		
+	}
+	
+	public void readVariantsFromVCFWithParser(String filepath) throws IOException {
+		readVariantsFromVCFWithParser(Paths.get(filepath));
+	}
+	
 	/** 
 	 * The method reads VCF file and builds a library of variations.
 	 * 
 	 * @param File path to VCF file as Path.
 	 */
 	public void readVariantsFromVCFWithParser(Path filepath) throws IOException {
-
+		
 		VcfParser parser = new VcfParser.Builder().fromFile(filepath).parseWith((metadata, position, sampleData) -> {
 			
 			String chromosome = "chr"+position.getChromosome();
@@ -130,6 +145,7 @@ public class VariantsDataProvider extends DataProvider {
 			}
 			
 			for (String alt : alts) {
+				System.out.println(chromosome+" "+pos);
 				addVariant(createVariant(chromosome, pos, ref, alt, reverse));
 			}
 		}).build();

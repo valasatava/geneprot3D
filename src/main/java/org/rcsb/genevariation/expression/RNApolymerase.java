@@ -2,6 +2,7 @@ package org.rcsb.genevariation.expression;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
@@ -16,7 +17,12 @@ import org.rcsb.genevariation.datastructures.Transcript;
 
 import com.google.common.collect.Range;
 
-public class RNApolymerase {
+public class RNApolymerase implements Serializable  {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6996001236685762558L;
 	
 	static TwoBitParser parser;
 	private final static String userHome = System.getProperty("user.home");
@@ -95,15 +101,28 @@ public class RNApolymerase {
 	
 	public String getCodingSequence(Transcript transcript) throws IOException, CompoundNotFoundException {
 		
-		List<Range<Integer>> cdsRegion = ChromosomeMappingTools.getCDSRegionsReverse(transcript.getExonStarts(), transcript.getExonEnds(), 
-				transcript.getCodingStart(), transcript.getCodingEnd());
+		List<Integer> exonStarts = transcript.getExonStarts();
+		List<Integer> exonEnds = transcript.getExonEnds();
+		int codingStart = transcript.getCodingStart();
+		int codingEnd = transcript.getCodingEnd();
+		boolean forward = true;
+		if ( transcript.getOrientation().equals(StrandOrientation.REVERSE) ) {
+			forward = false;
+		}
+		return getCodingSequence(exonStarts, exonEnds, codingStart, codingEnd, forward);
+	}
+	
+	public String getCodingSequence(List<Integer> exonStarts, List<Integer> exonEnds, int codingStart, int codingEnd, boolean forward) throws IOException, CompoundNotFoundException {
+		
+		List<Range<Integer>> cdsRegion = ChromosomeMappingTools.getCDSRegionsReverse(exonStarts, exonEnds, 
+				codingStart, codingEnd);
 		
 		String transcription = "";
 		for (Range<Integer> range : cdsRegion) {
 			int length = range.upperEndpoint() - range.lowerEndpoint();
 			transcription += parser.loadFragment(range.lowerEndpoint(), length);
 		}
-		if (transcript.getOrientation().equals(StrandOrientation.REVERSE)) {
+		if ( !forward ) {
 			transcription = new StringBuilder(transcription).reverse().toString();
 			DNASequence dna = new DNASequence(transcription);
 			SequenceView<NucleotideCompound> compliment = dna.getComplement();
