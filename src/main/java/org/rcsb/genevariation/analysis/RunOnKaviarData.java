@@ -92,7 +92,7 @@ public class RunOnKaviarData {
 			chromMapping.createOrReplaceTempView("hgmapping");
 
 	        Dataset<Row> mapping = SaprkUtils.getSparkSession().sql("select hgmapping.geneSymbol, kaviar.dbSnpID, hgmapping.chromosome, hgmapping.position, "
-	        		+ "hgmapping.uniProtId, hgmapping.uniProtPos, kaviar.original, kaviar.variant from kaviar " +
+	        		+ "hgmapping.uniProtId, hgmapping.uniProtPos, kaviar.original, kaviar.variant from kaviar, hgmapping.orientation " +
 	                "inner join hgmapping on ( hgmapping.chromosome = kaviar.chromosome and hgmapping.position = kaviar.position ) ");
 	        mapping.write().mode(SaveMode.Overwrite).parquet(DataProvider.getProjecthome() + "parquet/Kaviar-hg-mapping/"+chr);
 		}
