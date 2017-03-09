@@ -25,9 +25,7 @@ public class MapToVcfContainer implements FlatMapFunction<Row,VcfContainer> {
 			v.setPosition(Integer.valueOf(arg0.getString(1)));
 			v.setDbSnpID(arg0.getString(2));
 			v.setOriginal(arg0.getString(3));
-			v.setVariant(variation);					
-			if (arg0.getString(7).contains(";RV;")) { v.setOrientation("-"); }
-			else { v.setOrientation("+"); }	
+			v.setVariant(variation);						
 			vcfData.add(v);
 		}
 		return vcfData.iterator();

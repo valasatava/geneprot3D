@@ -24,13 +24,16 @@ public class FilterCodingRegion implements FilterFunction<VcfContainer> {
 	public boolean call(VcfContainer vcfDatum) throws Exception {
 		
 		List<GeneChromosomePosition> gcps = chromosomePositions.getValue();
+		long start = System.nanoTime();
 		for (GeneChromosomePosition cp : gcps) {
 			if (cp.getChromosome().equals(vcfDatum.getChromosome())) {
 				int pos = ChromosomeMappingTools.getCDSPosForChromosomeCoordinate(vcfDatum.getPosition(), cp);
 				if ( pos != -1 )
+					System.out.println("Time: "+vcfDatum.getChromosome() + " " + vcfDatum.getPosition() + " " + (System.nanoTime() - start) / 1E9 + " sec.");
 					return true;
 			}
 		}
+		System.out.println("Time: "+vcfDatum.getChromosome() + " " + vcfDatum.getPosition() + " " + (System.nanoTime() - start) / 1E9 + " sec.");
 		return false;
 	}
 }

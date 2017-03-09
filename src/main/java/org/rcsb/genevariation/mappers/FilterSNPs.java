@@ -10,7 +10,8 @@ public class FilterSNPs implements FilterFunction<VcfContainer> {
 	private static final long serialVersionUID = 4443092527065578555L;
 	@Override
 	public boolean call(VcfContainer v) throws Exception {
-		if ( VariationUtils.checkType(v.getOriginal(), v.getVariant()).compareTo(VariantType.SNP) == 0 ) { 
+		if ( VariationUtils.checkType(v.getOriginal(), v.getVariant()).compareTo(VariantType.SNP) == 0 ) {
+			System.out.println(v.getChromosome()+" "+v.getPosition());
 			return true;
 		}
 		return false;

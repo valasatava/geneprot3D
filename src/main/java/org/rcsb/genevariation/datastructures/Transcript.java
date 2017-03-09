@@ -1,17 +1,11 @@
 package org.rcsb.genevariation.datastructures;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.rcsb.genevariation.constants.StrandOrientation;
 
-public class Transcript implements Serializable {
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1522346685313117578L;
+public class Transcript {
 	
 	private String chromosomeName; // e.g., chr21
 	private String geneName;
