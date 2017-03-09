@@ -1,21 +1,17 @@
 package org.rcsb.genevariation.expression;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
-
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.RNASequence;
-import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
-import org.biojava.nbio.core.sequence.template.SequenceView;
 import org.biojava.nbio.genome.parsers.twobit.TwoBitParser;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.rcsb.genevariation.constants.StrandOrientation;
 import org.rcsb.genevariation.datastructures.Transcript;
 
-import com.google.common.collect.Range;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
 
 public class RNApolymerase implements Serializable  {
 	
@@ -114,20 +110,20 @@ public class RNApolymerase implements Serializable  {
 	
 	public String getCodingSequence(List<Integer> exonStarts, List<Integer> exonEnds, int codingStart, int codingEnd, boolean forward) throws IOException, CompoundNotFoundException {
 		
-		List<Range<Integer>> cdsRegion = ChromosomeMappingTools.getCDSRegionsReverse(exonStarts, exonEnds, 
-				codingStart, codingEnd);
+//		List<Range<Integer>> cdsRegion = ChromosomeMappingTools.getCDSRegionsReverse(exonStarts, exonEnds,
+//				codingStart, codingEnd);
 		
 		String transcription = "";
-		for (Range<Integer> range : cdsRegion) {
-			int length = range.upperEndpoint() - range.lowerEndpoint();
-			transcription += parser.loadFragment(range.lowerEndpoint(), length);
-		}
-		if ( !forward ) {
-			transcription = new StringBuilder(transcription).reverse().toString();
-			DNASequence dna = new DNASequence(transcription);
-			SequenceView<NucleotideCompound> compliment = dna.getComplement();
-			transcription = compliment.getSequenceAsString();
-		}
+//		for (Range<Integer> range : cdsRegion) {
+//			int length = range.upperEndpoint() - range.lowerEndpoint();
+//			transcription += parser.loadFragment(range.lowerEndpoint(), length);
+//		}
+//		if ( !forward ) {
+//			transcription = new StringBuilder(transcription).reverse().toString();
+//			DNASequence dna = new DNASequence(transcription);
+//			SequenceView<NucleotideCompound> compliment = dna.getComplement();
+//			transcription = compliment.getSequenceAsString();
+//		}
 		return transcription;
 	}
 }
