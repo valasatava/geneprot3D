@@ -14,7 +14,6 @@ public class VcfContainer  implements Serializable{
 	String dbSnpID;
 	String original;
 	String variant;
-	String orientation;
 
 	public String getChromosome() {
 		return chromosome;
@@ -45,12 +44,5 @@ public class VcfContainer  implements Serializable{
 	}
 	public void setVariant(String variant) {
 		this.variant = variant;
-	}
-
-	public String getOrientation() {
-		return orientation;
-	}
-	public void setOrientation(String orientation) {
-		this.orientation = orientation;
 	}
 }

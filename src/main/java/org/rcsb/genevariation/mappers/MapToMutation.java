@@ -35,9 +35,9 @@ public class MapToMutation implements FlatMapFunction <VcfContainer, Mutation> {
 		polymerase.setChromosome(vcfDatum.getChromosome());
 		
 		boolean forward = true;
-		if (vcfDatum.getOrientation().equals("-")) {
-			forward = false;
-		}
+//		if (vcfDatum.getOrientation().equals("-")) {
+//			forward = false;
+//		}
 		
 		List<Mutation> mutations = new ArrayList<>();
 		

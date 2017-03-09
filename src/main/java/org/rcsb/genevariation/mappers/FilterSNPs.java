@@ -11,7 +11,7 @@ public class FilterSNPs implements FilterFunction<VcfContainer> {
 	@Override
 	public boolean call(VcfContainer v) throws Exception {
 		if ( VariationUtils.checkType(v.getOriginal(), v.getVariant()).compareTo(VariantType.SNP) == 0 ) {
-			
+			System.out.println(v.getChromosome()+" "+v.getPosition());
 			return true;
 		}
 		return false;
