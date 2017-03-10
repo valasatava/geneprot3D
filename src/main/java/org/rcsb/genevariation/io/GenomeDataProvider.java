@@ -17,6 +17,8 @@ import org.rcsb.genevariation.datastructures.Exon;
 import org.rcsb.genevariation.datastructures.Gene;
 import org.rcsb.genevariation.datastructures.Transcript;
 
+import com.google.common.collect.Range;
+
 /**
  * This class provides methods to retrieve genetic data from files.
  * 
@@ -133,4 +135,70 @@ public class GenomeDataProvider extends DataProvider {
 	public static String readDNASequenceFromChromosome(long startPos, long endPos) {
 		return null;		
 	}
+	
+    public static List<Range<Integer>> getCDSRegionsReverse(List<Integer> exonStarts, List<Integer> exonEnds,
+            int cdsStart, int cdsEnd) {
+
+        // remove exons that are fully landed in UTRs
+        List<Integer> tmpS = new ArrayList<Integer>(exonStarts);
+        List<Integer> tmpE = new ArrayList<Integer>(exonEnds);
+        
+        int j=0;
+        for (int i = 0; i < tmpS.size(); i++) {
+        	if ( ( tmpE.get(i) < cdsStart) || ( tmpS.get(i) > cdsEnd) ) {
+        		exonStarts.remove(j);
+        		exonEnds.remove(j);
+        	}
+        	else {
+        		j++;
+        	}
+        }
+        
+        // remove untranslated regions from exons
+        int nExons = exonStarts.size();
+        exonStarts.remove(0);
+        exonStarts.add(0, cdsStart);
+        exonEnds.remove(nExons-1);
+        exonEnds.add(cdsEnd);
+        
+        List<Range<Integer>> cdsRegion = new ArrayList<Range<Integer>>();
+        for ( int i=0; i<nExons; i++ ) {
+        	Range<Integer> r = Range.closed(exonStarts.get(i), exonEnds.get(i));
+        	cdsRegion.add(r);
+        }
+		return cdsRegion;
+    }
+    
+    public static List<Range<Integer>> getCDSRegionsForward(List<Integer> exonStarts, List<Integer> exonEnds,
+            int cdsStart, int cdsEnd) {
+    	
+        // remove exons that are fully landed in UTRs
+        List<Integer> tmpS = new ArrayList<Integer>(exonStarts);
+        List<Integer> tmpE = new ArrayList<Integer>(exonEnds);
+        
+        int j=0;
+        for (int i = 0; i < tmpS.size(); i++) {
+        	if ( ( tmpE.get(i) < cdsStart) || ( tmpS.get(i) > cdsEnd) ) {
+        		exonStarts.remove(j);
+        		exonEnds.remove(j);
+        	}
+        	else {
+        		j++;
+        	}
+        }
+        
+        // remove untranslated regions from exons
+        int nExons = exonStarts.size();
+        exonStarts.remove(0);
+        exonStarts.add(0, cdsStart);
+        exonEnds.remove(nExons-1);
+        exonEnds.add(cdsEnd);
+    	
+        List<Range<Integer>> cdsRegion = new ArrayList<Range<Integer>>();
+        for ( int i=0; i<nExons; i++ ) {
+        	Range<Integer> r = Range.closed(exonStarts.get(i), exonEnds.get(i));
+        	cdsRegion.add(r);
+        }
+		return cdsRegion;
+    }
 }
