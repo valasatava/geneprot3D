@@ -1,12 +1,16 @@
 package org.rcsb.genevariation.expression;
 
+import com.google.common.collect.Range;
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.RNASequence;
+import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
+import org.biojava.nbio.core.sequence.template.SequenceView;
 import org.biojava.nbio.genome.parsers.twobit.TwoBitParser;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.rcsb.genevariation.constants.StrandOrientation;
 import org.rcsb.genevariation.datastructures.Transcript;
+import org.rcsb.genevariation.io.GenomeDataProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,8 +23,8 @@ public class RNApolymerase implements Serializable  {
 	 * 
 	 */
 	private static final long serialVersionUID = -6996001236685762558L;
-	
-	static TwoBitParser parser;
+
+	private TwoBitParser parser;
 	private final static String userHome = System.getProperty("user.home");
 	private final static String DEFAULT_GENOME_URI = userHome+"/data/genevariation/hg38.2bit";	
 	public static final String DEFAULT_MAPPING_URL="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refGene.txt.gz";
@@ -37,9 +41,9 @@ public class RNApolymerase implements Serializable  {
 	/**
 	 * Reads a genome from a locally stored .2bit file (hard-coded URI). 
 	 */
-	private static void readGenome() throws Exception {
+	private void readGenome() throws Exception {
 		File f = new File(DEFAULT_GENOME_URI);
-		parser = new TwoBitParser(f);
+		this.parser = new TwoBitParser(f);
 	}
 	
 	/**
@@ -109,21 +113,28 @@ public class RNApolymerase implements Serializable  {
 	}
 	
 	public String getCodingSequence(List<Integer> exonStarts, List<Integer> exonEnds, int codingStart, int codingEnd, boolean forward) throws IOException, CompoundNotFoundException {
-		
-//		List<Range<Integer>> cdsRegion = ChromosomeMappingTools.getCDSRegionsReverse(exonStarts, exonEnds,
-//				codingStart, codingEnd);
-		
+
+		List<Range<Integer>> cdsRegion;
+		if (!forward) {
+			cdsRegion = GenomeDataProvider.getCDSRegionsReverse(exonStarts, exonEnds,
+					codingStart, codingEnd);
+		}
+		else {
+			cdsRegion = GenomeDataProvider.getCDSRegionsForward(exonStarts, exonEnds,
+					codingStart, codingEnd);
+		}
+
 		String transcription = "";
-//		for (Range<Integer> range : cdsRegion) {
-//			int length = range.upperEndpoint() - range.lowerEndpoint();
-//			transcription += parser.loadFragment(range.lowerEndpoint(), length);
-//		}
-//		if ( !forward ) {
-//			transcription = new StringBuilder(transcription).reverse().toString();
-//			DNASequence dna = new DNASequence(transcription);
-//			SequenceView<NucleotideCompound> compliment = dna.getComplement();
-//			transcription = compliment.getSequenceAsString();
-//		}
+		for (Range<Integer> range : cdsRegion) {
+			int length = range.upperEndpoint() - range.lowerEndpoint();
+			transcription += parser.loadFragment(range.lowerEndpoint(), length);
+		}
+		if ( !forward ) {
+			transcription = new StringBuilder(transcription).reverse().toString();
+			DNASequence dna = new DNASequence(transcription);
+			SequenceView<NucleotideCompound> compliment = dna.getComplement();
+			transcription = compliment.getSequenceAsString();
+		}
 		return transcription;
 	}
 }
