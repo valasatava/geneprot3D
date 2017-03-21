@@ -24,7 +24,7 @@ public class RNApolymerase implements Serializable  {
 	 */
 	private static final long serialVersionUID = -6996001236685762558L;
 
-	private TwoBitParser parser;
+	public TwoBitParser parser;
 	private final static String userHome = System.getProperty("user.home");
 	private final static String DEFAULT_GENOME_URI = userHome+"/data/genevariation/hg38.2bit";	
 	public static final String DEFAULT_MAPPING_URL="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refGene.txt.gz";

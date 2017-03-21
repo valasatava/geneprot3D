@@ -76,8 +76,8 @@ public class MapToMutation implements FlatMapFunction <Row, Mutation> {
 					mutation = new Mutation();
 					mutation.setChromosomeName(row.get(2).toString());
 					mutation.setPosition(Long.valueOf(row.get(3).toString()));
-					mutation.setRefAminoAcid(Ribosome.getCodingAminoAcid(codon));
-					mutation.setMutAminoAcid(Ribosome.getCodingAminoAcid(codonM));
+					mutation.setRefAminoAcid(Ribosome.getProteinSequence(codon));
+					mutation.setMutAminoAcid(Ribosome.getProteinSequence(codonM));
 				} catch (NumberFormatException e) {
 					e.printStackTrace();
 				} catch (CompoundNotFoundException e) {

@@ -135,6 +135,9 @@ public class RunOnKaviarData {
 		Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(filepath)
 				.drop("inCoding")
 				.filter(new FilterFunction<Row>() {
+
+					private static final long serialVersionUID = 8450775587033110761L;
+
 					@Override
 					public boolean call(Row row) throws Exception {
 						String wildtype = row.get(6).toString();
