@@ -7,8 +7,8 @@ import org.biojava.nbio.core.sequence.RNASequence;
 
 public class Ribosome {
 	
-	public static String getCodingAminoAcid(String codon) throws CompoundNotFoundException {
-		DNASequence dna = new DNASequence(codon);
+	public static String getProteinSequence(String sequence) throws CompoundNotFoundException {
+		DNASequence dna = new DNASequence(sequence);
 		RNASequence mRNA = dna.getRNASequence();
 		return mRNA.getProteinSequence().toString();
 	}

@@ -232,8 +232,8 @@ public class VariantsDataProvider extends DataProvider {
 					mutation.setChromosomeName(chrName);
 					mutation.setGeneBankId(transcript.getGeneBankId());
 					mutation.setPosition(variant.getPosition());
-					mutation.setRefAminoAcid(Ribosome.getCodingAminoAcid(codon));
-					mutation.setMutAminoAcid(Ribosome.getCodingAminoAcid(mutCodon));
+					mutation.setRefAminoAcid(Ribosome.getProteinSequence(codon));
+					mutation.setMutAminoAcid(Ribosome.getProteinSequence(mutCodon));
 					mutations.add(mutation);
 				}
 			}	

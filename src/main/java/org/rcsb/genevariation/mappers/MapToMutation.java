@@ -3,6 +3,7 @@ package org.rcsb.genevariation.mappers;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Row;
+import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.rcsb.genevariation.datastructures.Mutation;
@@ -42,7 +43,7 @@ public class MapToMutation implements FlatMapFunction <Row, Mutation> {
 		
 		List<GeneChromosomePosition> gcps = chromosomePositions.getValue();
 		for (GeneChromosomePosition cp : gcps) {
-			if (cp.getGeneName().equals(row.get(0).toString()) && cp.getChromosome().equals(row.get(2).toString())) {
+			if (cp.getChromosome().equals(row.get(2).toString())) {
 				
 				int mRNAPos = ChromosomeMappingTools.getCDSPosForChromosomeCoordinate(Integer.valueOf(row.get(3).toString()), cp);
 				if ( mRNAPos == -1 )
@@ -75,16 +76,19 @@ public class MapToMutation implements FlatMapFunction <Row, Mutation> {
 					mutation = new Mutation();
 					mutation.setChromosomeName(row.get(2).toString());
 					mutation.setPosition(Long.valueOf(row.get(3).toString()));
-					mutation.setRefAminoAcid(Ribosome.getCodingAminoAcid(codon));
-					mutation.setMutAminoAcid(Ribosome.getCodingAminoAcid(codonM));
-				} catch (Exception e) {
-					System.out.println(cp.getChromosome()+" "+row.get(3).toString());
+					mutation.setRefAminoAcid(Ribosome.getProteinSequence(codon));
+					mutation.setMutAminoAcid(Ribosome.getProteinSequence(codonM));
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+				} catch (CompoundNotFoundException e) {
 					e.printStackTrace();
 				}
+
+				//System.out.println(mutation.getChromosomeName() + " " + mutation.getPosition());
+
 				mutations.add(mutation);
 			}
 		}
-		polymerase.parser.close();
 		return mutations.iterator();
 	}
 }

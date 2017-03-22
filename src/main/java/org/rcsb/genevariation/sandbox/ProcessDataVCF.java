@@ -81,8 +81,8 @@ public class ProcessDataVCF {
 					mutation.setChromosomeName(chrName);
 					mutation.setGeneBankId(transcript.getGeneBankId());
 					mutation.setPosition(variant.getPosition());
-					mutation.setRefAminoAcid(Ribosome.getCodingAminoAcid(codon));
-					mutation.setMutAminoAcid(Ribosome.getCodingAminoAcid(codonM));
+					mutation.setRefAminoAcid(Ribosome.getProteinSequence(codon));
+					mutation.setMutAminoAcid(Ribosome.getProteinSequence(codonM));
 					allMutations.add(mutation);
 				}
 			}
