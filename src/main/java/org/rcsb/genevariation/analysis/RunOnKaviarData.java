@@ -45,7 +45,6 @@ public class RunOnKaviarData {
 				.flatMap(new MapToVcfContainer(), vcfContainerEncoder)
 				.filter(new FilterCodingRegion(transcriptsBroadcast))
 				.filter(new FilterSNPs())
-				//.repartition(500)
 				.write().mode(SaveMode.Overwrite).parquet(DataProvider.getProjecthome() + "parquet/coding-snps-Kaviar.parquet");
 	
 		System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
@@ -84,8 +83,9 @@ public class RunOnKaviarData {
         df.createOrReplaceTempView("kaviar");
         df.persist();
         
-        String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",  
-				"chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",  "chr20", "chr21", "chr22", "chrX", "chrY"};		
+        String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",
+				"chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",  "chr20", "chr21", "chr22", "chrX", "chrY"};
+
 		for (String chr : chromosomes) {
 			
 			System.out.println("getting the data for the chromosome "+ chr);
@@ -93,7 +93,7 @@ public class RunOnKaviarData {
 			chromMapping.createOrReplaceTempView("hgmapping");
 
 	        Dataset<Row> mapping = SaprkUtils.getSparkSession().sql("select hgmapping.geneSymbol, kaviar.dbSnpID, hgmapping.chromosome, hgmapping.position, hgmapping.inCoding, "
-	        		+ "hgmapping.uniProtId, hgmapping.uniProtPos, kaviar.original, kaviar.variant, hgmapping.orientation from kaviar " +
+	        		+ "hgmapping.uniProtId, hgmapping.isoformCorrectedUniprotPos as uniProtPos, kaviar.original, kaviar.variant, hgmapping.orientation from kaviar " +
 	                "inner join hgmapping on ( hgmapping.chromosome = kaviar.chromosome and hgmapping.position = kaviar.position )");
 	        mapping.write().mode(SaveMode.Overwrite).parquet(DataProvider.getProjecthome() + "parquet/Kaviar-hg-mapping/"+chr);
 		}
@@ -151,10 +151,12 @@ public class RunOnKaviarData {
 		Dataset<Mutation> mutations = mapping.flatMap(new MapToMutation(transcriptsBroadcast), mutationEncoder);
 		mutations.createOrReplaceTempView("mutations");
 
-		Dataset<Row> df = SaprkUtils.getSparkSession().sql("select * from mapping inner join mutations on (mapping.chromosome = mutations.chromosomeName and mapping.position = mutations.position)");
-		df.show();
+		Dataset<Row> df = SaprkUtils.getSparkSession().sql("select mapping.geneSymbol, mapping.chromosome, mapping.position, mapping.uniProtPos," +
+				"mapping.orientation, mapping.original, mapping.variant, mutations.refAminoAcid, mutations.mutAminoAcid from mapping inner join mutations on (mapping.chromosome = mutations.chromosomeName and mapping.position = mutations.position)");
 
-		//.write().mode(SaveMode.Overwrite).parquet(DataProvider.getProjecthome() + "parquet/Kaviar-mutations.parquet");
+		//df.show();
+
+		df.write().mode(SaveMode.Overwrite).parquet(DataProvider.getProjecthome() + "parquet/Kaviar-mutations.parquet");
 
 		System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
 	}
@@ -172,8 +174,8 @@ public class RunOnKaviarData {
 	public static void main(String[] args) throws Exception {
 		//writeKaviar();
 		//readKaviar();
-		//mapKaviarOnHumanGenome();
+		mapKaviarOnHumanGenome();
 		//readKaviarOnHumanGenome();
-		mapKaviarToMutations();
+		//mapKaviarToMutations();
 	}
 }
