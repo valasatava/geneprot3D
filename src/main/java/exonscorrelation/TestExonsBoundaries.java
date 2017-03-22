@@ -250,14 +250,64 @@ public class TestExonsBoundaries {
 			for(String str: features) {
 			  writer.write(str+"\n");
 			}
-			writer.close();	
+			writer.close();
 		}
 	}
+             	
+	public static void getExonsAACharges() throws Exception {
+
+		String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",  
+				"chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",  "chr20", "chr21", "chr22", "chrX", "chrY"};			
+
+		for (String chr : chromosomes) {
+			
+			System.out.println(chr);
+			
+			Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(path+"DATA/exons_isoforms_map/"+chr);
+			
+			Encoder<ExonProteinFeatures> encoder = Encoders.bean(ExonProteinFeatures.class);
+			Dataset<ExonProteinFeatures> featuresDf = data.map(new MapToAACharges(), encoder)
+					.filter(t->t!=null);
+			List<String> features = featuresDf.map(new MapToChargesString(), Encoders.STRING()).collectAsList();
+			FileWriter writer = new FileWriter(path+"DATA/amino_acid_charges_"+chr+".csv"); 
+			for(String str: features) {
+			  writer.write(str+"\n");
+			}
+			writer.close();
+		}
+	}
+	
+	public static void getExonsAAPolarity() throws Exception {
+
+		String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",  
+				"chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",  "chr20", "chr21", "chr22", "chrX", "chrY"};			
+
+		for (String chr : chromosomes) {
+			
+			System.out.println(chr);
+			
+			Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(path+"DATA/exons_isoforms_map/"+chr);
+			
+			Encoder<ExonProteinFeatures> encoder = Encoders.bean(ExonProteinFeatures.class);
+			Dataset<ExonProteinFeatures> featuresDf = data.map(new MapToAAPolarity(), encoder)
+					.filter(t->t!=null);
+			List<String> features = featuresDf.map(new MapToPolarityString(), Encoders.STRING()).collectAsList();
+			FileWriter writer = new FileWriter(path+"DATA/amino_acid_polarity_"+chr+".csv"); 
+			for(String str: features) {
+			  writer.write(str+"\n");
+			}
+			writer.close();
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
 
 		long start = System.nanoTime();
 
-		getExonsDisorderPrediction();
+		//getExonsDisorderPrediction();
+		//getExonsHydropathy();
+		//getExonsAACharges();
+		getExonsAAPolarity();
 		
 		System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
 	}

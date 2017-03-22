@@ -68,7 +68,7 @@
 		<dependency>
 			<groupId>org.biojava</groupId>
 			<artifactId>biojava-genome</artifactId>
-			<version>5.0.0-YV-SNAPSHOT</version>
+			<version>5.0.0-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
