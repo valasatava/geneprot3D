@@ -5,6 +5,9 @@ public class Mutation {
 	private String chromosomeName;
 	private String geneBankId;
 	private long position;
+
+	private String uniProtId;
+	private int uniProtPos;
 	private String referenceAminoAcid;
 	private String mutatedAminoAcid;
 	
@@ -25,6 +28,18 @@ public class Mutation {
 	}
 	public long getPosition() {
 		return position;
+	}
+	public String getUniProtId() {
+		return uniProtId;
+	}
+	public void setUniProtId(String uniProtId) {
+		this.uniProtId = uniProtId;
+	}
+	public int getUniProtPos() {
+		return uniProtPos;
+	}
+	public void setUniProtPos(int uniProtPos) {
+		this.uniProtPos = uniProtPos;
 	}
 	public void setRefAminoAcid(String aa) {
 		this.referenceAminoAcid = aa;

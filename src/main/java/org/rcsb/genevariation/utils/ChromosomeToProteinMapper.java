@@ -50,14 +50,14 @@ public class ChromosomeToProteinMapper {
 			}
 		}
 	}
-	
+
     /** Extracts the exons boundaries in CDS coordinates for genes living on the reverse DNA strand.
      *
-     * @param exonStarts The list holding the genetic coordinates pointing to the start positions of the exons (including UTR regions)  
+     * @param exonStarts The list holding the genetic coordinates pointing to the start positions of the exons (including UTR regions)
      * @param exonEnds The list holding the genetic coordinates pointing to the end positions of the exons (including UTR regions)
      * @param cdsStart The start position of a coding region
      * @param cdsEnd The end position of a coding region
-     * 
+     *
      * @return the list of genetic positions corresponding to the exons boundaries in CDS coordinates
     */
     public static List<Range<Integer>> getCDSRegionsReverse(List<Integer> exonStarts, List<Integer> exonEnds,
@@ -66,7 +66,7 @@ public class ChromosomeToProteinMapper {
         // remove exons that are fully landed in UTRs
         List<Integer> tmpS = new ArrayList<Integer>(exonStarts);
         List<Integer> tmpE = new ArrayList<Integer>(exonEnds);
-        
+
         int j=0;
         for (int i = 0; i < tmpS.size(); i++) {
         	if ( ( tmpE.get(i) < cdsStart) || ( tmpS.get(i) > cdsEnd) ) {
@@ -77,14 +77,14 @@ public class ChromosomeToProteinMapper {
         		j++;
         	}
         }
-        
+
         // remove untranslated regions from exons
         int nExons = exonStarts.size();
         exonStarts.remove(0);
         exonStarts.add(0, cdsStart);
         exonEnds.remove(nExons-1);
         exonEnds.add(cdsEnd);
-        
+
         List<Range<Integer>> cdsRegion = new ArrayList<Range<Integer>>();
         for ( int i=0; i<nExons; i++ ) {
         	Range<Integer> r = Range.closed(exonStarts.get(i), exonEnds.get(i));
@@ -92,7 +92,7 @@ public class ChromosomeToProteinMapper {
         }
 		return cdsRegion;
     }
-    
+
     /** Extracts the exons boundaries in CDS coordinates for genes living on the forward DNA strand.
     *
     * @param exonStarts The list holding the genetic coordinates pointing to the start positions of the exons (including UTR regions)  

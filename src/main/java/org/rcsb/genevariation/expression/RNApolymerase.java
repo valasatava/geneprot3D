@@ -30,7 +30,7 @@ public class RNApolymerase implements Serializable  {
 	public static final String DEFAULT_MAPPING_URL="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refGene.txt.gz";
 	
 	public RNApolymerase() throws Exception {
-		readGenome();
+		//readGenome();
 	}
 	
 	public RNApolymerase(String chr) throws Exception {

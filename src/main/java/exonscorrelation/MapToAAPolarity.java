@@ -8,16 +8,16 @@ import org.biojava.nbio.aaproperties.PeptideProperties;
 public class MapToAAPolarity implements MapFunction<Row, ExonProteinFeatures> {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 6324402511339348107L;
 
 	@Override
 	public ExonProteinFeatures call(Row row) throws Exception {
-		
+
 		String uniprotIds = row.getString(10);
 		int isoformNum = row.getInt(9);
-			
+
 		String uniprotId;
 		if (uniprotIds.contains(",")) {
 			System.out.println(uniprotIds);
@@ -26,7 +26,7 @@ public class MapToAAPolarity implements MapFunction<Row, ExonProteinFeatures> {
 		else {
 			uniprotId = uniprotIds;
 		}
-		
+
 		String isoform = UniprotMapping.getIsoform(uniprotId, isoformNum);
 
 		int isoformStart;
@@ -41,20 +41,20 @@ public class MapToAAPolarity implements MapFunction<Row, ExonProteinFeatures> {
 			isoformStart = row.getInt(11);
 			isoformEnd = row.getInt(0);
 		}
-		
+
 		if (isoformStart == -1 || isoformEnd == -1)
 			return null;
-		
+
 		String peptide = isoform.subSequence(isoformStart-1, isoformEnd).toString();
 		int[] polarity = PeptideProperties.getPolarityOfAminoAcids(peptide);
-		
+
 		ExonProteinFeatures feature = new ExonProteinFeatures();
 		feature.setChromosome(row.getString(2));
 		feature.setEnsemblId(row.getString(4));
 		feature.setStart(row.getInt(8));
 		feature.setEnd(row.getInt(3));
 		feature.setPolarity(polarity);
-		
+
 		return feature;
 	}
 }

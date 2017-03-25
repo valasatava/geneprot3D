@@ -1,14 +1,14 @@
 package exonscorrelation;
 
-import java.io.Serializable;
-
 import org.biojava.nbio.data.sequence.FastaSequence;
 import org.biojava.nbio.ronn.Jronn;
 
+import java.io.Serializable;
+
 public class DisorderPredictor implements Serializable {
-	
+
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 8982451308505358723L;
 
