@@ -215,10 +215,13 @@ public class RunOnKaviarData {
             }
 
             Dataset<Row> df = SaprkUtils.getSparkSession().createDataFrame(mutations, Mutation.class);
-            Dataset<Row> chromMut = df.drop(df.col("geneBankId"));
-            Dataset<Row> chrm = chromMut.dropDuplicates();
-
-            chrm.show();
+//            Dataset<Row> chromMut = df.drop(df.col("geneBankId"));
+//            chromMut.show();
+//            chromMut.collect();
+//            chromMut.repartition(500);
+//            Dataset<Row> chrm = chromMut.dropDuplicates();
+//
+//            chrm.show();
 
 //            df.write().mode(SaveMode.Overwrite).parquet(DataProvider.getProjecthome() + "parquet/Kaviar-mutations/"+chr);
        }
