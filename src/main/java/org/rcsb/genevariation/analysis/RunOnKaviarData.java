@@ -4,7 +4,9 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FilterFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.*;
+import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
+import org.biojava.nbio.genome.parsers.twobit.TwoBitFacade;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.rcsb.genevariation.constants.VariantType;
 import org.rcsb.genevariation.datastructures.Mutation;
@@ -135,14 +137,12 @@ public class RunOnKaviarData {
 //                "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"};
 
         String[] chromosomes = {"chr21"};
+        ChromosomeMappingTools mapper = new ChromosomeMappingTools();
 
         for (String chr : chromosomes) {
 
-            ChromosomeMappingTools mapper = new ChromosomeMappingTools();
-
             File f = new File(System.getProperty("user.home")+"/data/genevariation/hg38.2bit");
-            mapper.readGenome(f);
-            mapper.setChromosome(chr);
+            TwoBitFacade twoBitFacade = new TwoBitFacade(f);
 
             String filepath = DataProvider.getProjecthome() + "parquet/Kaviar-hg-mapping/" + chr;
             Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(filepath).distinct();
@@ -178,8 +178,10 @@ public class RunOnKaviarData {
                         if (mRNAPos == -1)
                             continue;
 
-                        String transcript = mapper.getTranscriptSequence(cp.getExonStarts(), cp.getExonEnds(),
+                        DNASequence dnaSequence = mapper.getTranscriptDNASequence(twoBitFacade, chr, cp.getExonStarts(), cp.getExonEnds(),
                                 cp.getCdsStart(), cp.getCdsEnd(), row.get(8).toString().charAt(0));
+
+                        String transcript = dnaSequence.getSequenceAsString();
                         if (transcript.equals(""))
                             continue;
 

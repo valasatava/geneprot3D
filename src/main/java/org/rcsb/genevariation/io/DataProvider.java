@@ -1,5 +1,8 @@
 package org.rcsb.genevariation.io;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class DataProvider {
 	
 	private final static String userHome = System.getProperty("user.home");
@@ -11,5 +14,9 @@ public class DataProvider {
 
 	public static String getProjecthome() {
 		return projectHome;
+	}
+
+	public static Path getHumanGenomeMappingPath() {
+		return Paths.get(getProjecthome()+"/parquet/hg38/");
 	}
 }

@@ -1,17 +1,18 @@
 package org.rcsb.genevariation.utils;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.StringUtils;
+import org.biojava.nbio.core.sequence.DNASequence;
+import org.biojava.nbio.genome.parsers.twobit.TwoBitFacade;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.junit.Test;
 import org.rcsb.genevariation.constants.StrandOrientation;
 import org.rcsb.genevariation.datastructures.Transcript;
 import org.rcsb.genevariation.parser.GenePredictionsParser;
+
+import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestChromosomeToProteinMapper {
 	
@@ -33,26 +34,25 @@ public class TestChromosomeToProteinMapper {
 				.collect(Collectors.toList());
 		Transcript transcript = gcps.get(0);
 
-		String expected = "ATGGTGCTGTCTCCTGCCGACAAGACCAACGTCAAGGCCGCCTGGGGTAAGGTCGGCGCGCACGCTGGCG"+
+		DNASequence expected = new DNASequence( "ATGGTGCTGTCTCCTGCCGACAAGACCAACGTCAAGGCCGCCTGGGGTAAGGTCGGCGCGCACGCTGGCG"+
 						"AGTATGGTGCGGAGGCCCTGGAGAGGATGTTCCTGTCCTTCCCCACCACCAAGACCTACTTCCCGCACTT"+
 						"CGACCTGAGCCACGGCTCTGCCCAGGTTAAGGGCCACGGCAAGAAGGTGGCCGACGCGCTGACCAACGCC"+
 						"GTGGCGCACGTGGACGACATGCCCAACGCGCTGTCCGCCCTGAGCGACCTGCACGCGCACAAGCTTCGGG"+
 						"TGGACCCGGTCAACTTCAAGCTCCTAAGCCACTGCCTGCTGGTGACCCTGGCCGCCCACCTCCCCGCCGA"+
 						"GTTCACCCCTGCGGTGCACGCCTCCCTGGACAAGTTCCTGGCTTCTGTGAGCACCGTGCTGACCTCCAAA"+
-						"TACCGTTAA";
+						"TACCGTTAA");
 		
 		ChromosomeMappingTools mapper = new ChromosomeMappingTools();
 		
-		File f = new File(System.getProperty("user.home")+"/data/genevariation/hg38.2bit"); 
-		mapper.readGenome(f);
-		mapper.setChromosome(chromosomeName);
+		File f = new File(System.getProperty("user.home")+"/data/genevariation/hg38.2bit");
+		TwoBitFacade twoBitFacade = new TwoBitFacade(f);
 		
 		Character orientation='+';
 		if (transcript.getOrientation().equals(StrandOrientation.REVERSE)){
 			orientation='-';
 		}
-		
-		String actual = mapper.getTranscriptSequence(transcript.getExonStarts(), transcript.getExonEnds(),
+
+		DNASequence actual = mapper.getTranscriptDNASequence(twoBitFacade, chromosomeName, transcript.getExonStarts(), transcript.getExonEnds(),
 				transcript.getCodingStart(), transcript.getCodingEnd(), orientation);
 		
 		assertEquals(expected, actual);
@@ -76,7 +76,7 @@ public class TestChromosomeToProteinMapper {
 				.collect(Collectors.toList());
 		Transcript transcript = gcps.get(0);
 
-		String expected = "ATGAGCGAGGTGGAGGCGGCAGCGGGGGCTACAGCGGTCCCCGCGGCGACGGTGCCCGCGACGGCGGCAG"+
+		DNASequence expected = new DNASequence("ATGAGCGAGGTGGAGGCGGCAGCGGGGGCTACAGCGGTCCCCGCGGCGACGGTGCCCGCGACGGCGGCAG"+
 							"GGGTGGTAGCGGTGGTGGTACCGGTGCCCGCAGGGGAGCCGCAGAAAGGCGGCGGGGCGGGCGGCGGGGG"+
 							"CGGAGCCGCCTCGGGCCCCGCTGCTGGGACCCCCTCGGCGCCGGGCTCCCGCACCCCTGGCAATCCGGCG"+
 							"ACGGCGGTCTCGGGAACCCCCGCCCCCCCGGCCCGGAGTCAGGCGGACAAGCCGGTGCTGGCAATCCAAG"+
@@ -91,20 +91,19 @@ public class TestChromosomeToProteinMapper {
 							"TACCGAAGGCCTTTCCGCCCCAGGCCACGCCAGCAGCCTACCACAGAAGGTGGGGATGGTGAGACCAAGC"+
 							"CCAGCCAAGGTCCCGCTGATGGTTCCCGGCCTGAGCCCCAGCGCCCACGAAACCGCCCCTACTTCCAGCG"+
 							"GAGACGGCAGCAGGCCCCTGGCCCCCAGCAGGCCCCTGGCCCCCGGCAGCCCGCAGCCCCTGAGACCTCA"+
-							"GCCCCTGTCAACAGTGGGGACCCCACCACCACCATCCTGGAGTGA";
+							"GCCCCTGTCAACAGTGGGGACCCCACCACCACCATCCTGGAGTGA");
 		
 		ChromosomeMappingTools mapper = new ChromosomeMappingTools();
 		
-		File f = new File(System.getProperty("user.home")+"/data/genevariation/hg38.2bit"); 
-		mapper.readGenome(f);
-		mapper.setChromosome(chromosomeName);
+		File f = new File(System.getProperty("user.home")+"/data/genevariation/hg38.2bit");
+		TwoBitFacade twoBitFacade = new TwoBitFacade(f);
 		
 		Character orientation='+';
 		if (transcript.getOrientation().equals(StrandOrientation.REVERSE)){
 			orientation='-';
 		}
-		
-		String actual = mapper.getTranscriptSequence(transcript.getExonStarts(), transcript.getExonEnds(),
+
+		DNASequence actual = mapper.getTranscriptDNASequence(twoBitFacade, chromosomeName, transcript.getExonStarts(), transcript.getExonEnds(),
 				transcript.getCodingStart(), transcript.getCodingEnd(), orientation);
 		
 		assertEquals(expected, actual);
