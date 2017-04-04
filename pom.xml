@@ -15,6 +15,7 @@
 		<slf4j.version>1.7.21</slf4j.version>
 		<log4j.version>2.6.1</log4j.version>
 		<spark.version>2.1.0</spark.version>
+		<biojava.version>5.0.0-alpha8</biojava.version>
 	</properties>
 	
 	<dependencies>
@@ -22,7 +23,7 @@
 		<dependency>
 		  <groupId>org.rcsb.uniprot</groupId>
     		<artifactId>uniprot</artifactId>
-    		<version>2016.08.25.01</version>
+    		<version>0.0.1-SHAPSHOT</version>
     	</dependency>
     	
 		<dependency>
@@ -69,25 +70,25 @@
 		<dependency>
 			<groupId>org.biojava</groupId>
 			<artifactId>biojava-genome</artifactId>
-			<version>5.0.0-SNAPSHOT</version>
+			<version>${biojava.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.biojava</groupId>
 			<artifactId>biojava-structure</artifactId>
-			<version>4.0.0</version>
+			<version>${biojava.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.biojava</groupId>
 			<artifactId>biojava-protein-disorder</artifactId>
-			<version>5.0.0-SNAPSHOT</version>
+			<version>${biojava.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.biojava</groupId>
 			<artifactId>biojava-aa-prop</artifactId>
-			<version>5.0.0-SNAPSHOT</version>
+			<version>${biojava.version}</version>
 		</dependency>
 			
 		<!-- logging -->

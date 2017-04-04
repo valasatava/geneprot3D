@@ -21,6 +21,8 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -33,7 +35,11 @@ public class IsoformsMappingAnalysis {
     public static boolean sameLength(ProteinSequence[] sequences) {
 
         for (int i=0; i<sequences.length-1; i++) {
+            if (sequences[i]==null)
+                continue;
             for (int j=i+1; j<sequences.length; j++) {
+                if (sequences[j]==null)
+                    continue;
                 if (sequences[i].getLength() == sequences[j].getLength())
                     return true;
             }
@@ -51,6 +57,8 @@ public class IsoformsMappingAnalysis {
         InputStream inStreamGenes = prov.getInputStream(url);
         List<GeneChromosomePosition> gcps = GeneChromosomePositionParser.getChromosomeMappings(inStreamGenes);
 
+        List<String> lines = Files.readAllLines(Paths.get("/Users/yana/data/genevariation/isoforms_all.txt"));
+
         String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",
                 "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"};
 
@@ -64,6 +72,18 @@ public class IsoformsMappingAnalysis {
 
                 String geneSymbol = row.getString(0);
                 String uniProtId = row.getString(1);
+
+                if (lines.contains(uniProtId))
+                    continue;
+
+                if (uniProtId.contains("Q5R372"))
+                    continue;
+
+                if (uniProtId.contains(",")) {
+                    System.out.println(uniProtId);
+                    String t = uniProtId.split(",")[0];
+                    uniProtId = t;
+                }
 
                 URL u = UniProtTools.getURLforXML(uniProtId);
                 InputStream inStream = u.openStream();
@@ -87,7 +107,7 @@ public class IsoformsMappingAnalysis {
                         continue;
 
                     String geneBankId = gcp.getGenebankId();
-                    if (gcp.getCdsStart()==gcp.getTranscriptionEnd()) {
+                    if (gcp.getTranscriptionEnd() <= gcp.getCdsStart()) {
                         PrintWriter pw4 = new PrintWriter(new FileWriter(System.getProperty("user.home")+"/data/genevariation/isoforms_all_noncoding.log", true));
                         pw4.println(String.format("%s,%s,%s", gcp.getChromosome(), uniProtId, geneBankId));
                         pw4.close();
