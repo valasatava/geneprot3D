@@ -8,13 +8,16 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.apache.avro.generic.GenericData;
+import org.apache.spark.sql.Row;
 import org.json.JSONArray;
 
 public class CommonUtils {
-	
-	public static List<Integer> getIntegerListFromString(String lst, String sep){
+
+    public static List<Integer> getIntegerListFromString(String lst, String sep){
 		String[] spl = lst.split(sep);
 		ArrayList<Integer> l = new ArrayList<Integer>();
 		for (String s : spl){

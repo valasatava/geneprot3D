@@ -1,8 +1,10 @@
 package exonscorrelation;
 
+import org.rcsb.genevariation.datastructures.ExonSerializable;
+
 import java.io.Serializable;
 
-public class ExonProteinFeatures extends ExonData implements Serializable {
+public class ExonProteinFeatures extends ExonSerializable implements Serializable {
 
 	private static final long serialVersionUID = 5134392454874646410L;
 	
@@ -10,19 +12,12 @@ public class ExonProteinFeatures extends ExonData implements Serializable {
 	private int[] polarity;
 	private float[] hydropathy;
 	private float[] disorder;
-	private String uniProtId;
 	
 	public float[] getDisorder() {
 		return disorder;
 	}
 	public void setDisorder(float[] disorder) {
 		this.disorder = disorder;
-	}
-	public String getUniProtId() {
-		return uniProtId;
-	}
-	public void setUniProtId(String uniProtId) {
-		this.uniProtId = uniProtId;
 	}
 	public float[] getHydropathy() {
 		return hydropathy;

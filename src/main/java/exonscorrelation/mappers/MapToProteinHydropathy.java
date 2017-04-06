@@ -1,16 +1,19 @@
-package exonscorrelation;
+package exonscorrelation.mappers;
 
+import exonscorrelation.ExonProteinFeatures;
+import exonscorrelation.UniprotMapping;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.Row;
+import org.rcsb.genevariation.tools.HydropathyCalculator;
 
-import org.biojava.nbio.aaproperties.PeptideProperties;
+import java.util.List;
 
-public class MapToAAPolarity implements MapFunction<Row, ExonProteinFeatures> {
+public class MapToProteinHydropathy implements MapFunction<Row, ExonProteinFeatures> {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 6324402511339348107L;
+	private static final long serialVersionUID = -1382222868798031985L;
 
 	@Override
 	public ExonProteinFeatures call(Row row) throws Exception {
@@ -28,32 +31,25 @@ public class MapToAAPolarity implements MapFunction<Row, ExonProteinFeatures> {
 		}
 
 		String isoform = UniprotMapping.getIsoform(uniprotId, isoformNum);
-
-		int isoformStart;
-		int isoformEnd;
-
-		String orientation = row.getString(7);
-		if (orientation.equals("+")) {
-			isoformStart = row.getInt(0);
-			isoformEnd = row.getInt(11);
-		}
-		else {
-			isoformStart = row.getInt(11);
-			isoformEnd = row.getInt(0);
-		}
+		List<Integer> isosten = exonscorrelation.utils.CommonUtils.getIsoStartEndForRow(row);
+		int isoformStart = isosten.get(0);
+		int isoformEnd = isosten.get(1);
 
 		if (isoformStart == -1 || isoformEnd == -1)
 			return null;
 
-		String peptide = isoform.subSequence(isoformStart-1, isoformEnd).toString();
-		int[] polarity = PeptideProperties.getPolarityOfAminoAcids(peptide);
+		float[] hydropathy = HydropathyCalculator.run(isoform);
+
+		int len = isoformEnd-isoformStart-1;
+		float[] hydropathyExon = new float[len];
+		System.arraycopy(hydropathy, isoformStart, hydropathyExon, 0, len);
 
 		ExonProteinFeatures feature = new ExonProteinFeatures();
 		feature.setChromosome(row.getString(2));
 		feature.setEnsemblId(row.getString(4));
 		feature.setStart(row.getInt(8));
 		feature.setEnd(row.getInt(3));
-		feature.setPolarity(polarity);
+		feature.setHydropathy(hydropathyExon);
 
 		return feature;
 	}

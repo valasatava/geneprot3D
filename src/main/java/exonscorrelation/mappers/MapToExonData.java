@@ -1,4 +1,4 @@
-package exonscorrelation;
+package exonscorrelation.mappers;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,15 +7,16 @@ import java.util.regex.Pattern;
 
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.Row;
+import org.rcsb.genevariation.datastructures.ExonSerializable;
 
-public class MapToExonData implements  FlatMapFunction<Row, ExonData> {
+public class MapToExonData implements  FlatMapFunction<Row, ExonSerializable> {
 
 	private static final long serialVersionUID = -1871761147320947320L;
 
 	@Override
-	public Iterator<ExonData> call(Row row) throws Exception {
+	public Iterator<ExonSerializable> call(Row row) throws Exception {
 		
-		List<ExonData> data = new ArrayList<ExonData>();
+		List<ExonSerializable> data = new ArrayList<ExonSerializable>();
 		
 		String chromosome = row.getString(0);
 		String orientation = row.getString(3);
@@ -27,7 +28,7 @@ public class MapToExonData implements  FlatMapFunction<Row, ExonData> {
 		String[] offsets = row.getString(6).split(";");
 		
 		for (int i=0; i< ensemblIds.length; i++) {
-			ExonData exon = new ExonData(chromosome, geneName, start, end, orientation);
+			ExonSerializable exon = new ExonSerializable(chromosome, geneName, start, end, orientation);
 			try {
 				exon.setEnsemblId(ensemblIds[i].split(Pattern.quote("."))[0]);
 			} catch (Exception e) {

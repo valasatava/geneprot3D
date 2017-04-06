@@ -1,8 +1,8 @@
-package exonscorrelation;
+package org.rcsb.genevariation.datastructures;
 
 import java.io.Serializable;
 
-public class ExonData implements Serializable {
+public class ExonSerializable implements Serializable {
 	
 	/**
 	 * 
@@ -21,17 +21,16 @@ public class ExonData implements Serializable {
 	private String orientation;
 	private int offset;
 	
-	public ExonData() {
-		
-	}
+	public ExonSerializable() {}
 	
-	public ExonData(String chromosome, String geneName, int start, int end, String orientation) {
+	public ExonSerializable(String chromosome, String geneName, int start, int end, String orientation) {
 		setChromosome(chromosome);
 		setGeneName(geneName);
 		setStart(start);
 		setEnd(end);
 		setOrientation(orientation);
 	}
+
 	public String getChromosome() {
 		return chromosome;
 	}

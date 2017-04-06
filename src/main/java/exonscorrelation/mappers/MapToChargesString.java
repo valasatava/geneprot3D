@@ -1,8 +1,9 @@
-package exonscorrelation;
+package exonscorrelation.mappers;
 
+import exonscorrelation.ExonProteinFeatures;
 import org.apache.spark.api.java.function.MapFunction;
 
-public class MapToDisorderString implements MapFunction<ExonProteinFeatures, String> {
+public class MapToChargesString implements MapFunction<ExonProteinFeatures, String> {
 
 	/**
 	 * 
@@ -16,10 +17,10 @@ public class MapToDisorderString implements MapFunction<ExonProteinFeatures, Str
 		line += ","+String.valueOf(feature.getStart());
 		line += ","+String.valueOf(feature.getEnd());
 		
-		float[] disorder = feature.getDisorder();
-		String disorderStr = String.valueOf(disorder[0]);
-		for ( int i=1;i< disorder.length; i++ ) {
-			disorderStr += ";"+String.valueOf(disorder[i]);
+		int[] charges = feature.getCharge();
+		String disorderStr = String.valueOf(charges[0]);
+		for ( int i=1;i< charges.length; i++ ) {
+			disorderStr += ";"+String.valueOf(charges[i]);
 		}
 		line += ","+ disorderStr;
 		

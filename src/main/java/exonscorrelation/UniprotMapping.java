@@ -50,15 +50,11 @@ public class UniprotMapping {
 
 		System.out.println();
 
-		IsoformMapper mapper = new IsoformMapper(uniprot, canonical, isoform);
+		IsoformMapper mapper = new IsoformMapper(canonical, isoform);
 		SequencePair<ProteinSequence, AminoAcidCompound> pair = mapper.getPair();
 
 		System.out.println(pair.getQuery());
 		System.out.println(pair.getTarget());
-
-//		System.out.println(mapper.convertPos2toPos1(229));
-//		System.out.println(mapper.convertPos2toPos1(230));
-//		System.out.println(mapper.convertPos2toPos1(231));
 
 	}
 }

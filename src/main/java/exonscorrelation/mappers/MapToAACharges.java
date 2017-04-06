@@ -1,9 +1,13 @@
-package exonscorrelation;
+package exonscorrelation.mappers;
 
+import exonscorrelation.ExonProteinFeatures;
+import exonscorrelation.UniprotMapping;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.Row;
 
 import org.biojava.nbio.aaproperties.PeptideProperties;
+
+import java.util.List;
 
 public class MapToAACharges implements MapFunction<Row, ExonProteinFeatures> {
 
@@ -28,19 +32,9 @@ public class MapToAACharges implements MapFunction<Row, ExonProteinFeatures> {
 		}
 
 		String isoform = UniprotMapping.getIsoform(uniprotId, isoformNum);
-
-		int isoformStart;
-		int isoformEnd;
-
-		String orientation = row.getString(7);
-		if (orientation.equals("+")) {
-			isoformStart = row.getInt(0);
-			isoformEnd = row.getInt(11);
-		}
-		else {
-			isoformStart = row.getInt(11);
-			isoformEnd = row.getInt(0);
-		}
+		List<Integer> isosten = exonscorrelation.utils.CommonUtils.getIsoStartEndForRow(row);
+		int isoformStart = isosten.get(0);
+		int isoformEnd = isosten.get(1);
 
 		if (isoformStart == -1 || isoformEnd == -1)
 			return null;

@@ -123,7 +123,7 @@ public class IsoformsMappingAnalysis {
                     }
                     ProteinSequence sequence = ProteinMappingTools.convertDNAtoProteinSequence(transcriptDNASequence);
 
-                    int index = tools.getBestMatchingIsoform(isoforms, sequence);
+                    int index = tools.getUniprotIsoformPositionByEqualSequence(isoforms, sequence);
                     PrintWriter pw3 = new PrintWriter(new FileWriter(System.getProperty("user.home")+"/data/genevariation/isoforms_all_coding.log", true));
                     pw3.println(String.format("%s,%s,%s,%d", gcp.getChromosome(), uniProtId, geneBankId, index));
                     pw3.close();
