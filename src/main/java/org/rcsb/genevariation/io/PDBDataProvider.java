@@ -6,8 +6,8 @@ import org.rcsb.genevariation.utils.SaprkUtils;
 
 public class PDBDataProvider extends DataProvider {
 	
-	private final static String dfGenevariationPath = getProjecthome() + "parquet/hg38/";
-	private final static String dfUniprotpdbPath = getProjecthome() + "parquet/uniprotpdb/20161104/";
+	private final static String dfGenevariationPath = getUserhome() + "/spark/parquet/humangenome/20170405/hg38/";
+	private final static String dfUniprotpdbPath = getProjecthome() + "/parquet/uniprotpdb/20161104/";
 	
 
 	public static Dataset<Row> readHumanChromosomeMapping(String chr) {

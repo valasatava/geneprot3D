@@ -6,7 +6,7 @@ import java.nio.file.Paths;
 public class DataProvider {
 	
 	private final static String userHome = System.getProperty("user.home");
-	private final static String projectHome = getUserhome()+"/data/genevariation/";
+	private final static String projectHome = getUserhome()+"/data/genevariation";
 	
 	public static String getUserhome() {
 		return userHome;

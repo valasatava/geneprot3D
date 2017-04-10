@@ -15,91 +15,16 @@ import org.rcsb.genevariation.io.PDBDataProvider;
 import org.rcsb.genevariation.parser.GenePredictionsParser;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
 public class AnalyzeExonsProteinFeatures {
 
 	private static String path = "/Users/yana/ishaan/";
-	private static String filename = "FDR0.gene";
 
-	public static List<ExonSerializable> getExons() throws IOException {
+	public static void mapExonsToIsoformPositions(String exonsdatapath, String exonsuniprotpath) {
 
-		List<ExonSerializable> exons = new ArrayList<ExonSerializable>();
-		List<Transcript> transcripts = GenePredictionsParser.getChromosomeMappings();
-		for (Transcript transcript : transcripts) {
-			List<Integer> starts = transcript.getExonStarts();
-			List<Integer> ends = transcript.getExonEnds();
-			for ( int i=0; i<starts.size();i++ ) {
-				ExonSerializable exon = new ExonSerializable();
-				exon.setChromosome(transcript.getChromosomeName());
-				exon.setGeneName(transcript.getGeneName());
-				exon.setGeneBankId(transcript.getGeneBankId());
-				exon.setStart(starts.get(i)+1);
-				exon.setEnd(ends.get(i));
-				exons.add(exon);
-			}
-		}
-		return exons;
-	}
-
-	public static List<ExonSerializable> getExonsData() {
-
-		String dataPath = path+"FDR0.gene.CDS";
-		Dataset<Row> data = SaprkUtils.getSparkSession().read().csv(dataPath);
-		Encoder<ExonSerializable> encoder = Encoders.bean(ExonSerializable.class);
-		List<ExonSerializable> exons = data.flatMap(new MapToExonData(), encoder).collectAsList();
-
-		//sorting the exons based on the chromosome name
-		Collections.sort(exons, new Comparator<ExonSerializable>() {
-			@Override
-			public int compare(final ExonSerializable e1, final ExonSerializable e2) {
-				return e1.getChromosome().compareTo(e2.getChromosome());
-			}
-		} );
-
-		return exons;
-	}
-
-	public static void mapToGeneBank() {
-
-		// Ensembl to gene bank id mapping
-		Dataset<Row> mp = SaprkUtils.getSparkSession()
-				.read().csv(path+"mart_export.txt")
-				.filter(t->t.getAs(1)!=null);
-		//
-		List<ExonSerializable> exons = getExonsData();
-		Dataset<Row> df = SaprkUtils.getSparkSession().createDataFrame(exons, ExonSerializable.class).drop("geneBankId");
-
-		Dataset<Row> newdf = mp.join(df, df.col("ensemblId").equalTo(mp.col("_c0")), "inner").drop("_c0").withColumnRenamed("_c1", "geneBankId");
-		newdf.write().mode(SaveMode.Overwrite).parquet(path+"DATA/exons_data_mapped_to_genebank");
-	}
-
-	public static void mappingToGeneBankId() throws IOException {
-
-		// get the experimental exons data
-		String dataPath = path+filename;
-		Dataset<Row> data = SaprkUtils.getSparkSession().read().csv(dataPath);
-		data.createOrReplaceTempView("t1");
-
-		List<ExonSerializable> exons = getExons();
-		Dataset<Row> exonsDf = SaprkUtils.getSparkSession().createDataFrame(exons, ExonSerializable.class);
-		exonsDf.createOrReplaceTempView("t2");
-
-		Dataset<Row> coding = SaprkUtils.getSparkSession().read().csv(path+"coding_genes.list");
-		coding.createOrReplaceTempView("t4");
-
-		Dataset<Row> mappingDf = SaprkUtils.getSparkSession().sql("select t2.chromosome, t2.geneName, t2.geneBankId,"
-				+ "t2.start, t2.end, t1._c3 as orientation from t1 inner join t2 on (t1._c0 = t2.chromosome and "
-				+ "t1._c1 = t2.start and t1._c2 = t2.end) inner join t4 on (t2.geneName = t4._c0)");
-		mappingDf.createOrReplaceTempView("t3");
-		mappingDf.write().mode(SaveMode.Overwrite).parquet(path+"mappingToGeneBankId");
-	}
-
-	public static void mapToIsoformPositions() {
-
-		Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(path+"DATA/exons_data_mapped_to_genebank");
+		Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(exonsdatapath);
 		data.persist(StorageLevel.MEMORY_AND_DISK());
 
 		String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",
@@ -112,14 +37,14 @@ public class AnalyzeExonsProteinFeatures {
 			Dataset<Row> df1 = data.join(map, data.col("chromosome").equalTo(map.col("chromosome"))
 					.and(data.col("geneBankId").equalTo(map.col("geneBankId"))).and(data.col("start").equalTo(map.col("position"))), "inner")
 					.drop(map.col("chromosome")).drop(map.col("geneBankId")).drop(map.col("orientation"))
-					.drop(map.col("geneSymbol")).drop(map.col("geneName")).drop(map.col("cds")).drop(map.col("exonNum"))
+					.drop(map.col("geneSymbol")).drop(map.col("geneName")).drop(map.col("mRNAPos")).drop(map.col("exonNum"))
 					.drop(map.col("inCoding")).drop(map.col("inUtr")).drop(map.col("position")).drop(map.col("uniProtCanonicalPos"))
 					.drop(map.col("phase")).withColumnRenamed("uniProtIsoformPos", "isoformPosStart");
 
 			Dataset<Row> df2 = data.join(map, data.col("chromosome").equalTo(map.col("chromosome"))
 					.and(data.col("geneBankId").equalTo(map.col("geneBankId"))).and(data.col("end").equalTo(map.col("position"))), "inner")
 					.drop(map.col("chromosome")).drop(map.col("geneBankId")).drop(map.col("orientation"))
-					.drop(map.col("geneSymbol")).drop(map.col("geneName")).drop(map.col("cds")).drop(map.col("exonNum"))
+					.drop(map.col("geneSymbol")).drop(map.col("geneName")).drop(map.col("mRNAPos")).drop(map.col("exonNum"))
 					.drop(map.col("inCoding")).drop(map.col("inUtr")).drop(map.col("position")).drop(map.col("uniProtCanonicalPos"))
 					.drop(map.col("phase")).withColumnRenamed("uniProtIsoformPos", "isoformPosEnd");
 
@@ -127,44 +52,30 @@ public class AnalyzeExonsProteinFeatures {
 					df1.col("chromosome").equalTo(df2.col("chromosome"))
 					.and(df1.col("geneBankId").equalTo(df2.col("geneBankId")))
 					.and(df1.col("ensemblId").equalTo(df2.col("ensemblId")))
-					.and(df1.col("isoformNr").equalTo(df2.col("isoformNr")))
+					.and(df1.col("isoformIndex").equalTo(df2.col("isoformIndex")))
 					.and(df1.col("start").equalTo(df2.col("start")))
 					.and(df1.col("end").equalTo(df2.col("end"))), "inner")
 					.drop(df2.col("chromosome")).drop(df2.col("geneBankId")).drop(df2.col("ensemblId"))
 					.drop(df2.col("orientation")).drop(df2.col("offset")).drop(df2.col("geneName"))
-					.drop(df2.col("start")).drop(df2.col("end")).drop(df2.col("isoformNr")).drop(df2.col("uniProtId"));
+					.drop(df2.col("start")).drop(df2.col("end")).drop(df2.col("isoformIndex")).drop(df2.col("uniProtId"));
 
-			df.write().mode(SaveMode.Overwrite).parquet(path+"DATA/exons_isoforms_map/"+chr);
-
+			df.write().mode(SaveMode.Overwrite).parquet(exonsuniprotpath+"/"+chr);
 		}
 	}
 
-	public static void mappingToUniprotPos() throws IOException {
+	public static void mapToPDBPositions(String uniprotmapping, String pdbmapping ) {
 
-		Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(path+"mappingToGeneBankId");
-		data.createOrReplaceTempView("tbl");
+		Dataset<Row> mapToPdb = PDBDataProvider.readPdbUniprotMapping();
 
-		//		String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",
-		//				"chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",  "chr20", "chr21", "chr22", "chrX", "chrY"};
-		String[] chromosomes = {"chr11"};
+		String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",
+				"chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",  "chr20", "chr21", "chr22", "chrX", "chrY"};
 
 		for (String chr : chromosomes) {
 
-			Dataset<Row> map = PDBDataProvider.readHumanChromosomeMapping(chr);
-			map.createOrReplaceTempView("map");
-
-			Dataset<Row> df1 = SaprkUtils.getSparkSession().sql("select map.chromosome, map.geneBankId, map.geneSymbol as geneName, tbl.start, tbl.end, "
-					+ "map.uniProtPos as isoformStart, map.isoformNr, "
-					+ "map.uniProtId, map.orientation from map inner join tbl on (map.chromosome=tbl.chromosome and map.geneBankId=tbl.geneBankId and"
-					+ " tbl.start=map.position)").distinct();
-			df1.createOrReplaceTempView("m1");
-
-			Dataset<Row> df2 = SaprkUtils.getSparkSession().sql("select m1.chromosome, m1.geneName, m1.geneBankId, m1.orientation, m1.start, m1.end, "
-					+ "m1.uniProtId, m1.isoformNr, m1.isoformStart, map.uniProtPos as isoformEnd from m1 inner join map "
-					+ "on (m1.chromosome=map.chromosome and m1.geneBankId=map.geneBankId and m1.isoformNr=map.isoformNr and map.position=m1.end)");
-			df2.orderBy("geneName", "start", "isoformNr").show();
+			Dataset<Row> mapToUniprot = SaprkUtils.getSparkSession().read().parquet(uniprotmapping+"/"+chr);
 
 		}
+
 	}
 
 	public static void getPeptides() throws Exception {
@@ -174,7 +85,7 @@ public class AnalyzeExonsProteinFeatures {
 
 		Map<String, String> map = new HashMap<String, String>();
 
-		List<ExonSerializable> exons = getExonsData();
+		List<ExonSerializable> exons = getExonsData("");
 		for (ExonSerializable exon : exons) {
 
 			if ( !chrSet.equals(exon.getChromosome())) {
@@ -194,16 +105,17 @@ public class AnalyzeExonsProteinFeatures {
 				transcription = compliment.getSequenceAsString();
 			}
 			else {
-				int lenght = (exon.getEnd() - (exon.getStart()+exon.getOffset()))+1;
-				int correction = lenght%3;
-				lenght = lenght-correction;
-				transcription = polymerase.parser.loadFragment((exon.getStart()+exon.getOffset())-1, lenght);
+				int length = (exon.getEnd() - (exon.getStart()+exon.getOffset()))+1;
+				int correction = length%3;
+				length = length-correction;
+				transcription = polymerase.parser.loadFragment((exon.getStart()+exon.getOffset())-1, length);
 			}
 
 			String peptide = Ribosome.getProteinSequence(transcription);
 			map.put(exon.getGeneBankId(), peptide);
 		}
 	}
+
 
 
 
@@ -247,7 +159,7 @@ public class AnalyzeExonsProteinFeatures {
 			CommonUtils.writeListOfStringsInFile(features, fpath);
 	}
 
-	public static void runAll() throws Exception {
+	public static void runAll(String exonsuniprotpath) throws Exception {
 
 		String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",
 				"chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",  "chr20", "chr21", "chr22", "chrX", "chrY"};
@@ -256,21 +168,121 @@ public class AnalyzeExonsProteinFeatures {
 
 			System.out.println("Processing chromosome: "+chr);
 
-			Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(path + "DATA/exons_isoforms_map/" + chr);
 			Encoder<ExonProteinFeatures> encoder = Encoders.bean(ExonProteinFeatures.class);
+			Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(exonsuniprotpath+"/"+chr);
+			Dataset<ExonProteinFeatures> featuresDF = data.map(new MapToProteinFeatures(), encoder)
+					.filter(t->t!=null);
+			featuresDF.persist();
 
-			getExonsDisorderPrediction(chr, encoder, data);
-			getExonsHydropathy(chr, encoder, data);
-			getExonsAACharges(chr, encoder, data);
-			getExonsAAPolarity(chr, encoder, data);
+			List<String> disorder = featuresDF.map(new MapToDisorderString(), Encoders.STRING()).collectAsList();
+			String disorderfpath = path + "DATA/disorder_prediction_" + chr + ".csv";
+			CommonUtils.writeListOfStringsInFile(disorder, disorderfpath);
+
+			List<String> hydropathy = featuresDF.map(new MapToHydropathyString(), Encoders.STRING()).collectAsList();
+			String hydropathyfpath = path + "DATA/hydropathy_calculation_" + chr + ".csv";
+			CommonUtils.writeListOfStringsInFile(hydropathy, hydropathyfpath);
+
+			List<String> charges = featuresDF.map(new MapToChargesString(), Encoders.STRING()).collectAsList();
+			String chargesfpath = path + "DATA/amino_acid_charges_" + chr + ".csv";
+			CommonUtils.writeListOfStringsInFile(charges, chargesfpath);
+
+			List<String> polarity = featuresDF.map(new MapToPolarityString(), Encoders.STRING()).collectAsList();
+			String polarityfpath = path + "DATA/amino_acid_polarity_" + chr + ".csv";
+			CommonUtils.writeListOfStringsInFile(polarity, polarityfpath);
 		}
 	}
+
+
+
+
+	public static List<ExonSerializable> getUCSCExons() throws IOException {
+
+		List<ExonSerializable> exons = new ArrayList<ExonSerializable>();
+		List<Transcript> transcripts = GenePredictionsParser.getChromosomeMappings();
+		for (Transcript transcript : transcripts) {
+			List<Integer> starts = transcript.getExonStarts();
+			List<Integer> ends = transcript.getExonEnds();
+			for ( int i=0; i<starts.size();i++ ) {
+				ExonSerializable exon = new ExonSerializable();
+				exon.setChromosome(transcript.getChromosomeName());
+				exon.setGeneName(transcript.getGeneName());
+				exon.setGeneBankId(transcript.getGeneBankId());
+				exon.setStart(starts.get(i)+1);
+				exon.setEnd(ends.get(i));
+				exons.add(exon);
+			}
+		}
+		return exons;
+	}
+
+	public static void sortExons(List<ExonSerializable> exons) {
+		//sorting the exons based on the chromosome name
+		Collections.sort(exons, new Comparator<ExonSerializable>() {
+			@Override
+			public int compare(final ExonSerializable e1, final ExonSerializable e2) {
+				return e1.getChromosome().compareTo(e2.getChromosome());
+			}
+		} );
+	}
+
+	public static List<ExonSerializable> getExonsData(String dataPath) {
+
+		Dataset<Row> data = SaprkUtils.getSparkSession().read().csv(dataPath);
+
+		Encoder<ExonSerializable> encoder = Encoders.bean(ExonSerializable.class);
+		List<ExonSerializable> exons = data.map(new MapToExonSerializable(), encoder).collectAsList();
+
+		return exons;
+	}
+
+	public static Dataset<Row> getGeneBankToEnsembleMapping() {
+
+		// Ensembl to gene bank id mapping
+		Dataset<Row> mp = SaprkUtils.getSparkSession()
+				.read().csv(path+"MAPS/mart_export.txt")
+				.filter(t->t.getAs(1)!=null)
+				.withColumnRenamed("_c0", "ensemblId")
+				.withColumnRenamed("_c1", "geneBankId");
+		return mp;
+	}
+
+	public static void mapExonsToGeneBank(List<ExonSerializable> exons, String path) throws IOException {
+
+		Dataset<Row> exonsDF = SaprkUtils.getSparkSession().createDataFrame(exons, ExonSerializable.class);
+		exonsDF.createOrReplaceTempView("exons");
+
+		Dataset<Row> geneBankMapping = getGeneBankToEnsembleMapping();
+		geneBankMapping.createOrReplaceTempView("genebank");
+
+		Dataset<Row> mappingDF = SaprkUtils.getSparkSession().sql("select exons.chromosome, exons.geneName, exons.ensemblId, genebank.geneBankId, "
+				+ "exons.orientation, exons.offset, exons.start, exons.end from exons inner join genebank on (exons.ensemblId = genebank.ensemblId)");
+		mappingDF.write().mode(SaveMode.Overwrite).parquet(path);
+	}
+
+	public static void runGeneBankMapping() throws Exception {
+
+		String datapath = path+"EXONS_DATA/gencode.v24.CDS.protein_coding.gtf";
+		List<ExonSerializable> exons = getExonsData(datapath);
+
+		String mappingpath = path+"MAPS/gencode.v24.CDS.protein_coding.gene_bank_mapping";
+		mapExonsToGeneBank(exons, mappingpath);
+	}
+
+
+
 
 	public static void main(String[] args) throws Exception {
 
 		long start = System.nanoTime();
 
-		runAll();
+//		String exonsdatapath = path+"MAPS/gencode.v24.CDS.protein_coding.gene_bank_mapping";
+		String exonsuniprotpath = path+"MAPS/gencode.v24.CDS.protein_coding.uniprot_mapping";
+
+//		Dataset<Row> mp = SaprkUtils.getSparkSession()
+//				.read().parquet(exonsuniprotpath+"/chr21");
+//		mp.show();
+
+		runAll(exonsuniprotpath);
 
 		System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
 	}

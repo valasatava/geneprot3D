@@ -17,7 +17,7 @@ public class CommonUtils {
         int isoformStart;
         int isoformEnd;
 
-        String orientation = row.getString(7);
+        String orientation = row.getString(5);
         if (orientation.equals("+")) {
             isoformStart = row.getInt(0);
             isoformEnd = row.getInt(11);

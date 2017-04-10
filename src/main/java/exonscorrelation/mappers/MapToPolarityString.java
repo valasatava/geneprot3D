@@ -18,6 +18,9 @@ public class MapToPolarityString implements MapFunction<ExonProteinFeatures, Str
 		line += ","+String.valueOf(feature.getEnd());
 		
 		int[] prop = feature.getPolarity();
+		if ( prop.length==0 )
+			return line += ",";
+
 		String str = String.valueOf(prop[0]);
 		for ( int i=1;i< prop.length; i++ ) {
 			str += ";"+String.valueOf(prop[i]);

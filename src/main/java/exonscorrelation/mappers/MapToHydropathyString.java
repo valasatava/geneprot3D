@@ -18,6 +18,9 @@ public class MapToHydropathyString implements MapFunction<ExonProteinFeatures, S
 		line += ","+String.valueOf(feature.getEnd());
 		
 		float[] prop = feature.getHydropathy();
+		if ( prop.length==0 )
+			return line += ",";
+
 		String str = String.valueOf(prop[0]);
 		for ( int i=1;i< prop.length; i++ ) {
 			str += ";"+String.valueOf(prop[i]);

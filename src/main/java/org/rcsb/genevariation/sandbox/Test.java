@@ -63,7 +63,7 @@ public class Test {
 			DNASequence transcriptDNASequence = ChromosomeMappingTools.getTranscriptDNASequence(twoBitFacade, gcp);
 			ProteinSequence sequence = ProteinMappingTools.convertDNAtoProteinSequence(transcriptDNASequence);
 
-			int index = tools.getBestMatchingIsoform(isoforms, sequence);
+			int index = tools.getUniprotIsoformPositionByEqualSequence(isoforms, sequence);
 
 			System.out.println(index);
 		}

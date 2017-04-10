@@ -18,6 +18,9 @@ public class MapToChargesString implements MapFunction<ExonProteinFeatures, Stri
 		line += ","+String.valueOf(feature.getEnd());
 		
 		int[] charges = feature.getCharge();
+		if ( charges.length==0 )
+			return line += ",";
+
 		String disorderStr = String.valueOf(charges[0]);
 		for ( int i=1;i< charges.length; i++ ) {
 			disorderStr += ";"+String.valueOf(charges[i]);

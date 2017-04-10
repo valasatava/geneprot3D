@@ -8,10 +8,10 @@ public class ExonProteinFeatures extends ExonSerializable implements Serializabl
 
 	private static final long serialVersionUID = 5134392454874646410L;
 	
-	private int[] charge;
-	private int[] polarity;
-	private float[] hydropathy;
-	private float[] disorder;
+	private int[] charge = new int[0];
+	private int[] polarity = new int[0];
+	private float[] hydropathy = new float[0];
+	private float[] disorder = new float[0];
 	
 	public float[] getDisorder() {
 		return disorder;
