@@ -20,6 +20,7 @@ public class SaprkUtils {
 	            .setAppName("");
 	    sContext = new JavaSparkContext(conf);
 	    sContext.setCheckpointDir(DataProvider.getProjecthome());
+
 		return sContext;
 	}
 	
