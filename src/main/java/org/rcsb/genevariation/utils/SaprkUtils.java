@@ -3,7 +3,7 @@ package org.rcsb.genevariation.utils;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
-import org.rcsb.genevariation.io.DataProvider;
+import org.rcsb.genevariation.io.DataLocationProvider;
 
 public class SaprkUtils {
 	
@@ -19,7 +19,7 @@ public class SaprkUtils {
 	            .setMaster("local[" + cores + "]")
 	            .setAppName("");
 	    sContext = new JavaSparkContext(conf);
-	    sContext.setCheckpointDir(DataProvider.getProjecthome());
+	    sContext.setCheckpointDir(DataLocationProvider.getDataHome());
 
 		return sContext;
 	}

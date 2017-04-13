@@ -16,19 +16,17 @@ import org.rcsb.genevariation.datastructures.SwissHomology;
 import org.rcsb.genevariation.utils.CommonUtils;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
-public class HomologyModelsProvider extends DataProvider {
+public class HomologyModelsProvider {
 	
-    /**
-     * Read homology models of all human proteins (~20.000) from SwissModel UniProt API into a DataFrame
-     * then write it into file using SwissHomology class.
+    /** Read homology models of all human proteins (~20.000) from SwissModel UniProt API into a DataFrame
+     *  then write it into file using SwissHomology class.
+     *
      * @param
      * @return
      */
-	private final static String path = getProjecthome() + "human_homology_models";
-	
-    private static void createParquetFileHumanHomologues() throws Exception {
+    private static void createParquetFileHumanHomologues(String path) throws Exception {
 
-        Dataset<Row> uniprotpdb = PDBDataProvider.readPdbUniprotMapping();
+        Dataset<Row> uniprotpdb = MappingDataProvider.readPdbUniprotMapping();
         uniprotpdb.persist().createOrReplaceTempView("humanuniprot");
 
         // First, get the list of all human uniprot ids
@@ -78,18 +76,17 @@ public class HomologyModelsProvider extends DataProvider {
         mydf.write().mode(SaveMode.Overwrite).parquet(path);
     }
     
-    public static void readHumanHomologyModelsParquetFile() {
-    	
-    	Dataset<Row> df = SaprkUtils.getSparkSession().read().parquet(path);
-    	df.createOrReplaceTempView("humanHomologyModels");
+    public static void printSchema() {
+    	Dataset<Row> df = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanHomologyModelsLocation());
     	System.out.println(df.schema());
 	}
 
-    public static void run() throws Exception {
-    	createParquetFileHumanHomologues();
-	}
-    
     public static void main(String[] args) throws Exception {
-    	readHumanHomologyModelsParquetFile();
+        createParquetFileHumanHomologues(DataLocationProvider.getHumanHomologyModelsLocation());
+    	printSchema();
 	}
+
+    public static Dataset<Row> getAsDataFrame() {
+        return SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanHomologyModelsLocation());
+    }
 }

@@ -1,9 +1,9 @@
 package exonscorrelation.mappers;
 
-import exonscorrelation.ExonProteinFeatures;
+import org.rcsb.genevariation.datastructures.ProteinFeatures;
 import org.apache.spark.api.java.function.MapFunction;
 
-public class MapToHydropathyString implements MapFunction<ExonProteinFeatures, String> {
+public class MapToHydropathyString implements MapFunction<ProteinFeatures, String> {
 
 	/**
 	 * 
@@ -11,7 +11,7 @@ public class MapToHydropathyString implements MapFunction<ExonProteinFeatures, S
 	private static final long serialVersionUID = 7392562814455570397L;
 
 	@Override
-	public String call(ExonProteinFeatures feature) throws Exception {
+	public String call(ProteinFeatures feature) throws Exception {
 		String line = feature.getChromosome();
 		line += ","+feature.getEnsemblId();
 		line += ","+String.valueOf(feature.getStart());

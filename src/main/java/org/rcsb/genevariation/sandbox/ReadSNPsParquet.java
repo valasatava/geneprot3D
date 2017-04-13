@@ -4,9 +4,8 @@ import java.io.IOException;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.rcsb.genevariation.io.DataProvider;
-import org.rcsb.genevariation.io.MetalBindingDataProvider;
-import org.rcsb.genevariation.io.PDBDataProvider;
+import org.rcsb.genevariation.io.*;
+import org.rcsb.genevariation.io.MappingDataProvider;
 import org.rcsb.genevariation.io.VariantsDataProvider;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
@@ -17,7 +16,7 @@ import org.rcsb.genevariation.utils.SaprkUtils;
  */
 public class ReadSNPsParquet {
 
-	private final static String path = DataProvider.getProjecthome() + "variations.parquet";
+	private final static String path = DataLocationProvider.getDataHome() + "variations.parquet";
 	
 	public static void main(String[] args) throws IOException {
 		
@@ -28,7 +27,7 @@ public class ReadSNPsParquet {
         
         System.out.println("missense muttations are mapped to the protein sequence");
         
-        Dataset<Row> uniprotpdb = PDBDataProvider.readPdbUniprotMapping();
+        Dataset<Row> uniprotpdb = MappingDataProvider.readPdbUniprotMapping();
         uniprotpdb.createOrReplaceTempView("uniprotpdb");
 
         Dataset<Row> metals = MetalBindingDataProvider.readParquetFile();
@@ -39,7 +38,7 @@ public class ReadSNPsParquet {
 		for (String chr : chromosomes) {
 			
 			System.out.println("getting the data for the chromosome "+ chr);
-			Dataset<Row> chromMapping = PDBDataProvider.readHumanChromosomeMapping(chr);
+			Dataset<Row> chromMapping = MappingDataProvider.readHumanChromosomeMapping(chr);
 			chromMapping.createOrReplaceTempView("hgmapping");
 			System.out.println("...done");
 			

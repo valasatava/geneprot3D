@@ -1,14 +1,14 @@
 package exonscorrelation.mappers;
 
-import exonscorrelation.ExonProteinFeatures;
-import exonscorrelation.UniprotMapping;
+import org.rcsb.genevariation.datastructures.ProteinFeatures;
+import exonscorrelation.utils.IsoformUtils;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.Row;
 import org.rcsb.genevariation.tools.DisorderPredictor;
 
 import java.util.List;
 
-public class MapToProteinDisorder implements MapFunction<Row, ExonProteinFeatures> {
+public class MapToProteinDisorder implements MapFunction<Row, ProteinFeatures> {
 
 	/**
 	 *
@@ -16,7 +16,7 @@ public class MapToProteinDisorder implements MapFunction<Row, ExonProteinFeature
 	private static final long serialVersionUID = -1382222868798031985L;
 
 	@Override
-	public ExonProteinFeatures call(Row row) throws Exception {
+	public ProteinFeatures call(Row row) throws Exception {
 
 		String uniprotIds = row.getString(10);
 		int isoformNum = row.getInt(9);
@@ -30,7 +30,7 @@ public class MapToProteinDisorder implements MapFunction<Row, ExonProteinFeature
 			uniprotId = uniprotIds;
 		}
 
-		String isoform = UniprotMapping.getIsoform(uniprotId, isoformNum);
+		String isoform = IsoformUtils.getIsoform(uniprotId, isoformNum);
 		List<Integer> isosten = exonscorrelation.utils.CommonUtils.getIsoStartEndForRow(row);
 		int isoformStart = isosten.get(0);
 		int isoformEnd = isosten.get(1);
@@ -48,7 +48,7 @@ public class MapToProteinDisorder implements MapFunction<Row, ExonProteinFeature
 		float[] disorderExon = new float[len];
 		System.arraycopy(disorder, isoformStart, disorderExon, 0, len);
 
-		ExonProteinFeatures feature = new ExonProteinFeatures();
+		ProteinFeatures feature = new ProteinFeatures();
 		feature.setChromosome(row.getString(2));
 		feature.setEnsemblId(row.getString(4));
 		feature.setStart(row.getInt(8));

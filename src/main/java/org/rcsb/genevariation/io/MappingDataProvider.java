@@ -7,11 +7,11 @@ import org.rcsb.genevariation.utils.SaprkUtils;
 
 import static org.apache.spark.sql.functions.upper;
 
-public class PDBDataProvider extends DataProvider {
+public class MappingDataProvider extends DataLocationProvider {
 	
-	private final static String dfGenevariationPath = getUserhome() + "/spark/parquet/humangenome/20170405/hg38/";
-	private final static String dfUniprotpdbPath = getProjecthome() + "/parquet/uniprotpdb/20161104/";
-	private final static String dfHomologyModelsPath = getProjecthome() + "/parquet/human-homology-models";
+	private final static String dfGenevariationPath = getUserHome() + "/spark/parquet/humangenome/20170405/hg38/";
+	private final static String dfUniprotpdbPath = getDataHome() + "/parquet/uniprotpdb/20161104/";
+	private final static String dfHomologyModelsPath = getDataHome() + "/parquet/human-homology-models";
 
 	public static Dataset<Row> readHumanChromosomeMapping(String chr) {
         Dataset<Row> chrMapping = SaprkUtils.getSparkSession().read().parquet(dfGenevariationPath+chr);

@@ -13,8 +13,8 @@ import org.rcsb.genevariation.datastructures.Mutation;
 import org.rcsb.genevariation.datastructures.VcfContainer;
 import org.rcsb.genevariation.expression.RNApolymerase;
 import org.rcsb.genevariation.expression.Ribosome;
-import org.rcsb.genevariation.io.DataProvider;
-import org.rcsb.genevariation.io.PDBDataProvider;
+import org.rcsb.genevariation.io.DataLocationProvider;
+import org.rcsb.genevariation.io.MappingDataProvider;
 import org.rcsb.genevariation.mappers.FilterCodingRegion;
 import org.rcsb.genevariation.mappers.FilterSNPs;
 import org.rcsb.genevariation.mappers.MapToVcfContainer;
@@ -29,8 +29,8 @@ import java.util.List;
 
 public class RunOnKaviarData {
 
-    private static String filepathVCF = DataProvider.getProjecthome() + "vcfs/Kaviar-160204-Public-hg38-trim.vcf";
-    private static String filepathParquet = DataProvider.getProjecthome() + "parquet/Kaviar-database";
+    private static String filepathVCF = DataLocationProvider.getDataHome() + "vcfs/Kaviar-160204-Public-hg38-trim.vcf";
+    private static String filepathParquet = DataLocationProvider.getDataHome() + "parquet/Kaviar-database";
 
     public static void run() throws Exception {
 
@@ -51,7 +51,7 @@ public class RunOnKaviarData {
                 .flatMap(new MapToVcfContainer(), vcfContainerEncoder)
                 .filter(new FilterCodingRegion(transcriptsBroadcast))
                 .filter(new FilterSNPs())
-                .write().mode(SaveMode.Overwrite).parquet(DataProvider.getProjecthome() + "parquet/coding-snps-Kaviar.parquet");
+                .write().mode(SaveMode.Overwrite).parquet(DataLocationProvider.getDataHome() + "parquet/coding-snps-Kaviar.parquet");
 
         System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
     }
@@ -68,7 +68,7 @@ public class RunOnKaviarData {
                 .option("comment", "#")
                 .load(filepathVCF)
                 .flatMap(new MapToVcfContainer(), vcfContainerEncoder)
-                .write().mode(SaveMode.Overwrite).parquet(DataProvider.getProjecthome() + "parquet/Kaviar-database.parquet");
+                .write().mode(SaveMode.Overwrite).parquet(DataLocationProvider.getDataHome() + "parquet/Kaviar-database.parquet");
         System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
     }
 
@@ -94,10 +94,10 @@ public class RunOnKaviarData {
         for (String chr : chromosomes) {
 
             System.out.println("getting the data for the chromosome " + chr);
-            Dataset<Row> chrom = PDBDataProvider.readHumanChromosomeMapping(chr);
+            Dataset<Row> chrom = MappingDataProvider.readHumanChromosomeMapping(chr);
             Dataset<Row> mapping = df.join(chrom, chrom.col("chromosome").equalTo(df.col("chromosome"))
                     .and(chrom.col("position").equalTo(df.col("position"))));
-            mapping.write().mode(SaveMode.Overwrite).parquet(DataProvider.getProjecthome() + "parquet/Kaviar-hg-mapping/" + chr);
+            mapping.write().mode(SaveMode.Overwrite).parquet(DataLocationProvider.getDataHome() + "parquet/Kaviar-hg-mapping/" + chr);
         }
         System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
     }
@@ -112,7 +112,7 @@ public class RunOnKaviarData {
 
         for (String chr : chromosomes) {
 
-            String filepath = DataProvider.getProjecthome() + "parquet/Kaviar-hg-mapping/" + chr;
+            String filepath = DataLocationProvider.getDataHome() + "parquet/Kaviar-hg-mapping/" + chr;
             Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(filepath);
             mapping.createOrReplaceTempView("mapping");
 
@@ -124,7 +124,7 @@ public class RunOnKaviarData {
                 all = all.union(coding);
             }
         }
-        all.write().mode(SaveMode.Overwrite).parquet(DataProvider.getProjecthome() + "parquet/Kaviar-hg-mapping-coding/");
+        all.write().mode(SaveMode.Overwrite).parquet(DataLocationProvider.getDataHome() + "parquet/Kaviar-hg-mapping-coding/");
     }
 
     public static void mapKaviarToMutations() throws AnalysisException, Exception {
@@ -144,7 +144,7 @@ public class RunOnKaviarData {
             File f = new File(System.getProperty("user.home")+"/data/genevariation/hg38.2bit");
             TwoBitFacade twoBitFacade = new TwoBitFacade(f);
 
-            String filepath = DataProvider.getProjecthome() + "parquet/Kaviar-hg-mapping/" + chr;
+            String filepath = DataLocationProvider.getDataHome() + "parquet/Kaviar-hg-mapping/" + chr;
             Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(filepath).distinct();
 
             Dataset<Row> filtered = mapping.filter((FilterFunction<Row>) (Row row) -> {
@@ -225,13 +225,13 @@ public class RunOnKaviarData {
 //
 //            chrm.show();
 
-//            df.write().mode(SaveMode.Overwrite).parquet(DataProvider.getProjecthome() + "parquet/Kaviar-mutations/"+chr);
+//            df.write().mode(SaveMode.Overwrite).parquet(DataLocationProvider.getDataHome() + "parquet/Kaviar-mutations/"+chr);
        }
     }
 
     public static void readKaviarOnHumanGenome() throws AnalysisException {
 
-        String filepath = DataProvider.getProjecthome() + "parquet/Kaviar-hg-mapping-coding.parquet/";
+        String filepath = DataLocationProvider.getDataHome() + "parquet/Kaviar-hg-mapping-coding.parquet/";
         Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(filepath);
         mapping.createOrReplaceTempView("kaviar");
 

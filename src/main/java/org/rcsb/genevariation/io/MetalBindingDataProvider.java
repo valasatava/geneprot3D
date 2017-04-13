@@ -19,10 +19,10 @@ import org.biojava.nbio.structure.io.PDBFileParser;
 import org.rcsb.genevariation.datastructures.MetalBindingResidue;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
-public class MetalBindingDataProvider extends DataProvider {
+public class MetalBindingDataProvider extends DataLocationProvider {
 
-	private final static String path = getProjecthome() + "external/metal_binding_residues/";
-	private final static String pathParquetFile = getProjecthome() + "metal_binding_residues.parquet";
+	private final static String path = getDataHome() + "external/metal_binding_residues/";
+	private final static String pathParquetFile = getDataHome() + "metal_binding_residues.parquet";
 
 	public static List<MetalBindingResidue> readMetalLigandsData() throws FileNotFoundException, IOException {
 
@@ -99,7 +99,7 @@ public class MetalBindingDataProvider extends DataProvider {
 	}
 
 	public static void createParquetFile(List<MetalBindingResidue> residues) {
-		String dataPath = getProjecthome() + "metal_binding_residues.parquet";
+		String dataPath = getDataHome() + "metal_binding_residues.parquet";
 		Dataset<Row> mydf = SaprkUtils.getSparkSession().createDataFrame(residues, MetalBindingResidue.class);
 		mydf.write().mode(SaveMode.Overwrite).parquet(dataPath);
 	}

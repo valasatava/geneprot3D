@@ -1,4 +1,4 @@
-package exonscorrelation;
+package exonscorrelation.utils;
 
 import org.biojava.nbio.core.alignment.template.SequencePair;
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-public class UniprotMapping {
+public class IsoformUtils {
 
 	public static String getIsoform(String up, int ind) throws IOException, JAXBException, CompoundNotFoundException {
 

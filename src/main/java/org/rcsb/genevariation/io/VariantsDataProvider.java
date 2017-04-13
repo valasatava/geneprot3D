@@ -40,10 +40,10 @@ import com.google.common.collect.ListMultimap;
  * 
  * @author Yana Valasatava
  */
-public class VariantsDataProvider extends DataProvider {
+public class VariantsDataProvider extends DataLocationProvider {
 	
 	private static List<VariantInterface> variants;
-	private final static String variationDataPath = getProjecthome() +  "common_and_clinical_20170130.vcf";
+	private final static String variationDataPath = getDataHome() +  "common_and_clinical_20170130.vcf";
 	
 	public VariantsDataProvider() {
 		variants = new ArrayList<VariantInterface>();
@@ -251,7 +251,7 @@ public class VariantsDataProvider extends DataProvider {
 	public void createVariationDataFrame(List<Mutation> mutations, String filename) {
 		
 		Dataset<Row> mydf = SaprkUtils.getSparkSession().createDataFrame(mutations, Mutation.class);
-		mydf.write().mode(SaveMode.Overwrite).parquet(getProjecthome() + filename);
+		mydf.write().mode(SaveMode.Overwrite).parquet(getDataHome() + filename);
 	}
 	
 	public Dataset<Row> getMissenseVariationDF(String path) {

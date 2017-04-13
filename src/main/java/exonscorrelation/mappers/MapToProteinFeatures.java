@@ -1,7 +1,7 @@
 package exonscorrelation.mappers;
 
-import exonscorrelation.ExonProteinFeatures;
-import exonscorrelation.UniprotMapping;
+import org.rcsb.genevariation.datastructures.ProteinFeatures;
+import exonscorrelation.utils.IsoformUtils;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.Row;
 import org.biojava.nbio.aaproperties.PeptideProperties;
@@ -10,7 +10,7 @@ import org.rcsb.genevariation.tools.HydropathyCalculator;
 
 import java.util.List;
 
-public class MapToProteinFeatures implements MapFunction<Row, ExonProteinFeatures> {
+public class MapToProteinFeatures implements MapFunction<Row, ProteinFeatures> {
 
 	/**
 	 *
@@ -18,7 +18,7 @@ public class MapToProteinFeatures implements MapFunction<Row, ExonProteinFeature
 	private static final long serialVersionUID = -1382222868798031985L;
 
 	@Override
-	public ExonProteinFeatures call(Row row) throws Exception {
+	public ProteinFeatures call(Row row) throws Exception {
 
 		String uniprotIds = row.getString(10);
 		int isoformNum = row.getInt(9);
@@ -32,7 +32,7 @@ public class MapToProteinFeatures implements MapFunction<Row, ExonProteinFeature
 			uniprotId = uniprotIds;
 		}
 
-		ExonProteinFeatures feature = new ExonProteinFeatures();
+		ProteinFeatures feature = new ProteinFeatures();
 
 		try {
 			feature.setChromosome(row.getString(1));
@@ -40,7 +40,7 @@ public class MapToProteinFeatures implements MapFunction<Row, ExonProteinFeature
 			feature.setStart(row.getInt(7));
 			feature.setEnd(row.getInt(8));
 
-			String isoform = UniprotMapping.getIsoform(uniprotId, isoformNum);
+			String isoform = IsoformUtils.getIsoform(uniprotId, isoformNum);
 			List<Integer> isosten = exonscorrelation.utils.CommonUtils.getIsoStartEndForRow(row);
 			int isoformStart = isosten.get(0);
 			int isoformEnd = isosten.get(1);

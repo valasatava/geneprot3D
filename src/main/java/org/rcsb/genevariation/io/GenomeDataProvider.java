@@ -24,12 +24,12 @@ import com.google.common.collect.Range;
  * 
  * @author Yana Valasatava
  */
-public class GenomeDataProvider extends DataProvider {
+public class GenomeDataProvider {
 	
 	static TwoBitParser parser;
 	
-	private final static String DEFAULT_GENOME_URI = getProjecthome()+"hg38.2bit";
-	private static final String DEFAULT_MAPPING_URL="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refFlat.txt.gz";
+	private final static String DEFAULT_GENOME_URI = DataLocationProvider.getHumanGenomeLocation();
+	private static final String DEFAULT_MAPPING_URL = DataLocationProvider.getGenesPredictionURL();
 	
 	public static void readTwoBitFile(String path) throws Exception {
 		File f = new File(path);

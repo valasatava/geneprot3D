@@ -1,10 +1,10 @@
-package exonscorrelation;
+package org.rcsb.genevariation.datastructures;
 
 import org.rcsb.genevariation.datastructures.ExonSerializable;
 
 import java.io.Serializable;
 
-public class ExonProteinFeatures extends ExonSerializable implements Serializable {
+public class ProteinFeatures extends ExonSerializable implements Serializable {
 
 	private static final long serialVersionUID = 5134392454874646410L;
 	
