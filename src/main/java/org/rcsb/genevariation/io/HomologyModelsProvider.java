@@ -26,7 +26,7 @@ public class HomologyModelsProvider {
      */
     private static void createParquetFileHumanHomologues(String path) throws Exception {
 
-        Dataset<Row> uniprotpdb = MappingDataProvider.readPdbUniprotMapping();
+        Dataset<Row> uniprotpdb = MappingDataProvider.getPdbUniprotMapping();
         uniprotpdb.persist().createOrReplaceTempView("humanuniprot");
 
         // First, get the list of all human uniprot ids

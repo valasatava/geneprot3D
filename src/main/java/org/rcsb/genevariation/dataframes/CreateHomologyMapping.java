@@ -5,7 +5,6 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.genevariation.io.MappingDataProvider;
-import org.rcsb.genevariation.utils.SaprkUtils;
 
 import static org.apache.spark.sql.functions.upper;
 
@@ -16,7 +15,7 @@ public class CreateHomologyMapping {
 
     public static void run(String path) throws Exception {
 
-        Dataset<Row> models = MappingDataProvider.readHomologyModels();
+        Dataset<Row> models = MappingDataProvider.getHomologyModels();
         
         Dataset<Row> homologues = models.select("uniProtId", "fromPos", "toPos", "similarity", "template", "coordinates")
                 .filter(models.col("similarity").gt(0.3))
@@ -24,7 +23,7 @@ public class CreateHomologyMapping {
                 .withColumnRenamed("toPos", "toUniprot")
                 .drop(models.col("similarity"));
 
-        Dataset<Row> mapUniprotToPdb = MappingDataProvider.readPdbUniprotMapping();
+        Dataset<Row> mapUniprotToPdb = MappingDataProvider.getPdbUniprotMapping();
 
         Dataset<Row> mappingStart = homologues.join(mapUniprotToPdb,
                 homologues.col("uniProtId").equalTo(mapUniprotToPdb.col("uniProtId"))

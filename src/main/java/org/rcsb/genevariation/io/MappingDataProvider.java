@@ -9,17 +9,17 @@ import static org.apache.spark.sql.functions.upper;
 
 public class MappingDataProvider {
 
-	public static Dataset<Row> readHumanChromosomeMapping(String chr) {
+	public static Dataset<Row> getHumanChromosomeMapping(String chr) {
         Dataset<Row> chrMapping = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHgMappingLocation()+chr);
         return chrMapping;
 	}
 	
-	public static Dataset<Row> readPdbUniprotMapping() {
+	public static Dataset<Row> getPdbUniprotMapping() {
 		Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getUniprotPdbMappinlLocation());
 		return mapping;
 	}
 
-	public static Dataset<Row> readHomologyModels() {
+	public static Dataset<Row> getHomologyModels() {
 		Dataset<Row> models = SaprkUtils.getSparkSession()
 				.read()
 				.parquet(DataLocationProvider.getHumanHomologyModelsLocation());

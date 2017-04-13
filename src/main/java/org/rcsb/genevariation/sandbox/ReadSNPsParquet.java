@@ -27,7 +27,7 @@ public class ReadSNPsParquet {
         
         System.out.println("missense muttations are mapped to the protein sequence");
         
-        Dataset<Row> uniprotpdb = MappingDataProvider.readPdbUniprotMapping();
+        Dataset<Row> uniprotpdb = MappingDataProvider.getPdbUniprotMapping();
         uniprotpdb.createOrReplaceTempView("uniprotpdb");
 
         Dataset<Row> metals = MetalBindingDataProvider.readParquetFile();
@@ -38,7 +38,7 @@ public class ReadSNPsParquet {
 		for (String chr : chromosomes) {
 			
 			System.out.println("getting the data for the chromosome "+ chr);
-			Dataset<Row> chromMapping = MappingDataProvider.readHumanChromosomeMapping(chr);
+			Dataset<Row> chromMapping = MappingDataProvider.getHumanChromosomeMapping(chr);
 			chromMapping.createOrReplaceTempView("hgmapping");
 			System.out.println("...done");
 			

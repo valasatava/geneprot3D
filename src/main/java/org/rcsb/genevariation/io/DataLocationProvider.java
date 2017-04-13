@@ -17,20 +17,44 @@ public class DataLocationProvider {
 	private final static String exonsProject = getUserHome()+"/ishaan/";
 
 	// Human genome
-	private final static String humanGenomeLocation = getDataHome()+"hg38.2bit";
+	private final static String humanGenomeLocation = getDataHome()
+			+"hg38.2bit";
 	private static final String genesPredictionURL = "http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refFlat.txt.gz";
 
 	// Homology models data
-	private final static String humanHomologyModelsLocation = getDataHome()+"parquet/human-homology-models";
-	private final static String homologyModelsMappingLocation = getDataHome()+"parquet/homology-models-mapping-pc30";
+	private final static String humanHomologyModelsLocation = getDataHome()
+			+"parquet/human-homology-models";
+	private final static String homologyModelsMappingLocation = getDataHome()
+			+"parquet/homology-models-mapping-pc30";
 
 	// Metal-binding data
-	private final static String metalPDBdataLocation = getDataHome() + "external/metal_binding_residues/";
-	private final static String metalBindingMappingLocation = getDataHome() + "parquet/metal_binding_residues";
+	private final static String metalPDBdataLocation = getDataHome()
+			+ "external/metal_binding_residues/";
+	private final static String metalBindingMappingLocation = getDataHome()
+			+ "parquet/metal_binding_residues";
 
 	// Mappings
-	private final static String hgMappingLocation = getUserHome() + "/spark/parquet/humangenome/20170405/hg38/";
-	private final static String uniprotPdbMappinlLocation = getDataHome() + "/parquet/uniprotpdb/20161104/";
+	private final static String hgMappingLocation = getUserHome()
+			+ "/spark/parquet/humangenome/20170405/hg38/";
+	private final static String uniprotPdbMappinlLocation = getDataHome()
+			+ "/parquet/uniprotpdb/20161104/";
+
+
+	//Gencode v.24 data
+	private final static String gencodeProteinCodingDataLocation = getExonsProject()
+			+"EXONS_DATA/gencode.v24.CDS.protein_coding.gtf";
+
+	private final static String gencodeGeneBankLocation = getExonsProject()
+			+"MAPS/gencode.v24.CDS.protein_coding.gene_bank_mapping";
+
+	private final static String gencodeUniprotLocation = DataLocationProvider.getExonsProject()
+			+"MAPS/gencode.v24.CDS.protein_coding.uniprot_mapping";
+
+	private final static String gencodePDBLocation = DataLocationProvider.getExonsProject()
+			+"MAPS/gencode.v24.CDS.protein_coding.pdb_mapping";
+
+	private final static String gencodeHomologyModelsLocation = DataLocationProvider.getExonsProject()
+			+"MAPS/gencode.v24.CDS.protein_coding.homology_mapping";
 
 	// methods for this class
 
@@ -79,5 +103,21 @@ public class DataLocationProvider {
 	}
 	public static String getUniprotPdbMappinlLocation() {
 		return uniprotPdbMappinlLocation;
+	}
+
+	public static String getGencodeProteinCodingDataLocation() {
+		return gencodeProteinCodingDataLocation;
+	}
+	public static String getGencodeGeneBankLocation() {
+		return gencodeGeneBankLocation;
+	}
+	public static String getGencodeUniprotLocation() {
+		return gencodeUniprotLocation;
+	}
+	public static String getGencodePDBLocation() {
+		return gencodePDBLocation;
+	}
+	public static String getGencodeHomologyModelsLocation() {
+		return gencodeHomologyModelsLocation;
 	}
 }

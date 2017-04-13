@@ -94,7 +94,7 @@ public class RunOnKaviarData {
         for (String chr : chromosomes) {
 
             System.out.println("getting the data for the chromosome " + chr);
-            Dataset<Row> chrom = MappingDataProvider.readHumanChromosomeMapping(chr);
+            Dataset<Row> chrom = MappingDataProvider.getHumanChromosomeMapping(chr);
             Dataset<Row> mapping = df.join(chrom, chrom.col("chromosome").equalTo(df.col("chromosome"))
                     .and(chrom.col("position").equalTo(df.col("position"))));
             mapping.write().mode(SaveMode.Overwrite).parquet(DataLocationProvider.getDataHome() + "parquet/Kaviar-hg-mapping/" + chr);

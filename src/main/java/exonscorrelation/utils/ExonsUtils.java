@@ -23,7 +23,7 @@ import java.util.*;
  */
 public class ExonsUtils {
 
-    public static List<ExonSerializable> getExonsData(String dataPath) {
+    public static List<ExonSerializable> getSerializableExons(String dataPath) {
 
         Dataset<Row> data = SaprkUtils.getSparkSession().read().csv(dataPath);
 
@@ -52,6 +52,7 @@ public class ExonsUtils {
         }
         return exons;
     }
+
     public static void getExonsPeptides() throws Exception {
 
         String chrSet="chr1";
@@ -59,7 +60,7 @@ public class ExonsUtils {
 
         Map<String, String> map = new HashMap<String, String>();
 
-        List<ExonSerializable> exons = getExonsData("");
+        List<ExonSerializable> exons = getSerializableExons("");
         for (ExonSerializable exon : exons) {
 
             if ( !chrSet.equals(exon.getChromosome())) {
