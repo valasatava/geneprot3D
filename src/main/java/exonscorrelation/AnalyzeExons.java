@@ -15,8 +15,6 @@ import java.util.List;
 
 public class AnalyzeExons {
 
-	private static String path = DataLocationProvider.getExonsProject();
-
 	public static void mapExonsToIsoformPositions(String exonsdatapath, String exonsuniprotpath) {
 
 		Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(exonsdatapath);
@@ -146,23 +144,13 @@ public class AnalyzeExons {
 	}
 
 
-	public static Dataset<Row> getGeneBankToEnsembleMapping() {
-
-		// Ensembl to gene bank id mapping
-		Dataset<Row> mp = SaprkUtils.getSparkSession()
-				.read().csv(DataLocationProvider.getExonsProject()+"MAPS/mart_export.txt")
-				.filter(t->t.getAs(1)!=null)
-				.withColumnRenamed("_c0", "ensemblId")
-				.withColumnRenamed("_c1", "geneBankId");
-		return mp;
-	}
 
 	public static void mapExonsToGeneBank(List<ExonSerializable> exons, String path) throws IOException {
 
 		Dataset<Row> exonsDF = SaprkUtils.getSparkSession().createDataFrame(exons, ExonSerializable.class);
 		exonsDF.createOrReplaceTempView("exons");
 
-		Dataset<Row> geneBankMapping = getGeneBankToEnsembleMapping();
+		Dataset<Row> geneBankMapping = MappingDataProvider.getGeneBankToEnsembleMapping();
 		geneBankMapping.createOrReplaceTempView("genebank");
 
 		Dataset<Row> mappingDF = SaprkUtils.getSparkSession().sql("select exons.chromosome, exons.geneName, exons.ensemblId, genebank.geneBankId, "
@@ -172,18 +160,20 @@ public class AnalyzeExons {
 
 	public static void runGeneBankMapping() throws Exception {
 
-		String datapath = path+"EXONS_DATA/gencode.v24.CDS.protein_coding.gtf";
+		String datapath = DataLocationProvider.getExonsProject()
+				+"EXONS_DATA/gencode.v24.CDS.protein_coding.gtf";
 		List<ExonSerializable> exons = ExonsUtils.getExonsData(datapath);
 
-		String mappingpath = path+"MAPS/gencode.v24.CDS.protein_coding.gene_bank_mapping";
+		String mappingpath = DataLocationProvider.getExonsProject()
+				+"MAPS/gencode.v24.CDS.protein_coding.gene_bank_mapping";
 		mapExonsToGeneBank(exons, mappingpath);
 	}
 
 
-
 	public static void test() {
 
-		String exonsuniprotpath = path+"MAPS/gencode.v24.CDS.protein_coding.uniprot_mapping/chr14";
+		String exonsuniprotpath = DataLocationProvider.getExonsProject()
+				+"MAPS/gencode.v24.CDS.protein_coding.uniprot_mapping/chr14";
 
 		Encoder<ProteinFeatures> encoder = Encoders.bean(ProteinFeatures.class);
 		Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(exonsuniprotpath);
@@ -193,16 +183,24 @@ public class AnalyzeExons {
 		featuresDF.count();
 	}
 
+
 	public static void main(String[] args) throws Exception {
 
 		long start = System.nanoTime();
 
-		String homologymodels = "/Users/yana/data/genevariation/parquet/homology-models-mapping-pc30";
+		String homologymodels = DataLocationProvider.getHomologyModelsMappingLocation();
 
-		String datapath = path+"MAPS/gencode.v24.CDS.protein_coding.gene_bank_mapping";
-		String uniprotpath = path+"MAPS/gencode.v24.CDS.protein_coding.uniprot_mapping";
-		String pdbpath = path+"MAPS/gencode.v24.CDS.protein_coding.pdb_mapping";
-		String homologypath = path+"MAPS/gencode.v24.CDS.protein_coding.homology_mapping";
+		String datapath = DataLocationProvider.getExonsProject()
+				+"MAPS/gencode.v24.CDS.protein_coding.gene_bank_mapping";
+
+		String uniprotpath = DataLocationProvider.getExonsProject()
+				+"MAPS/gencode.v24.CDS.protein_coding.uniprot_mapping";
+
+		String pdbpath = DataLocationProvider.getExonsProject()
+				+"MAPS/gencode.v24.CDS.protein_coding.pdb_mapping";
+
+		String homologypath = DataLocationProvider.getExonsProject()
+				+"MAPS/gencode.v24.CDS.protein_coding.homology_mapping";
 
 //		mapExonsToIsoformPositions(datapath, datapath);
 //		mapToPDBPositions(uniprotpath, pdbpath);

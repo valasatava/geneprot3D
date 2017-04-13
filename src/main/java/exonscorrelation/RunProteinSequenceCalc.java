@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Created by yana on 4/13/17.
  */
-public class RunProteinFeaturesCalc {
+public class RunProteinSequenceCalc {
 
     private static String path = DataLocationProvider.getExonsProject();
 

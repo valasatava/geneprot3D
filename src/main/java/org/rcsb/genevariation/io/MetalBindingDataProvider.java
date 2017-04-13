@@ -21,12 +21,9 @@ import org.rcsb.genevariation.utils.SaprkUtils;
 
 public class MetalBindingDataProvider extends DataLocationProvider {
 
-	private final static String path = getDataHome() + "external/metal_binding_residues/";
-	private final static String pathParquetFile = getDataHome() + "metal_binding_residues.parquet";
-
 	public static List<MetalBindingResidue> readMetalLigandsData() throws FileNotFoundException, IOException {
 
-		File folder = new File(path);
+		File folder = new File(DataLocationProvider.getMetalPDBdataLocation());
 		File[] listOfFiles = folder.listFiles();
 
 		List<MetalBindingResidue> residues = new ArrayList<MetalBindingResidue>();
@@ -50,7 +47,7 @@ public class MetalBindingDataProvider extends DataLocationProvider {
 
 				List<String> resKeys = new ArrayList<String>();
 
-				String file = path + filename;
+				String file = DataLocationProvider.getMetalPDBdataLocation() + filename;
 				try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 
 					Structure structure=null;
@@ -99,7 +96,7 @@ public class MetalBindingDataProvider extends DataLocationProvider {
 	}
 
 	public static void createParquetFile(List<MetalBindingResidue> residues) {
-		String dataPath = getDataHome() + "metal_binding_residues.parquet";
+		String dataPath = getDataHome() + "metal_binding_residues";
 		Dataset<Row> mydf = SaprkUtils.getSparkSession().createDataFrame(residues, MetalBindingResidue.class);
 		mydf.write().mode(SaveMode.Overwrite).parquet(dataPath);
 	}
@@ -110,7 +107,7 @@ public class MetalBindingDataProvider extends DataLocationProvider {
 	}
 	
 	public static Dataset<Row> readParquetFile() {
-		 return SaprkUtils.getSparkSession().read().parquet(pathParquetFile);
+		 return SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getMetalBindingMappingLocation());
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException {

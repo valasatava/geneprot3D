@@ -24,6 +24,8 @@ import com.google.common.collect.Range;
  * 
  * @author Yana Valasatava
  */
+
+@Deprecated
 public class GenomeDataProvider {
 	
 	static TwoBitParser parser;

@@ -13,12 +13,26 @@ public class DataLocationProvider {
 	private final static String userHome = System.getProperty("user.home");
 	private final static String dataHome = getUserHome()+"/data/genevariation/";
 
+	// Collaboration projects
 	private final static String exonsProject = getUserHome()+"/ishaan/";
 
+	// Human genome
 	private final static String humanGenomeLocation = getDataHome()+"hg38.2bit";
 	private static final String genesPredictionURL = "http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refFlat.txt.gz";
 
+	// Homology models data
 	private final static String humanHomologyModelsLocation = getDataHome()+"parquet/human-homology-models";
+	private final static String homologyModelsMappingLocation = getDataHome()+"parquet/homology-models-mapping-pc30";
+
+	// Metal-binding data
+	private final static String metalPDBdataLocation = getDataHome() + "external/metal_binding_residues/";
+	private final static String metalBindingMappingLocation = getDataHome() + "parquet/metal_binding_residues";
+
+	// Mappings
+	private final static String hgMappingLocation = getUserHome() + "/spark/parquet/humangenome/20170405/hg38/";
+	private final static String uniprotPdbMappinlLocation = getDataHome() + "/parquet/uniprotpdb/20161104/";
+
+	// methods for this class
 
 	public static String getUserHome() {
 		return userHome;
@@ -48,5 +62,22 @@ public class DataLocationProvider {
 
 	public static String getHumanHomologyModelsLocation() {
 		return humanHomologyModelsLocation;
+	}
+	public static String getHomologyModelsMappingLocation() {
+		return homologyModelsMappingLocation;
+	}
+
+	public static  String getMetalPDBdataLocation() {
+		return metalPDBdataLocation;
+	}
+	public static String getMetalBindingMappingLocation() {
+		return metalBindingMappingLocation;
+	}
+
+	public static String getHgMappingLocation() {
+		return hgMappingLocation;
+	}
+	public static String getUniprotPdbMappinlLocation() {
+		return uniprotPdbMappinlLocation;
 	}
 }
