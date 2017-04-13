@@ -1,4 +1,4 @@
-package exonscorrelation.pipeline;
+package org.rcsb.correlatedexons.pipeline;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;

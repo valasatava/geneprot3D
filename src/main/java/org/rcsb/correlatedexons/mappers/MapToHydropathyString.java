@@ -1,14 +1,14 @@
-package exonscorrelation.mappers;
+package org.rcsb.correlatedexons.mappers;
 
 import org.rcsb.genevariation.datastructures.ProteinFeatures;
 import org.apache.spark.api.java.function.MapFunction;
 
-public class MapToPolarityString implements MapFunction<ProteinFeatures, String> {
+public class MapToHydropathyString implements MapFunction<ProteinFeatures, String> {
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 3560517396619376413L;
+	private static final long serialVersionUID = 7392562814455570397L;
 
 	@Override
 	public String call(ProteinFeatures feature) throws Exception {
@@ -17,7 +17,7 @@ public class MapToPolarityString implements MapFunction<ProteinFeatures, String>
 		line += ","+String.valueOf(feature.getStart());
 		line += ","+String.valueOf(feature.getEnd());
 		
-		int[] prop = feature.getPolarity();
+		float[] prop = feature.getHydropathy();
 		if ( prop.length==0 )
 			return line += ",";
 
@@ -29,5 +29,4 @@ public class MapToPolarityString implements MapFunction<ProteinFeatures, String>
 		
 		return line;
 	}
-
 }

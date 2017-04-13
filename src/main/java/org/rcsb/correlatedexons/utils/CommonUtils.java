@@ -1,4 +1,4 @@
-package exonscorrelation.utils;
+package org.rcsb.correlatedexons.utils;
 
 import org.apache.spark.sql.Row;
 

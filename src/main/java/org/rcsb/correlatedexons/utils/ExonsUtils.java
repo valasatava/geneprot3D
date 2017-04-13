@@ -1,6 +1,6 @@
-package exonscorrelation.utils;
+package org.rcsb.correlatedexons.utils;
 
-import exonscorrelation.mappers.MapToExonSerializable;
+import org.rcsb.correlatedexons.mappers.MapToExonSerializable;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;

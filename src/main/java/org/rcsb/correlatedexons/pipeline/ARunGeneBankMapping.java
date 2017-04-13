@@ -1,6 +1,6 @@
-package exonscorrelation.pipeline;
+package org.rcsb.correlatedexons.pipeline;
 
-import exonscorrelation.utils.ExonsUtils;
+import org.rcsb.correlatedexons.utils.ExonsUtils;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;

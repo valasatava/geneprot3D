@@ -1,4 +1,4 @@
-package exonscorrelation.mappers;
+package org.rcsb.correlatedexons.mappers;
 
 import org.rcsb.genevariation.datastructures.ProteinFeatures;
 import org.apache.spark.api.java.function.MapFunction;

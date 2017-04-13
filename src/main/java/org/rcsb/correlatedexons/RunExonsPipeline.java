@@ -1,14 +1,13 @@
-package exonscorrelation;
+package org.rcsb.correlatedexons;
 
-import exonscorrelation.mappers.MapToProteinDisorder;
-import exonscorrelation.pipeline.CRunPDBStructuresMapping;
-import exonscorrelation.pipeline.DRunHomologyModelsMapping;
+import org.rcsb.correlatedexons.mappers.MapToProteinDisorder;
+import org.rcsb.correlatedexons.pipeline.DRunHomologyModelsMapping;
 import org.apache.spark.sql.*;
 import org.rcsb.genevariation.datastructures.ProteinFeatures;
 import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
-public class AnalyzeExons {
+public class RunExonsPipeline {
 
 	public static void test() {
 

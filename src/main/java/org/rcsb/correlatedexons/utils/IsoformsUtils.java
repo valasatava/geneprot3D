@@ -1,4 +1,4 @@
-package exonscorrelation.utils;
+package org.rcsb.correlatedexons.utils;
 
 import org.biojava.nbio.core.alignment.template.SequencePair;
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;

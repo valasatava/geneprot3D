@@ -1,4 +1,4 @@
-package exonscorrelation;
+package org.rcsb.correlatedexons;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.Dataset;

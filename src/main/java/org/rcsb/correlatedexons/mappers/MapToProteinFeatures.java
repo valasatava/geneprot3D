@@ -1,7 +1,8 @@
-package exonscorrelation.mappers;
+package org.rcsb.correlatedexons.mappers;
 
+import org.rcsb.correlatedexons.utils.CommonUtils;
+import org.rcsb.correlatedexons.utils.IsoformsUtils;
 import org.rcsb.genevariation.datastructures.ProteinFeatures;
-import exonscorrelation.utils.IsoformsUtils;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.Row;
 import org.biojava.nbio.aaproperties.PeptideProperties;
@@ -41,7 +42,7 @@ public class MapToProteinFeatures implements MapFunction<Row, ProteinFeatures> {
 			feature.setEnd(row.getInt(8));
 
 			String isoform = IsoformsUtils.getIsoform(uniprotId, isoformNum);
-			List<Integer> isosten = exonscorrelation.utils.CommonUtils.getIsoStartEndForRow(row);
+			List<Integer> isosten = CommonUtils.getIsoStartEndForRow(row);
 			int isoformStart = isosten.get(0);
 			int isoformEnd = isosten.get(1);
 			if (isoformStart == -1 || isoformEnd == -1)
