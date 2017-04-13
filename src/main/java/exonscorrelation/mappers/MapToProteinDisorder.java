@@ -37,7 +37,12 @@ public class MapToProteinDisorder implements MapFunction<Row, ExonProteinFeature
 		if (isoformStart == -1 || isoformEnd == -1)
 			return null;
 
-		float[] disorder = DisorderPredictor.run(isoform);
+		float[] disorder = new float[0];
+		try {
+			disorder = DisorderPredictor.run(isoform);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		int len = isoformEnd-isoformStart-1;
 		float[] disorderExon = new float[len];
