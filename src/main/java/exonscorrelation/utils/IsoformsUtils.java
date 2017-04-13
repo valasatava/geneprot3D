@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-public class IsoformUtils {
+public class IsoformsUtils {
 
 	public static String getIsoform(String up, int ind) throws IOException, JAXBException, CompoundNotFoundException {
 

@@ -1,7 +1,7 @@
 package exonscorrelation.mappers;
 
 import org.rcsb.genevariation.datastructures.ProteinFeatures;
-import exonscorrelation.utils.IsoformUtils;
+import exonscorrelation.utils.IsoformsUtils;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.Row;
 
@@ -31,7 +31,7 @@ public class MapToAAPolarity implements MapFunction<Row, ProteinFeatures> {
 			uniprotId = uniprotIds;
 		}
 
-		String isoform = IsoformUtils.getIsoform(uniprotId, isoformNum);
+		String isoform = IsoformsUtils.getIsoform(uniprotId, isoformNum);
 		List<Integer> isosten = exonscorrelation.utils.CommonUtils.getIsoStartEndForRow(row);
 		int isoformStart = isosten.get(0);
 		int isoformEnd = isosten.get(1);
