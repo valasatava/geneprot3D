@@ -269,7 +269,17 @@ public class AnalyzeExonsProteinFeatures {
 	}
 
 
+	public static void test() {
 
+		String exonsuniprotpath = path+"MAPS/gencode.v24.CDS.protein_coding.uniprot_mapping/chr14";
+
+		Encoder<ExonProteinFeatures> encoder = Encoders.bean(ExonProteinFeatures.class);
+		Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(exonsuniprotpath);
+
+		Dataset<ExonProteinFeatures> featuresDF = data.map(new MapToProteinDisorder(), encoder)
+				.filter(t->t!=null);
+		featuresDF.count();
+	}
 
 	public static void main(String[] args) throws Exception {
 
@@ -282,7 +292,9 @@ public class AnalyzeExonsProteinFeatures {
 //				.read().parquet(exonsuniprotpath+"/chr21");
 //		mp.show();
 
-		runAll(exonsuniprotpath);
+//		runAll(exonsuniprotpath);
+
+		test();
 
 		System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
 	}
