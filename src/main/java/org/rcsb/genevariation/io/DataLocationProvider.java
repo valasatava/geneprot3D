@@ -42,7 +42,7 @@ public class DataLocationProvider {
 
 	//Gencode v.24 data
 	private final static String gencodeProteinCodingDataLocation = getExonsProject()
-			+"EXONS_DATA/gencode.v24.CDS.protein_coding.gtf";
+			+"GENCODE_DATA/gencode.v24.CDS.protein_coding.gtf";
 
 	private final static String gencodeGeneBankLocation = getExonsProject()
 			+"MAPS/gencode.v24.CDS.protein_coding.gene_bank_mapping";
@@ -55,6 +55,23 @@ public class DataLocationProvider {
 
 	private final static String gencodeHomologyModelsLocation = DataLocationProvider.getExonsProject()
 			+"MAPS/gencode.v24.CDS.protein_coding.homology_mapping";
+
+
+	// Correlated exons data
+	private final static String exonsProteinCodingDataLocation = getExonsProject()
+			+"GENCODE_DATA/NEW_EXONS/FDR0.gene.CDS.non_redundant";
+
+	private final static String exonsGeneBankLocation = getExonsProject()
+			+"MAPS/correlated_exons.gene_bank_mapping";
+
+	private final static String exonsUniprotLocation = DataLocationProvider.getExonsProject()
+			+"MAPS/correlated_exons.uniprot_mapping";
+
+	private final static String exonsPDBLocation = DataLocationProvider.getExonsProject()
+			+"MAPS/correlated_exons.pdb_mapping";
+
+	private final static String exonsHomologyModelsLocation = DataLocationProvider.getExonsProject()
+			+"MAPS/correlated_exons.homology_mapping";
 
 	// methods for this class
 
@@ -119,5 +136,21 @@ public class DataLocationProvider {
 	}
 	public static String getGencodeHomologyModelsLocation() {
 		return gencodeHomologyModelsLocation;
+	}
+
+	public static String getExonsProteinCodingDataLocation() {
+		return exonsProteinCodingDataLocation;
+	}
+	public static String getExonsGeneBankLocation() {
+		return exonsGeneBankLocation;
+	}
+	public static String getExonsUniprotLocation() {
+		return exonsUniprotLocation;
+	}
+	public static String getExonsPDBLocation() {
+		return exonsPDBLocation;
+	}
+	public static String getExonsHomologyModelsLocation() {
+		return exonsHomologyModelsLocation;
 	}
 }

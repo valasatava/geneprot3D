@@ -46,4 +46,9 @@ public class DRunHomologyModelsMapping {
         mapToHomologyModels(DataLocationProvider.getGencodeUniprotLocation(),
                 DataLocationProvider.getHomologyModelsMappingLocation());
     }
+
+    public static void runCorrelatedExons() throws Exception {
+        mapToHomologyModels(DataLocationProvider.getExonsUniprotLocation(),
+                DataLocationProvider.getExonsHomologyModelsLocation());
+    }
 }

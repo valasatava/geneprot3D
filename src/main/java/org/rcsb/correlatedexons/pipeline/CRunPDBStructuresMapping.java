@@ -69,4 +69,9 @@ public class CRunPDBStructuresMapping {
         mapToPDBPositions(DataLocationProvider.getGencodeUniprotLocation(),
                 DataLocationProvider.getGencodePDBLocation());
     }
+
+    public static void runCorrelatedExons() throws Exception {
+        mapToPDBPositions(DataLocationProvider.getExonsUniprotLocation(),
+                DataLocationProvider.getExonsPDBLocation());
+    }
 }

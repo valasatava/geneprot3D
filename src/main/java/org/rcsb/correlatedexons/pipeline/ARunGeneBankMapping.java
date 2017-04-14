@@ -40,8 +40,12 @@ public class ARunGeneBankMapping {
     }
 
     public static void runGencodeV24() throws Exception {
-
         mapToGeneBank(DataLocationProvider.getGencodeProteinCodingDataLocation(),
                 DataLocationProvider.getGencodeGeneBankLocation());
+    }
+
+    public static void runCorrelatedExons() throws Exception {
+        mapToGeneBank(DataLocationProvider.getExonsProteinCodingDataLocation(),
+                DataLocationProvider.getExonsGeneBankLocation());
     }
 }
