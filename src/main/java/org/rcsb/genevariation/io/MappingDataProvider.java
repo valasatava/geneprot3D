@@ -2,10 +2,7 @@ package org.rcsb.genevariation.io;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SaveMode;
 import org.rcsb.genevariation.utils.SaprkUtils;
-
-import static org.apache.spark.sql.functions.upper;
 
 public class MappingDataProvider {
 
@@ -34,5 +31,28 @@ public class MappingDataProvider {
 				.withColumnRenamed("_c0", "ensemblId")
 				.withColumnRenamed("_c1", "geneBankId");
 		return mp;
+	}
+
+	public static void showCXADR() {
+		Dataset<Row> chrom = getHumanChromosomeMapping("chr21");
+		Dataset<Row> gene = chrom.filter(chrom.col("geneSymbol").equalTo("CXADR"))
+				.filter(chrom.col("isoformIndex").equalTo(2))
+				.filter(chrom.col("uniProtCanonicalPos").gt(0))
+				.drop("geneBankId","position","mRNAPos").distinct()
+				.orderBy(chrom.col("uniProtCanonicalPos"));
+		gene.show(100);
+	}
+
+	public static void main(String[] args) {
+
+		Dataset<Row> up = SaprkUtils.getSparkSession()
+				.read().parquet(DataLocationProvider.getExonsUniprotLocation()+"/chr21");
+		System.out.println(up.count());
+
+		Dataset<Row> mp = SaprkUtils.getSparkSession()
+				.read().parquet(DataLocationProvider.getExonsPDBLocation()+"/chr21");
+		System.out.println(mp.count());
+		mp.show(100);
+
 	}
 }

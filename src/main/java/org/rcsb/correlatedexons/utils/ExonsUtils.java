@@ -1,6 +1,5 @@
 package org.rcsb.correlatedexons.utils;
 
-import org.rcsb.correlatedexons.mappers.MapToExonSerializable;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
@@ -8,6 +7,7 @@ import org.apache.spark.sql.Row;
 import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
 import org.biojava.nbio.core.sequence.template.SequenceView;
+import org.rcsb.correlatedexons.mappers.MapToExonSerializable;
 import org.rcsb.genevariation.datastructures.ExonSerializable;
 import org.rcsb.genevariation.datastructures.Transcript;
 import org.rcsb.genevariation.expression.RNApolymerase;
@@ -28,7 +28,9 @@ public class ExonsUtils {
         Dataset<Row> data = SaprkUtils.getSparkSession().read().csv(dataPath);
 
         Encoder<ExonSerializable> encoder = Encoders.bean(ExonSerializable.class);
-        List<ExonSerializable> exons = data.map(new MapToExonSerializable(), encoder).collectAsList();
+        List<ExonSerializable> exons = data
+                .flatMap(new MapToExonSerializable(), encoder)
+                .collectAsList();
 
         return exons;
     }

@@ -1,12 +1,5 @@
 package org.rcsb.genevariation.io;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
@@ -15,6 +8,13 @@ import org.json.JSONObject;
 import org.rcsb.genevariation.datastructures.SwissHomology;
 import org.rcsb.genevariation.utils.CommonUtils;
 import org.rcsb.genevariation.utils.SaprkUtils;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
 
 public class HomologyModelsProvider {
 	
@@ -81,12 +81,16 @@ public class HomologyModelsProvider {
     	System.out.println(df.schema());
 	}
 
+    public static Dataset<Row> getAllAsDataFrame() {
+        return SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanHomologyModelsLocation());
+    }
+
+    public static Dataset<Row> get30pcAsDataFrame() {
+        return SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHomologyModelsMappingLocation());
+    }
+
     public static void main(String[] args) throws Exception {
         createParquetFileHumanHomologues(DataLocationProvider.getHumanHomologyModelsLocation());
     	printSchema();
 	}
-
-    public static Dataset<Row> getAsDataFrame() {
-        return SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanHomologyModelsLocation());
-    }
 }

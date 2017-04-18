@@ -1,6 +1,5 @@
 package org.rcsb.correlatedexons;
 
-import exonscorrelation.mappers.*;
 import org.rcsb.correlatedexons.mappers.*;
 import org.rcsb.correlatedexons.utils.CommonUtils;
 import org.apache.spark.sql.Dataset;

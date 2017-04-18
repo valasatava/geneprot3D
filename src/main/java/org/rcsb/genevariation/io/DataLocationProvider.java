@@ -35,7 +35,7 @@ public class DataLocationProvider {
 
 	// Mappings
 	private final static String hgMappingLocation = getUserHome()
-			+ "/spark/parquet/humangenome/20170405/hg38/";
+			+ "/spark/parquet/humangenome/20170413/hg38/";
 	private final static String uniprotPdbMappinlLocation = getDataHome()
 			+ "/parquet/uniprotpdb/20161104/";
 
@@ -59,7 +59,7 @@ public class DataLocationProvider {
 
 	// Correlated exons data
 	private final static String exonsProteinCodingDataLocation = getExonsProject()
-			+"GENCODE_DATA/NEW_EXONS/FDR0.gene.CDS.non_redundant";
+			+"EXONS_DATA/NEW_EXONS/FDR0.gene.CDS.non_redundant";
 
 	private final static String exonsGeneBankLocation = getExonsProject()
 			+"MAPS/correlated_exons.gene_bank_mapping";
@@ -72,6 +72,10 @@ public class DataLocationProvider {
 
 	private final static String exonsHomologyModelsLocation = DataLocationProvider.getExonsProject()
 			+"MAPS/correlated_exons.homology_mapping";
+
+	private final static String exonsStructuralMappingLocation = DataLocationProvider.getExonsProject()
+			+"MAPS/correlated_exons.structural_mapping";
+
 
 	// methods for this class
 
@@ -152,5 +156,8 @@ public class DataLocationProvider {
 	}
 	public static String getExonsHomologyModelsLocation() {
 		return exonsHomologyModelsLocation;
+	}
+	public static String getExonsStructuralMappingLocation() {
+		return exonsStructuralMappingLocation;
 	}
 }
