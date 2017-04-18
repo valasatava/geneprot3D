@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 
 public class TestChromosomeToProteinMapper {
 	
-	/** Test that  class correctly gets the transcript sequence on forward strand.
+	/** TestJoin that  class correctly gets the transcript sequence on forward strand.
 	 * 
 	 * @throws Exception 
 	 */
@@ -58,7 +58,7 @@ public class TestChromosomeToProteinMapper {
 		assertEquals(expected, actual);
 	}
 
-	/** Test that  class correctly gets the transcript sequence on reverse strand.
+	/** TestJoin that  class correctly gets the transcript sequence on reverse strand.
 	 * 
 	 * @throws Exception 
 	 */

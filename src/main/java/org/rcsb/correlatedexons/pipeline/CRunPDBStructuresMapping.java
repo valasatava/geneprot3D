@@ -7,77 +7,57 @@ import org.apache.spark.sql.SaveMode;
 import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.genevariation.io.MappingDataProvider;
 import org.rcsb.genevariation.utils.SaprkUtils;
+import scala.collection.JavaConversions;
+import scala.collection.Seq;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by yana on 4/13/17.
  */
 public class CRunPDBStructuresMapping {
 
+    /** The mapper class to to Uniprot sequences ranges and PDB structures ranges
+     *+----------+--------+---------------+------------+-----------+---------+---------+---------+------+-----------------+---------------+-----+-------+-----------+---------+
+     |chromosome|geneName|      ensemblId|  geneBankId|orientation|uniProtId|    start|      end|offset|canonicalPosStart|canonicalPosEnd|pdbId|chainId|pdbPosStart|pdbPosEnd|
+     +----------+--------+---------------+------------+-----------+---------+---------+---------+------+-----------------+---------------+-----+-------+-----------+---------+
+     |     chr12|   DNM1L|ENST00000452533|   NM_012063|          +|   O00429| 32720664| 32720795|     1|              247|            291| 4H1V|      A|        247|      291|
+     |     chr12|    FRS2|ENST00000549921|NM_001278351|          +|   Q8WU20| 69570331| 69570517|     0|               23|             85| 2MFQ|      A|         23|       85|
+     |     chr12|   DNM1L|ENST00000452533|   NM_012063|          +|   O00429| 32733715| 32733807|     0|              483|            513| 4BEJ|      A|        483|     null|
+     *
+     * @param mapUniprotToPdb Dataset that maps genomic ranges to Uniprot sequences onto PDB structures
+     * @param mapToUniprot Dataset that maps genomic ranges to the Uniprot sequences
+     * @return Dataset that maps the genomic ranges to Uniprot sequences ranges and PDB structures ranges
+     *
+     * @throws AnalysisException
+     */
     public static Dataset<Row>  mapToPDBPositions(Dataset<Row> mapUniprotToPdb, Dataset<Row> mapToUniprot ) throws AnalysisException {
 
         Dataset<Row> mapToPDBStart = mapToUniprot.join(mapUniprotToPdb,
                 mapToUniprot.col("uniProtId").equalTo(mapUniprotToPdb.col("uniProtId"))
                         .and(mapToUniprot.col("canonicalPosStart").equalTo(mapUniprotToPdb.col("uniProtPos"))),"left")
-                .drop(mapUniprotToPdb.col("insCode"))
-                .drop(mapUniprotToPdb.col("uniProtId"))
-                .drop(mapUniprotToPdb.col("uniProtPos"))
-                .drop(mapUniprotToPdb.col("isoformIndex"))
-                .drop(mapUniprotToPdb.col("isoformPosStart"))
-                .drop(mapUniprotToPdb.col("isoformPosEnd"))
+                .drop(mapUniprotToPdb.col("insCode")).drop(mapUniprotToPdb.col("uniProtId"))
+                .drop(mapUniprotToPdb.col("uniProtPos")).drop(mapToUniprot.col("isoformIndex"))
+                .drop(mapToUniprot.col("isoformPosStart")).drop(mapToUniprot.col("isoformPosEnd"))
                 .withColumnRenamed("pdbAtomPos","pdbPosStart");
-
-
-        Dataset<Row> df1 = mapToPDBStart.filter(mapToPDBStart.col("geneName").equalTo("BROX").and(mapToPDBStart.col("start").equalTo(222731357)));
-        df1.show();
 
         Dataset<Row> mapToPDBEnd = mapToUniprot.join(mapUniprotToPdb,
                 mapToUniprot.col("uniProtId").equalTo(mapUniprotToPdb.col("uniProtId"))
                         .and(mapToUniprot.col("canonicalPosEnd").equalTo(mapUniprotToPdb.col("uniProtPos"))), "left")
-                .drop(mapUniprotToPdb.col("insCode"))
-                .drop(mapUniprotToPdb.col("uniProtId"))
-                .drop(mapUniprotToPdb.col("uniProtPos"))
-                .drop(mapUniprotToPdb.col("isoformIndex"))
-                .drop(mapUniprotToPdb.col("isoformPosStart"))
-                .drop(mapUniprotToPdb.col("isoformPosEnd"))
+                .drop(mapUniprotToPdb.col("insCode")).drop(mapUniprotToPdb.col("uniProtId"))
+                .drop(mapUniprotToPdb.col("uniProtPos")).drop(mapToUniprot.col("isoformIndex"))
+                .drop(mapToUniprot.col("isoformPosStart")).drop(mapToUniprot.col("isoformPosEnd"))
                 .withColumnRenamed("pdbAtomPos","pdbPosEnd");
 
-        Dataset<Row> df2 = mapToPDBEnd.filter(mapToPDBEnd.col("geneName").equalTo("BROX").and(mapToPDBEnd.col("end").equalTo(222731516)));
-        df2.show();
-
-        Dataset<Row> df3 = df1.join(df2, df1.col("start").equalTo(df2.col("start")).and(df1.col("end").equalTo(df2.col("end"))), "fullouter");
-
-//        Dataset<Row> df3 = SaprkUtils.getSparkSession().sql("select df1.chromosome, df1.geneName, df1.ensemblId, df1.geneBankId, " +
-//                "df1.start, df1.end, df1.orientation, df1.offset, df1.uniProtId, df1.canonicalPosStart, df1.canonicalPosEnd," +
-//                "df1.pdbId, df1.chainId, df1.pdbPosStart, df2.pdbPosEnd from df1 FULL OUTER JOIN df2 on (df1.start=df2.start and df1.end=df2.end and df1.offset=df2.offset) " +
-//                "where ( ( (df1.pdbId=df2.pdbId and df1.chainId=df2.chainId) or df1.pdbPosStart is null) or ( (df1.pdbId=df2.pdbId and df1.chainId=df2.chainId) or df2.pdbPosEnd is null) )");
-        df3.show();
-
-        Dataset<Row> mapToPDB = mapToPDBStart.join(mapToPDBEnd,
-                mapToPDBStart.col("ensemblId").equalTo(mapToPDBEnd.col("ensemblId"))
-                        .and(mapToPDBStart.col("start").equalTo(mapToPDBEnd.col("start")))
-                        .and(mapToPDBStart.col("end").equalTo(mapToPDBEnd.col("end")))
-                        .and(mapToPDBStart.col("isoformIndex").equalTo(mapToPDBEnd.col("isoformIndex")))
-                        .and(mapToPDBStart.col("pdbId").isNull().or(mapToPDBEnd.col("pdbId").isNull().or(mapToPDBStart.col("pdbId").equalTo(mapToPDBEnd.col("pdbId"))
-                                .and(mapToPDBStart.col("chainId").equalTo(mapToPDBEnd.col("chainId"))))))
-
-,
-                "full")
-                .drop(mapToPDBEnd.col("chromosome")).drop(mapToPDBEnd.col("geneName"))
-                .drop(mapToPDBEnd.col("ensemblId")).drop(mapToPDBEnd.col("geneBankId"))
-                .drop(mapToPDBEnd.col("start")).drop(mapToPDBEnd.col("end"))
-                .drop(mapToPDBEnd.col("orientation")).drop(mapToPDBEnd.col("offset"))
-                .drop(mapToPDBEnd.col("uniProtId")).drop(mapToPDBEnd.col("canonicalPosStart"))
-                .drop(mapToPDBEnd.col("canonicalPosEnd")).drop(mapToPDBEnd.col("isoformIndex"))
-                .drop(mapToPDBEnd.col("isoformPosStart")).drop(mapToPDBEnd.col("isoformPosEnd"))
-                .drop(mapToPDBEnd.col("pdbId")).drop(mapToPDBEnd.col("chainId"))
-                .filter("chromosome is not null")
-                .select("chromosome", "geneName", "ensemblId", "geneBankId", "start", "end", "orientation", "offset",
-                        "uniProtId", "canonicalPosStart", "canonicalPosEnd", "isoformIndex", "isoformPosStart", "isoformPosEnd",
-                        "pdbId","chainId","pdbPosStart","pdbPosEnd")
-                .distinct()
-                .orderBy("geneName", "isoformIndex", "start", "end");
-
-        mapToPDB.filter(mapToPDB.col("geneName").equalTo("BROX").and(mapToPDB.col("start").equalTo(222731357)).and(mapToPDB.col("end").equalTo(222731516))).show();
+        List<String> columnnames = new ArrayList<String>(){{
+            add("chromosome");add("geneName");add("ensemblId");add("geneBankId");add("orientation");add("uniProtId");
+            add("start");add("end");add("offset");add("canonicalPosStart");add("canonicalPosEnd");
+            add("pdbId");add("chainId");
+        }};
+        Seq<String> columns = JavaConversions.asScalaBuffer(columnnames).toSeq();
+        Dataset<Row> mapToPDB = mapToPDBStart.join(mapToPDBEnd, columns, "outer").filter("pdbId is not null");
+        mapToPDB.show();
 
         return mapToPDB;
     }

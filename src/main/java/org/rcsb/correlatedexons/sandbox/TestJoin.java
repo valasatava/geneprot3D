@@ -1,10 +1,12 @@
-package org.rcsb.correlatedexons.pipeline;
+package org.rcsb.correlatedexons.sandbox;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.rcsb.genevariation.utils.SaprkUtils;
+import scala.collection.JavaConversions;
+import scala.collection.Seq;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +15,7 @@ import java.util.List;
 /**
  * Created by yana on 4/17/17.
  */
-public class Test {
+public class TestJoin {
 
     public static void main(String[] args) {
 
@@ -35,11 +37,14 @@ public class Test {
         Dataset<BinTwo> bt = SaprkUtils.getSparkSession().createDataset(binstwo, btEncoder);
         bt.show();
 
-        Dataset<Row> outer = bo.join(bt, bo.col("id").equalTo(bt.col("id")), "outer")
-                .filter(bo.col("id").isNotNull().or(bt.col("id").isNotNull()));
+        // doesn't keep duplicates
+        List<String> columnnames = new ArrayList<String>(){{add("id");}};
+        Seq<String> columns = JavaConversions.asScalaBuffer(columnnames).toSeq();
+        Dataset<Row> outer = bo.join(bt, columns, "outer");
         outer.show();
 
-        Dataset<Row> inner = bo.join(bt, bo.col("id").equalTo(bt.col("id")));//.drop(bt.col("id"));
+        // keeps duplicated columns
+        Dataset<Row> inner = bo.join(bt, bo.col("id").equalTo(bt.col("id")));
         inner.show();
 
     }

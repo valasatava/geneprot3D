@@ -13,7 +13,7 @@ import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 public class TestTranscript {
 	
 	/**
-	 * Test the method to set a forward DNA sequence.
+	 * TestJoin the method to set a forward DNA sequence.
 	 * 
 	 * @throws CompoundNotFoundException 
 	 */
@@ -23,7 +23,7 @@ public class TestTranscript {
 	}
 	
 	/**
-	 * Test the method to set a reverse DNA sequence.
+	 * TestJoin the method to set a reverse DNA sequence.
 	 * 
 	 * @throws CompoundNotFoundException 
 	 */

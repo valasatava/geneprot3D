@@ -10,7 +10,7 @@ import org.rcsb.genevariation.io.VariantsDataProvider;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
 /**
- * Test class
+ * TestJoin class
  * 
  * @author Yana Valasatava
  */

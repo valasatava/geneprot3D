@@ -13,7 +13,7 @@ import org.rcsb.genevariation.constants.VariantType;
 public class TestUtils {
 	
 	/**
-	 * Test a correct identification of a SNP type of variation 
+	 * TestJoin a correct identification of a SNP type of variation
 	 */
 	@Test
 	public void testCheckVariationTypeSNP() {
@@ -22,7 +22,7 @@ public class TestUtils {
 	}
 	
 	/**
-	 * Test a correct identification of a monomorphic type of variation 
+	 * TestJoin a correct identification of a monomorphic type of variation
 	 */
 	@Test
 	public void testCheckVariationTypeMonomorphic() {
@@ -31,7 +31,7 @@ public class TestUtils {
 	}
 	
 	/**
-	 * Test a correct identification of a insertion type of variation 
+	 * TestJoin a correct identification of a insertion type of variation
 	 */
 	@Test
 	public void testCheckVariationTypeInsertion() {
@@ -40,7 +40,7 @@ public class TestUtils {
 	}
 	
 	/**
-	 * Test a correct identification of a insertion type of variation 
+	 * TestJoin a correct identification of a insertion type of variation
 	 */
 	@Test
 	public void testCheckVariationTypeDeletion() {

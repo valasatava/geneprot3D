@@ -18,7 +18,7 @@ public class RunExonsPipeline {
 //		BRunUniprotMapping.runCorrelatedExons();
 		CRunPDBStructuresMapping.runCorrelatedExons();
 //		DRunHomologyModelsMapping.runCorrelatedExons();
-		EGetStructuralMapping.runCorrelatedExons();
+//		EGetStructuralMapping.runCorrelatedExons();
 	}
 
 	public static void main(String[] args) throws Exception {

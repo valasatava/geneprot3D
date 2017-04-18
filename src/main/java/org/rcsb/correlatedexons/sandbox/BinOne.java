@@ -1,4 +1,4 @@
-package org.rcsb.correlatedexons.pipeline;
+package org.rcsb.correlatedexons.sandbox;
 
 /**
  * Created by yana on 4/17/17.
