@@ -13,7 +13,21 @@ import static org.apache.spark.sql.functions.upper;
  */
 public class CreateHomologyMapping {
 
-    public static void run(String path) throws Exception {
+    public static void runGood(String path) throws Exception {
+
+        Dataset<Row> models = MappingDataProvider.getHomologyModels();
+        models.show();
+
+        Dataset<Row> homologues = models.select("uniProtId", "fromPos", "toPos", "similarity", "template", "coordinates")
+                .filter(models.col("similarity").gt(0.3))
+                .withColumnRenamed("fromPos", "fromUniprot")
+                .withColumnRenamed("toPos", "toUniprot")
+                .drop(models.col("similarity"));
+
+        homologues.write().mode(SaveMode.Overwrite).parquet(path);
+    }
+
+    public static void runMapping(String path) throws Exception {
 
         Dataset<Row> models = MappingDataProvider.getHomologyModels();
         
@@ -61,9 +75,6 @@ public class CreateHomologyMapping {
                 .drop(mappingEnd.col("chainId"))
                 .select("uniProtId", "fromUniprot", "toUniprot", "template", "coordinates", "pdbId", "chainId", "fromPdb", "toPdb");
 
-//		mapping//.filter(mapping.col("pdbId").equalTo("2Z7C").and(mapping.col("chainId").equalTo("B")))
-//				.show();
-
         mapping.write().mode(SaveMode.Overwrite).parquet(path);
     }
 
@@ -71,7 +82,7 @@ public class CreateHomologyMapping {
 
         long start = System.nanoTime();
 
-        run(DataLocationProvider.getHomologyModelsMappingLocation());
+        runGood(DataLocationProvider.getHumanGoodHomologyModelsLocation());
 
         System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
     }

@@ -86,7 +86,7 @@ public class HomologyModelsProvider {
     }
 
     public static Dataset<Row> get30pcAsDataFrame() {
-        return SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHomologyModelsMappingLocation());
+        return SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanGoodHomologyModelsLocation());
     }
 
     public static void main(String[] args) throws Exception {

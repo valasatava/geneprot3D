@@ -57,7 +57,6 @@ public class CRunPDBStructuresMapping {
         }};
         Seq<String> columns = JavaConversions.asScalaBuffer(columnnames).toSeq();
         Dataset<Row> mapToPDB = mapToPDBStart.join(mapToPDBEnd, columns, "outer").filter("pdbId is not null");
-        mapToPDB.show();
 
         return mapToPDB;
     }

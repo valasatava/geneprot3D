@@ -7,10 +7,62 @@ import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.genevariation.io.HomologyModelsProvider;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
+import static org.apache.spark.sql.functions.not;
+
 /**
  * Created by yana on 4/13/17.
  */
 public class DRunHomologyModelsMapping {
+
+    /** The mapper class that map the homology models if they overlap with uniprot data ranges
+     *
+     * +----------+--------+---------------+------------+---------+---------+-----------+------+---------+-----------------+---------------+-----------+---------+--------+--------------------+
+     |chromosome|geneName|      ensemblId|  geneBankId|    start|      end|orientation|offset|uniProtId|canonicalPosStart|canonicalPosEnd|fromUniprot|toUniprot|template|         coordinates|
+     +----------+--------+---------------+------------+---------+---------+-----------+------+---------+-----------------+---------------+-----------+---------+--------+--------------------+
+     |      chr1|   INTS3|ENST00000318967|NM_001324475|153760827|153760918|          +|     0|   Q68E01|              441|            471|         35|      499|4owt.1.A|https://swissmode...|
+     |      chr1|   INTS3|ENST00000318967|   NM_023015|153760827|153760918|          +|     0|   Q68E01|              441|            471|         35|      499|4owt.1.A|https://swissmode...|
+     |      chr1|  AKR1A1|ENST00000372070|NM_001202414| 45568485| 45568684|          +|     0|   P14550|              185|            251|          2|      325|1hqt.1.A|https://swissmode...|
+     |      chr1|   BPNT1|ENST00000544404|NM_001286149|220072850|220072957|          -|     0|   O95861|              111|             76|          6|      308|2wef.1.A|https://swissmode...|
+     |      chr1|    LRP8|ENST00000306052|   NM_004631| 53257240| 53257464|          -|     2|   Q14114|              812|            737|        302|      738|3p5c.1.C|https://swissmode...|
+     *
+     * @param mapToUniprot Dataset that maps genomic ranges to the Uniprot sequences
+     * @param models homology models Dataset
+     * @return Dataset that maps data ranges onto homology models ranges
+     */
+    public static Dataset<Row> mapToHomologyModels(Dataset<Row> mapToUniprot, Dataset<Row> models ) {
+
+        Dataset<Row> mapToUniprotForward = mapToUniprot.filter(mapToUniprot.col("orientation").equalTo("+"));
+
+        Dataset<Row> mapToHomologyForward = mapToUniprotForward.join(models,
+                mapToUniprotForward.col("uniProtId").equalTo(models.col("uniProtId"))
+                        .and( not((models.col("toUniprot").leq(mapToUniprotForward.col("canonicalPosStart"))
+                                 .and(models.col("fromUniprot").leq(mapToUniprotForward.col("canonicalPosStart"))))
+                             .or(models.col("fromUniprot").geq(mapToUniprotForward.col("canonicalPosEnd"))
+                                 .and(models.col("toUniprot").geq(mapToUniprotForward.col("canonicalPosEnd")))))
+                            ),
+                "left")
+                .drop(models.col("uniProtId")).drop(mapToUniprotForward.col("isoformIndex"))
+                .drop(mapToUniprotForward.col("isoformPosStart")).drop(mapToUniprotForward.col("isoformPosEnd"))
+                .filter(models.col("template").isNotNull());
+
+        Dataset<Row> mapToUniprotReverse = mapToUniprot.filter(mapToUniprot.col("orientation").equalTo("-"));
+
+        Dataset<Row> mapToHomologyReverse = mapToUniprotReverse.join(models,
+                mapToUniprotReverse.col("uniProtId").equalTo(models.col("uniProtId"))
+                    .and( not((models.col("toUniprot").leq(mapToUniprotReverse.col("canonicalPosEnd"))
+                                    .and(models.col("fromUniprot").leq(mapToUniprotReverse.col("canonicalPosEnd"))))
+                            .or(models.col("fromUniprot").geq(mapToUniprotReverse.col("canonicalPosStart"))
+                                    .and(models.col("toUniprot").geq(mapToUniprotReverse.col("canonicalPosStart")))))
+                    ),
+                "left")
+                .drop(models.col("uniProtId")).drop(mapToUniprotForward.col("isoformIndex"))
+                .drop(mapToUniprotForward.col("isoformPosStart")).drop(mapToUniprotForward.col("isoformPosEnd"))
+                .filter(models.col("template").isNotNull());
+
+        Dataset<Row> mapToHomology = mapToHomologyForward.union(mapToHomologyReverse);
+
+        return mapToHomology;
+    }
 
     public static void mapToHomologyModels(String uniprotmapping, String mapping ) {
 
@@ -23,34 +75,15 @@ public class DRunHomologyModelsMapping {
 
             Dataset<Row> mapToUniprot = SaprkUtils.getSparkSession().read().parquet(uniprotmapping+"/"+chr);
 
-            Dataset<Row> mapToUniprotForward = mapToUniprot.filter(mapToUniprot.col("orientation").equalTo("+"));
-
-            Dataset<Row> mapToHomologyForward = mapToUniprotForward.join(models,
-                    mapToUniprotForward.col("uniProtId").equalTo(models.col("uniProtId"))
-                    .and(mapToUniprotForward.col("canonicalPosStart").geq(models.col("fromUniprot"))
-                            .and(mapToUniprotForward.col("canonicalPosEnd").leq(models.col("toUniprot")))),
-                    "left")
-                    .drop(models.col("uniProtId")).drop(models.col("pdbId")).drop(models.col("chainId"));
-
-            Dataset<Row> mapToUniprotReverse = mapToUniprot.filter(mapToUniprot.col("orientation").equalTo("-"));
-
-            Dataset<Row> mapToHomologyReverse = mapToUniprotReverse.join(models,
-                    mapToUniprotReverse.col("uniProtId").equalTo(models.col("uniProtId"))
-                    .and(mapToUniprotReverse.col("canonicalPosStart").geq(models.col("toUniprot")))
-                            .and(mapToUniprotReverse.col("canonicalPosEnd").leq(models.col("fromUniprot"))),
-                    "left")
-                    .drop(models.col("uniProtId")).drop(models.col("pdbId")).drop(models.col("chainId"));
-
-            Dataset<Row> mapToHomology = mapToHomologyForward.union(mapToHomologyReverse);
+            Dataset<Row> mapToHomology = mapToHomologyModels( mapToUniprot, models );
 
             mapToHomology.write().mode(SaveMode.Overwrite).parquet(mapping+"/"+chr);
-
         }
     }
 
     public static void runGencodeV24() throws Exception {
         mapToHomologyModels(DataLocationProvider.getGencodeUniprotLocation(),
-                DataLocationProvider.getHomologyModelsMappingLocation());
+                DataLocationProvider.getHumanGoodHomologyModelsLocation());
     }
 
     public static void runCorrelatedExons() throws Exception {
