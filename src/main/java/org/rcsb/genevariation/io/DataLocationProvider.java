@@ -76,6 +76,8 @@ public class DataLocationProvider {
 	private final static String exonsStructuralMappingLocation = DataLocationProvider.getExonsProject()
 			+"MAPS/correlated_exons.structural_mapping";
 
+	private final static String exonsBestStructureMappingLocation = DataLocationProvider.getExonsProject()
+			+"MAPS/correlated_exons.best_structure_mapping";
 
 	// methods for this class
 
@@ -160,5 +162,8 @@ public class DataLocationProvider {
 	}
 	public static String getExonsStructuralMappingLocation() {
 		return exonsStructuralMappingLocation;
+	}
+	public static String getExonsBestStructureMappingLocation() {
+		return exonsBestStructureMappingLocation;
 	}
 }

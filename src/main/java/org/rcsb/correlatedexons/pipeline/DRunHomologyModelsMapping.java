@@ -90,4 +90,17 @@ public class DRunHomologyModelsMapping {
         mapToHomologyModels(DataLocationProvider.getExonsUniprotLocation(),
                 DataLocationProvider.getExonsHomologyModelsLocation());
     }
+
+
+    public static void main(String[] args) {
+
+        String coordinates = "https://swissmodel.expasy.org/repository/uniprot/Q9P2J2.pdb?range=27-505&template=5k6w.1.B&provider=swissmodel";
+
+        Dataset<Row> models = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanHomologyModelsLocation());
+
+        models.filter(models.col("coordinates").equalTo(coordinates)).show();
+
+        models.filter(models.col("uniProtId").equalTo("Q9P2J2")).show();
+
+    }
 }

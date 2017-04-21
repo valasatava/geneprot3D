@@ -1,0 +1,209 @@
+package org.rcsb.correlatedexons.pipeline;
+
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.Function;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.biojava.nbio.structure.Atom;
+import org.biojava.nbio.structure.Chain;
+import org.biojava.nbio.structure.Group;
+import org.biojava.nbio.structure.Structure;
+import org.rcsb.correlatedexons.utils.CommonUtils;
+import org.rcsb.correlatedexons.utils.MapUtils;
+import org.rcsb.correlatedexons.utils.RowUtils;
+import org.rcsb.correlatedexons.utils.StructureUtils;
+import org.rcsb.genevariation.io.DataLocationProvider;
+import org.rcsb.genevariation.utils.SaprkUtils;
+import scala.Tuple2;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by yana on 4/20/17.
+ */
+public class GetMinimumDistances {
+
+    public static void run(String chr) throws IOException {
+
+        Dataset<Row> mapping = SaprkUtils.getSparkSession()
+                .read().parquet(DataLocationProvider.getExonsStructuralMappingLocation() + "/" + chr);
+
+        JavaRDD<List<String>> test = mapping.toJavaRDD()
+
+                //.map(new MapToResolution())
+
+                .groupBy(t -> (t.getString(2) + "_" + t.getString(3)))
+
+                //.filter(t -> t._1.equals("ENST00000330714_NM_002463"))
+
+                .map(new Function<Tuple2<String, Iterable<Row>>, List<Row>>() {
+
+                    @Override
+                    public List<Row> call(Tuple2<String, Iterable<Row>> data) {
+
+                        Iterator<Row> it = data._2.iterator();
+
+                        Map<String, List<String>> map = MapUtils.getMapFromIterator(it);
+
+                        if (map.size()==0)
+                            return null;
+
+                        String maxkey = map.entrySet().stream().max((entry1, entry2) -> entry1.getValue().size() > entry2.getValue().size() ? 1 : -1).get().getKey();
+
+                        String pdbId = maxkey.split("_")[0];
+                        String chainId = maxkey.split("_")[1];
+
+                        List<Row> best = CommonUtils.getBestPDBStructure(data._2, pdbId, chainId);
+                        if (best.size() == 0) {
+                            best = CommonUtils.getBestModelStructure(data._2, pdbId, chainId);
+                        }
+                        if (best.size() <= 1) {
+                            return null;
+                        }
+                        return best;
+                    }
+                })
+                .filter(t -> (t != null))
+                .map(new Function<List<Row>, List<String>>() {
+                    @Override
+                    public List<String> call(List<Row> transcript) throws Exception {
+
+                        List<String> results = new ArrayList<>();
+
+                        try {
+
+                            String gene = transcript.get(0).getString(0)+","+
+                                          transcript.get(0).getString(1)+","+
+                                          transcript.get(0).getString(2)+","+
+                                          transcript.get(0).getString(3);
+
+                            boolean pdbFlag = true;
+                            if ( !RowUtils.isPDBStructure(transcript.get(0))) {
+                                pdbFlag = false;
+                            }
+
+                            Chain chain;
+
+                            if ( pdbFlag ) {
+                                Structure structure = StructureUtils.getBioJavaStructure(RowUtils.getPdbId(transcript.get(0)));
+                                chain = structure.getChain(RowUtils.getChainId(transcript.get(0)));
+                            } else {
+                                Structure structure = StructureUtils.getModelStructure(RowUtils.getModelCoordinates(transcript.get(0)));
+                                chain = structure.getChainByIndex(0);
+                            }
+
+                            List<Group> groups = chain.getAtomGroups();
+
+                            int numExons = transcript.size();
+                            for (int i=0; i<numExons-1; i++) {
+                                for (int j=i+1; j<numExons; j++) {
+
+                                    Row exon1 = transcript.get(i);
+                                    Row exon2 = transcript.get(j);
+
+                                    if (  RowUtils.getExon(exon1).equals("204978968_204979069_2") && RowUtils.getExon(exon2).equals("204970616_204970747_2"))
+                                        System.out.println();
+
+                                    int start1; int end1;
+                                    int start2; int end2;
+
+                                    if ( RowUtils.isPDBStructure(exon1)) {
+
+                                        start1 = RowUtils.getPdbStart(exon1);
+                                        end1 = RowUtils.getPdbEnd(exon1);
+
+                                        start2 = RowUtils.getPdbStart(exon2);
+                                        end2 = RowUtils.getPdbEnd(exon2);
+                                    }
+                                    else {
+
+                                        int pdbStart = groups.get(0).getResidueNumber().getSeqNum();
+                                        int pdbEnd = groups.get(groups.size()-1).getResidueNumber().getSeqNum();
+
+                                        int uniStart1 = RowUtils.getUniProtStart(exon1);
+                                        if ( uniStart1 > pdbStart ) {
+                                            start1 = uniStart1;
+                                        }
+                                        else {
+                                            start1 = pdbStart;
+                                        }
+
+                                        int uniStart2 = RowUtils.getUniProtStart(exon2);
+                                        if ( uniStart1 > pdbStart ) {
+                                            start2 = uniStart2;
+                                        }
+                                        else {
+                                            start2 = pdbStart;
+                                        }
+
+                                        int uniEnd1 = RowUtils.getUniProtEnd(exon1);
+                                        if ( uniEnd1 < pdbEnd ) {
+                                            end1 = uniEnd1;
+                                        }
+                                        else {
+                                            end1 = pdbEnd;
+                                        }
+
+                                        int uniEnd2 = RowUtils.getUniProtEnd(exon2);
+                                        if ( uniEnd2 < pdbEnd ) {
+                                            end2 = uniEnd2;
+                                        }
+                                        else {
+                                            end2 = pdbEnd;
+                                        }
+                                    }
+
+                                    List<Atom> atoms1 = StructureUtils.getAtomsInRange(groups, start1, end1);
+                                    List<Atom> atoms2 = StructureUtils.getAtomsInRange(groups, start2, end2);
+
+                                    double mindist = StructureUtils.getMinDistance(atoms1, atoms2);
+                                    String line = gene +","+RowUtils.getExon(exon1)+","+RowUtils.getExon(exon2)+","+String.valueOf(mindist)+"\n";
+                                    results.add(line);
+                                }
+                            }
+
+                        } catch ( Exception e){
+                            e.printStackTrace();
+                        }
+                        return results;
+                    }
+                });
+
+        List<List<String>> results = test.collect();
+        List<String> out = new ArrayList<>();
+
+        for (List<String> t : results) {
+            for (String l : t ) {
+                out.add(l);
+            }
+        }
+
+        String path = "/Users/yana/ishaan/RESULTS/distances/";
+
+        File file = new File(path+chr);
+        if (!file.exists()) {
+            if (file.mkdir()) {
+                System.out.println("Directory is created for "+chr);
+            } else {
+                System.out.println("Directory for "+chr+" already exists!");
+            }
+        }
+
+        String filename = path+chr+"/minimum_distances.csv";
+        FileWriter writer = new FileWriter(filename);
+        for(String str: out) {
+            writer.write(str);
+        }
+        writer.close();
+    }
+
+    public static void main(String[] args) throws IOException {
+        run("chr21");
+    }
+}

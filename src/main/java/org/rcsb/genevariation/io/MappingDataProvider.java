@@ -45,14 +45,10 @@ public class MappingDataProvider {
 
 	public static void main(String[] args) {
 
-		Dataset<Row> up = SaprkUtils.getSparkSession()
-				.read().parquet(DataLocationProvider.getExonsUniprotLocation()+"/chr21");
-		System.out.println(up.count());
-
-		Dataset<Row> mp = SaprkUtils.getSparkSession()
-				.read().parquet(DataLocationProvider.getExonsPDBLocation()+"/chr21");
-		System.out.println(mp.count());
-		mp.show(100);
+		Dataset<Row> hg = SaprkUtils.getSparkSession()
+				.read().parquet(DataLocationProvider.getHgMappingLocation()+"/chr1");
+		hg.filter(hg.col("position").equalTo(23044427)).show();
+		hg.filter(hg.col("position").equalTo(23044486)).show();
 
 	}
 }

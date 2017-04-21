@@ -1,57 +1,55 @@
 package org.rcsb.correlatedexons.mappers;
 
-import org.apache.spark.api.java.function.PairFunction;
-import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.rcsb.mmtf.dataholders.MmtfStructure;
-import org.rcsb.mmtf.decoder.ReaderUtils;
-import scala.Tuple2;
+import org.rcsb.genevariation.utils.SaprkUtils;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Created by yana on 4/17/17.
  */
-public class MapToBestStructure implements PairFunction<String, String, Row> {
+public class MapToBestStructure implements Function<String, Row> {
 
-    private Broadcast<Dataset<Row>> mbc = null;
+    private static final long serialVersionUID = -1796199023220653897L;
 
-    public MapToBestStructure(Broadcast<Dataset<Row>> mapbc) {
-        mbc = mapbc;
+//    private Broadcast<JavaRDD<Row>> mbc = null;
+//    public MapToBestStructure(Broadcast<JavaRDD<Row>> mapbc) {
+//        mbc = mapbc;
+//    }
+
+    private String path = "";
+    public MapToBestStructure(String chromosome) {
+        path = chromosome;
     }
 
     @Override
-    public Tuple2<String, Row> call(String key) throws Exception {
+    public Row call(String key) throws Exception {
 
-        Dataset<Row> map = mbc.value();
-
-//        if (key.equals("222731357_222731516_1"))
-//            System.out.println();
+        //JavaRDD<Row> map = mbc.value();
 
         String start = key.split("_")[0];
         String end = key.split("_")[1];
         String offset = key.split("_")[2];
 
-        Dataset<Row> exon = map.filter(map.col("start").equalTo(Integer.valueOf(start))
-                .and(map.col("end").equalTo(Integer.valueOf(end)))
-                .and(map.col("offset").equalTo(Integer.valueOf(offset))));
-        List<Row> rows = exon.collectAsList();
+        Dataset<Row> map = SaprkUtils.getSparkSession().read().parquet(path);
+        JavaRDD<Row> exon = map.toJavaRDD().filter(t -> (  t.getInt(4)==Integer.valueOf(start)
+                                            && t.getInt(5)==Integer.valueOf(end)
+                                            && t.getInt(7)==Integer.valueOf(offset) ));
+
+        List<Row> rows = exon.collect();
 
         Float bestres = 99.9f;
         Row bestrow = null;
 
-        for ( Row row : rows ) {
+        for (Row row : rows) {
 
-            String pdbId = row.getString(11);
+            if ((!row.getString(11).equals("null")) && (!row.getString(15).equals("null")))
+                System.out.println("ambiguity " + row.toString());
 
-            if (pdbId.equals("null")) {
-                pdbId = row.getString(15).split(Pattern.quote("."))[0];
-            }
-
-            MmtfStructure mmtfData = ReaderUtils.getDataFromUrl(pdbId);
-            Float resolution = mmtfData.getResolution();
+            Float resolution = row.getFloat(16);
 
             if (resolution == null)
                 continue;
@@ -62,9 +60,13 @@ public class MapToBestStructure implements PairFunction<String, String, Row> {
             }
         }
 
-        if (bestres == null)
+        if (bestres == 99.9f) {
+            System.out.println("not assigned "+ key);
             return null;
+        }
 
-        return new Tuple2<String, Row>(key, bestrow);
+        System.out.println("assigned "+ bestrow.toString());
+        return bestrow;
+
     }
 }

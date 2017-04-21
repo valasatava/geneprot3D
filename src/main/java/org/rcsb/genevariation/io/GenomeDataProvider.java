@@ -1,13 +1,5 @@
 package org.rcsb.genevariation.io;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.biojava.nbio.core.util.InputStreamProvider;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePositionParser;
@@ -17,15 +9,19 @@ import org.rcsb.genevariation.datastructures.Exon;
 import org.rcsb.genevariation.datastructures.Gene;
 import org.rcsb.genevariation.datastructures.Transcript;
 
-import com.google.common.collect.Range;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This class provides methods to retrieve genetic data from files.
  * 
  * @author Yana Valasatava
  */
-
-@Deprecated
 public class GenomeDataProvider {
 	
 	static TwoBitParser parser;
@@ -51,7 +47,7 @@ public class GenomeDataProvider {
 	 * Sets a chromosome number for TwoBitParser.
 	 */
 	public static void setChromosome(String chr) throws Exception {
-		
+
 		String[] names = parser.getSequenceNames();
 		for(int i=0;i<names.length;i++) {
 			if ( names[i].equals("chr"+chr) ) {
@@ -137,70 +133,5 @@ public class GenomeDataProvider {
 	public static String readDNASequenceFromChromosome(long startPos, long endPos) {
 		return null;		
 	}
-	
-    public static List<Range<Integer>> getCDSRegionsReverse(List<Integer> exonStarts, List<Integer> exonEnds,
-            int cdsStart, int cdsEnd) {
 
-        // remove exons that are fully landed in UTRs
-        List<Integer> tmpS = new ArrayList<Integer>(exonStarts);
-        List<Integer> tmpE = new ArrayList<Integer>(exonEnds);
-        
-        int j=0;
-        for (int i = 0; i < tmpS.size(); i++) {
-        	if ( ( tmpE.get(i) < cdsStart) || ( tmpS.get(i) > cdsEnd) ) {
-        		exonStarts.remove(j);
-        		exonEnds.remove(j);
-        	}
-        	else {
-        		j++;
-        	}
-        }
-        
-        // remove untranslated regions from exons
-        int nExons = exonStarts.size();
-        exonStarts.remove(0);
-        exonStarts.add(0, cdsStart);
-        exonEnds.remove(nExons-1);
-        exonEnds.add(cdsEnd);
-        
-        List<Range<Integer>> cdsRegion = new ArrayList<Range<Integer>>();
-        for ( int i=0; i<nExons; i++ ) {
-        	Range<Integer> r = Range.closed(exonStarts.get(i), exonEnds.get(i));
-        	cdsRegion.add(r);
-        }
-		return cdsRegion;
-    }
-    
-    public static List<Range<Integer>> getCDSRegionsForward(List<Integer> exonStarts, List<Integer> exonEnds,
-            int cdsStart, int cdsEnd) {
-    	
-        // remove exons that are fully landed in UTRs
-        List<Integer> tmpS = new ArrayList<Integer>(exonStarts);
-        List<Integer> tmpE = new ArrayList<Integer>(exonEnds);
-        
-        int j=0;
-        for (int i = 0; i < tmpS.size(); i++) {
-        	if ( ( tmpE.get(i) < cdsStart) || ( tmpS.get(i) > cdsEnd) ) {
-        		exonStarts.remove(j);
-        		exonEnds.remove(j);
-        	}
-        	else {
-        		j++;
-        	}
-        }
-        
-        // remove untranslated regions from exons
-        int nExons = exonStarts.size();
-        exonStarts.remove(0);
-        exonStarts.add(0, cdsStart);
-        exonEnds.remove(nExons-1);
-        exonEnds.add(cdsEnd);
-    	
-        List<Range<Integer>> cdsRegion = new ArrayList<Range<Integer>>();
-        for ( int i=0; i<nExons; i++ ) {
-        	Range<Integer> r = Range.closed(exonStarts.get(i), exonEnds.get(i));
-        	cdsRegion.add(r);
-        }
-		return cdsRegion;
-    }
 }

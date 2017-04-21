@@ -16,7 +16,6 @@ public class CreateHomologyMapping {
     public static void runGood(String path) throws Exception {
 
         Dataset<Row> models = MappingDataProvider.getHomologyModels();
-        models.show();
 
         Dataset<Row> homologues = models.select("uniProtId", "fromPos", "toPos", "similarity", "template", "coordinates")
                 .filter(models.col("similarity").gt(0.3))

@@ -4,7 +4,9 @@ import org.apache.spark.sql.Row;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -35,5 +37,33 @@ public class CommonUtils {
             writer.write(str+"\n");
         }
         writer.close();
+    }
+
+    public static List<Row> getBestPDBStructure(Iterable<Row> data, String pdbId, String chainId) {
+
+        Iterator<Row> it = data.iterator();
+
+        List<Row> bestStruc = new ArrayList<Row>();
+        while (it.hasNext()) {
+            Row row = it.next();
+            if (row.getString(11).equals(pdbId) && row.getString(12).equals(chainId)) {
+                bestStruc.add(row);
+            }
+        }
+        return bestStruc;
+    }
+
+    public static List<Row> getBestModelStructure(Iterable<Row> data, String pdbId, String chainId) {
+
+        Iterator<Row> it = data.iterator();
+
+        List<Row> bestStruc = new ArrayList<Row>();
+        while (it.hasNext()) {
+            Row row = it.next();
+            if ( row.getString(15).contains(pdbId) && row.getString(15).contains(chainId) ) {
+                bestStruc.add(row);
+            }
+        }
+        return bestStruc;
     }
 }

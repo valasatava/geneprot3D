@@ -10,7 +10,6 @@ import org.biojava.nbio.genome.parsers.twobit.TwoBitParser;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.rcsb.genevariation.constants.StrandOrientation;
 import org.rcsb.genevariation.datastructures.Transcript;
-import org.rcsb.genevariation.io.GenomeDataProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -114,15 +113,8 @@ public class RNApolymerase implements Serializable  {
 	
 	public String getCodingSequence(List<Integer> exonStarts, List<Integer> exonEnds, int codingStart, int codingEnd, boolean forward) throws IOException, CompoundNotFoundException {
 
-		List<Range<Integer>> cdsRegion;
-		if (!forward) {
-			cdsRegion = GenomeDataProvider.getCDSRegionsReverse(exonStarts, exonEnds,
+		List<Range<Integer>> cdsRegion = ChromosomeMappingTools.getCDSRegions(exonStarts, exonEnds,
 					codingStart, codingEnd);
-		}
-		else {
-			cdsRegion = GenomeDataProvider.getCDSRegionsForward(exonStarts, exonEnds,
-					codingStart, codingEnd);
-		}
 
 		String transcription = "";
 		for (Range<Integer> range : cdsRegion) {

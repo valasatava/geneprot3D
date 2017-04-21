@@ -33,16 +33,16 @@ public class EGetStructuralMapping {
 
             Dataset<Row> models = SaprkUtils.getSparkSession().read().parquet(homologyMapping + "/" + chr);
             Dataset<Row> df2 = models
-                    .drop(models.col("fromUniprot")).drop(models.col("toUniprot"))
+                    .withColumnRenamed("fromUniprot", "pdbPosStart")
+                    .withColumnRenamed("toUniprot", "pdbPosEnd")
                     .withColumn("pdbId", functions.lit("null")).withColumn("chainId", functions.lit("null"))
-                    .withColumn("pdbPosStart", functions.lit("null")).withColumn("pdbPosEnd", functions.lit("null"))
                     .select("chromosome", "geneName", "ensemblId", "geneBankId", "start", "end",
                             "orientation", "offset", "uniProtId", "canonicalPosStart", "canonicalPosEnd",
                             "pdbId", "chainId", "pdbPosStart", "pdbPosEnd", "template", "coordinates");
 
             Dataset<Row> df3 = df1.union(df2).orderBy("start","end");
 
-            df3.filter(df3.col("geneName").equalTo("BROX").and(df3.col("start").equalTo(222731357))).show();
+            //df3.filter(df3.col("geneName").equalTo("BROX").and(df3.col("start").equalTo(222731357))).show();
 
             df3.write().mode(SaveMode.Overwrite).parquet(structuralMapping+"/"+chr);
         }
@@ -54,5 +54,11 @@ public class EGetStructuralMapping {
         combinePDBStructuresAndHomologyModels(DataLocationProvider.getExonsPDBLocation(),
                 DataLocationProvider.getExonsHomologyModelsLocation(),
                 DataLocationProvider.getExonsStructuralMappingLocation());
+    }
+
+    public static void main(String[] args) {
+
+        Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getExonsStructuralMappingLocation() + "/chr1");
+        mapping.orderBy("start", "end", "pdbId", "chainId").show(100);
     }
 }

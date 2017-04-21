@@ -17,7 +17,7 @@ public class RunExonsPipeline {
 //		ARunGeneBankMapping.runCorrelatedExons();
 //		BRunUniprotMapping.runCorrelatedExons();
 //		CRunPDBStructuresMapping.runCorrelatedExons();
-//		DRunHomologyModelsMapping.runCorrelatedExons();
+		DRunHomologyModelsMapping.runCorrelatedExons();
 		EGetStructuralMapping.runCorrelatedExons();
 	}
 
