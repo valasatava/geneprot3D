@@ -1,9 +1,9 @@
-package org.rcsb.correlatedexons.mappers;
+package org.rcsb.correlatedexons.properties;
 
 import org.rcsb.genevariation.datastructures.ProteinFeatures;
 import org.apache.spark.api.java.function.MapFunction;
 
-public class MapToPolarityString implements MapFunction<ProteinFeatures, String> {
+public class MapToDisorderString implements MapFunction<ProteinFeatures, String> {
 
 	/**
 	 * 
@@ -12,20 +12,21 @@ public class MapToPolarityString implements MapFunction<ProteinFeatures, String>
 
 	@Override
 	public String call(ProteinFeatures feature) throws Exception {
+
 		String line = feature.getChromosome();
 		line += ","+feature.getEnsemblId();
 		line += ","+String.valueOf(feature.getStart());
 		line += ","+String.valueOf(feature.getEnd());
-		
-		int[] prop = feature.getPolarity();
-		if ( prop.length==0 )
+
+		float[] disorder = feature.getDisorder();
+		if ( disorder.length==0 )
 			return line += ",";
 
-		String str = String.valueOf(prop[0]);
-		for ( int i=1;i< prop.length; i++ ) {
-			str += ";"+String.valueOf(prop[i]);
+		String disorderStr = String.valueOf(disorder[0]);
+		for ( int i=1;i< disorder.length; i++ ) {
+			disorderStr += ";"+String.valueOf(disorder[i]);
 		}
-		line += ","+ str;
+		line += ","+ disorderStr;
 		
 		return line;
 	}

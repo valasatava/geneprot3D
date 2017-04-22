@@ -7,7 +7,7 @@ import org.apache.spark.sql.Row;
 import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
 import org.biojava.nbio.core.sequence.template.SequenceView;
-import org.rcsb.correlatedexons.mappers.MapToExonSerializable;
+import org.rcsb.correlatedexons.properties.MapToExonSerializable;
 import org.rcsb.genevariation.datastructures.ExonSerializable;
 import org.rcsb.genevariation.datastructures.Transcript;
 import org.rcsb.genevariation.expression.RNApolymerase;

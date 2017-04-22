@@ -1,4 +1,4 @@
-package org.rcsb.correlatedexons.mappers;
+package org.rcsb.correlatedexons.properties;
 
 import org.rcsb.correlatedexons.utils.CommonUtils;
 import org.rcsb.genevariation.datastructures.ProteinFeatures;

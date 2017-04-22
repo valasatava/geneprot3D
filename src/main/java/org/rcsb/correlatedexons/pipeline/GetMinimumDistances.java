@@ -8,21 +8,18 @@ import org.biojava.nbio.structure.Atom;
 import org.biojava.nbio.structure.Chain;
 import org.biojava.nbio.structure.Group;
 import org.biojava.nbio.structure.Structure;
-import org.rcsb.correlatedexons.utils.CommonUtils;
-import org.rcsb.correlatedexons.utils.MapUtils;
+import org.rcsb.correlatedexons.mappers.MapToBestStructure;
+import org.rcsb.correlatedexons.mappers.MapToResolution;
 import org.rcsb.correlatedexons.utils.RowUtils;
 import org.rcsb.correlatedexons.utils.StructureUtils;
 import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.genevariation.utils.SaprkUtils;
-import scala.Tuple2;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by yana on 4/20/17.
@@ -35,41 +32,11 @@ public class GetMinimumDistances {
                 .read().parquet(DataLocationProvider.getExonsStructuralMappingLocation() + "/" + chr);
 
         JavaRDD<List<String>> test = mapping.toJavaRDD()
-
-                //.map(new MapToResolution())
-
+                .map(new MapToResolution())
                 .groupBy(t -> (t.getString(2) + "_" + t.getString(3)))
-
                 //.filter(t -> t._1.equals("ENST00000330714_NM_002463"))
+                .map(new MapToBestStructure()).filter(t -> (t != null))
 
-                .map(new Function<Tuple2<String, Iterable<Row>>, List<Row>>() {
-
-                    @Override
-                    public List<Row> call(Tuple2<String, Iterable<Row>> data) {
-
-                        Iterator<Row> it = data._2.iterator();
-
-                        Map<String, List<String>> map = MapUtils.getMapFromIterator(it);
-
-                        if (map.size()==0)
-                            return null;
-
-                        String maxkey = map.entrySet().stream().max((entry1, entry2) -> entry1.getValue().size() > entry2.getValue().size() ? 1 : -1).get().getKey();
-
-                        String pdbId = maxkey.split("_")[0];
-                        String chainId = maxkey.split("_")[1];
-
-                        List<Row> best = CommonUtils.getBestPDBStructure(data._2, pdbId, chainId);
-                        if (best.size() == 0) {
-                            best = CommonUtils.getBestModelStructure(data._2, pdbId, chainId);
-                        }
-                        if (best.size() <= 1) {
-                            return null;
-                        }
-                        return best;
-                    }
-                })
-                .filter(t -> (t != null))
                 .map(new Function<List<Row>, List<String>>() {
                     @Override
                     public List<String> call(List<Row> transcript) throws Exception {

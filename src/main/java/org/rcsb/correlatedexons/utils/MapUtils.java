@@ -20,6 +20,7 @@ public class MapUtils {
             String pdbId = RowUtils.getPdbId(row);
             String chainId = RowUtils.getChainId(row);
 
+            // TODO: write a better handling
             if ( pdbId.equals("4NL7") || pdbId.equals("4NL6"))
                 continue;
 
