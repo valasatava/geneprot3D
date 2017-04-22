@@ -9,7 +9,6 @@ import org.biojava.nbio.structure.Chain;
 import org.biojava.nbio.structure.Group;
 import org.biojava.nbio.structure.Structure;
 import org.rcsb.correlatedexons.mappers.MapToBestStructure;
-import org.rcsb.correlatedexons.mappers.MapToResolution;
 import org.rcsb.correlatedexons.utils.RowUtils;
 import org.rcsb.correlatedexons.utils.StructureUtils;
 import org.rcsb.genevariation.io.DataLocationProvider;
@@ -32,7 +31,7 @@ public class GetMinimumDistances {
                 .read().parquet(DataLocationProvider.getExonsStructuralMappingLocation() + "/" + chr);
 
         JavaRDD<List<String>> test = mapping.toJavaRDD()
-                .map(new MapToResolution())
+                //.map(new MapToResolution())
                 .groupBy(t -> (t.getString(2) + "_" + t.getString(3)))
                 //.filter(t -> t._1.equals("ENST00000330714_NM_002463"))
                 .map(new MapToBestStructure()).filter(t -> (t != null))

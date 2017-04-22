@@ -9,10 +9,11 @@ import java.util.*;
  */
 public class MapUtils {
 
-    public static Map<String, List<String>> getMapFromIterator(Iterator<Row> it ) {
+    public static Map<String, List<String>> getMapFromIterator(Iterable<Row> data ) {
 
         Map<String, List<String>> map = new HashMap<String, List<String>>();
 
+        Iterator<Row> it = data.iterator();
         while (it.hasNext()) {
 
             Row row = it.next();
@@ -25,6 +26,12 @@ public class MapUtils {
                 continue;
 
             String key = pdbId+"_"+chainId;
+            if ( RowUtils.isPDBStructure(row) ) {
+                key += "_pdb";
+            }
+            else {
+                key += "_model";
+            }
             String exon = RowUtils.getExon(row);
 
             if ( !map.keySet().contains(key) ) {
