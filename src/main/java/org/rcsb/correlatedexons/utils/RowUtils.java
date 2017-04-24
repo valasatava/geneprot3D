@@ -27,6 +27,16 @@ public class RowUtils {
         return chainId;
     }
 
+    public static float getResolution(Row row) {
+
+        if (row.get(17)!=null) {
+            return row.getFloat(17);
+        }
+        else {
+            return 999.9f;
+        }
+    }
+
     public static String getExon(Row row) {
         return String.valueOf(row.getInt(4)) + "_" +
                 String.valueOf(row.getInt(5)) + "_" +

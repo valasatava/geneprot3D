@@ -2,11 +2,11 @@ package org.rcsb.correlatedexons.mappers;
 
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
+import org.rcsb.correlatedexons.utils.CommonUtils;
 import org.rcsb.correlatedexons.utils.MapUtils;
 import org.rcsb.correlatedexons.utils.RowUtils;
 import scala.Tuple2;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,41 +24,73 @@ public class MapToBestStructure implements Function<Tuple2<String, Iterable<Row>
         if (map.size()==0)
             return null;
 
-        Map.Entry<String, List<String>> bestpdb = map.entrySet().stream().filter(e -> e.getKey().contains("pdb")).max((entry1, entry2) -> entry1.getValue().size() > entry2.getValue().size() ? 1 : -1).get();
-        int max_pdb_coverage = bestpdb.getValue().size();
+        int max_pdb_coverage = 0;
+        int max_model_coverage = 0;
 
-        Map.Entry<String, List<String>> bestmodel = map.entrySet().stream().filter(e -> e.getKey().contains("model")).max((entry1, entry2) -> entry1.getValue().size() > entry2.getValue().size() ? 1 : -1).get();
-        int max_model_coverage = bestmodel.getValue().size();
+        try {
+            Map.Entry<String, List<String>> bestpdb = map.entrySet().stream()
+                    .filter(e -> e.getKey().contains("pdb"))
+                    .max((entry1, entry2) -> entry1.getValue().size() > entry2.getValue().size() ? 1 : -1).get();
+            max_pdb_coverage = bestpdb.getValue().size();
+        } catch (Exception e) {
+        }
 
-        List<String> bestmatches;
+        try {
+            Map.Entry<String, List<String>> bestmodel = map.entrySet().stream()
+                    .filter(e -> e.getKey().contains("model"))
+                    .max((entry1, entry2) -> entry1.getValue().size() > entry2.getValue().size() ? 1 : -1).get();
+
+            max_model_coverage = bestmodel.getValue().size();
+        } catch (Exception e) {
+        }
+
+        List<String> bestCoverage;
         // select based on resolution for the PDB structure preferably (if the coverage of the )
-        if ( max_model_coverage - max_pdb_coverage > 2 ) {
-            bestmatches = map.entrySet().stream().filter(e -> e.getValue().size() == max_model_coverage).map(e -> e.getKey()).collect(Collectors.toList());
+        if ( max_model_coverage - max_pdb_coverage > 2 || max_pdb_coverage == 0 ) {
+            int finalMax_model_coverage = max_model_coverage;
+            bestCoverage = map.entrySet().stream()
+                    .filter(e -> (e.getValue().size() == finalMax_model_coverage && e.getKey()
+                            .contains("model"))).map(e -> e.getKey()).collect(Collectors.toList());
         }
         else {
-            bestmatches = map.entrySet().stream().filter(e -> e.getValue().size() == max_pdb_coverage).map(e -> e.getKey()).collect(Collectors.toList());
+            int finalMax_pdb_coverage = max_pdb_coverage;
+            bestCoverage = map.entrySet().stream()
+                    .filter(e -> (e.getValue().size() == finalMax_pdb_coverage && e.getKey()
+                            .contains("pdb"))).map(e -> e.getKey()).collect(Collectors.toList());
         }
 
-        Iterator<Row> it = data._2.iterator();
-        while (it.hasNext()) {
+        String pdbIdbest = "";
+        String chainIdbest = "";
+        if (bestCoverage.size()>1) {
+            float bestRes = 99.9f;
 
-            Row row = it.next();
+            for (String key : bestCoverage) {
 
-            String pdbId = RowUtils.getPdbId(row);
-            String chainId = RowUtils.getChainId(row);
+                String pdbIdb = key.split("_")[0];
+                String chainId = key.split("_")[1];
+
+                List<Row> lst = CommonUtils.getPDBStructure(data._2, pdbIdb, chainId);
+                if (lst.size()==0) {
+                    lst = CommonUtils.getModelStructure(data._2, pdbIdb, chainId);
+                }
+                Row r = lst.get(0);
+                if ( RowUtils.getResolution(r) < bestRes ) {
+                    pdbIdbest = RowUtils.getPdbId(r);
+                    chainIdbest = RowUtils.getChainId(r);
+                }
+            }
         }
-
-
-//        String pdbId = maxkey.split("_")[0];
-//        String chainId = maxkey.split("_")[1];
-//
-//        List<Row> best = CommonUtils.getBestPDBStructure(data._2, pdbId, chainId);
-//        if (best.size() == 0) {
-//            best = CommonUtils.getBestModelStructure(data._2, pdbId, chainId);
-//        }
-//        if (best.size() <= 1) {
-//            return null;
-//        }
-        return null;
+        else {
+            String bestmatch = null;
+            try {
+                bestmatch = bestCoverage.get(0);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            pdbIdbest = bestmatch.split("_")[0];
+            chainIdbest = bestmatch.split("_")[1];
+        }
+        List<Row> best = CommonUtils.getPDBStructure(data._2, pdbIdbest, chainIdbest);
+        return best;
     }
 }

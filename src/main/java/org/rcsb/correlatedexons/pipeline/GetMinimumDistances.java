@@ -9,6 +9,7 @@ import org.biojava.nbio.structure.Chain;
 import org.biojava.nbio.structure.Group;
 import org.biojava.nbio.structure.Structure;
 import org.rcsb.correlatedexons.mappers.MapToBestStructure;
+import org.rcsb.correlatedexons.mappers.MapToResolution;
 import org.rcsb.correlatedexons.utils.RowUtils;
 import org.rcsb.correlatedexons.utils.StructureUtils;
 import org.rcsb.genevariation.io.DataLocationProvider;
@@ -31,7 +32,7 @@ public class GetMinimumDistances {
                 .read().parquet(DataLocationProvider.getExonsStructuralMappingLocation() + "/" + chr);
 
         JavaRDD<List<String>> test = mapping.toJavaRDD()
-                //.map(new MapToResolution())
+                .map(new MapToResolution())
                 .groupBy(t -> (t.getString(2) + "_" + t.getString(3)))
                 //.filter(t -> t._1.equals("ENST00000330714_NM_002463"))
                 .map(new MapToBestStructure()).filter(t -> (t != null))
@@ -76,8 +77,8 @@ public class GetMinimumDistances {
                                     if (  RowUtils.getExon(exon1).equals("204978968_204979069_2") && RowUtils.getExon(exon2).equals("204970616_204970747_2"))
                                         System.out.println();
 
-                                    int start1; int end1;
-                                    int start2; int end2;
+                                    int start1=-1; int end1=-1;
+                                    int start2=-1; int end2=-1;
 
                                     if ( RowUtils.isPDBStructure(exon1)) {
 
@@ -89,40 +90,7 @@ public class GetMinimumDistances {
                                     }
                                     else {
 
-                                        int pdbStart = groups.get(0).getResidueNumber().getSeqNum();
-                                        int pdbEnd = groups.get(groups.size()-1).getResidueNumber().getSeqNum();
-
-                                        int uniStart1 = RowUtils.getUniProtStart(exon1);
-                                        if ( uniStart1 > pdbStart ) {
-                                            start1 = uniStart1;
-                                        }
-                                        else {
-                                            start1 = pdbStart;
-                                        }
-
-                                        int uniStart2 = RowUtils.getUniProtStart(exon2);
-                                        if ( uniStart1 > pdbStart ) {
-                                            start2 = uniStart2;
-                                        }
-                                        else {
-                                            start2 = pdbStart;
-                                        }
-
-                                        int uniEnd1 = RowUtils.getUniProtEnd(exon1);
-                                        if ( uniEnd1 < pdbEnd ) {
-                                            end1 = uniEnd1;
-                                        }
-                                        else {
-                                            end1 = pdbEnd;
-                                        }
-
-                                        int uniEnd2 = RowUtils.getUniProtEnd(exon2);
-                                        if ( uniEnd2 < pdbEnd ) {
-                                            end2 = uniEnd2;
-                                        }
-                                        else {
-                                            end2 = pdbEnd;
-                                        }
+                                        //UniprotToModelCoordinatesMapper mapper = new UniprotToModelCoordinatesMapper();
                                     }
 
                                     List<Atom> atoms1 = StructureUtils.getAtomsInRange(groups, start1, end1);

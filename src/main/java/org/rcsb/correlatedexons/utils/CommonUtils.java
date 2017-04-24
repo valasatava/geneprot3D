@@ -39,7 +39,7 @@ public class CommonUtils {
         writer.close();
     }
 
-    public static List<Row> getBestPDBStructure(Iterable<Row> data, String pdbId, String chainId) {
+    public static List<Row> getPDBStructure(Iterable<Row> data, String pdbId, String chainId) {
 
         Iterator<Row> it = data.iterator();
 
@@ -53,7 +53,7 @@ public class CommonUtils {
         return bestStruc;
     }
 
-    public static List<Row> getBestModelStructure(Iterable<Row> data, String pdbId, String chainId) {
+    public static List<Row> getModelStructure(Iterable<Row> data, String pdbId, String chainId) {
 
         Iterator<Row> it = data.iterator();
 
