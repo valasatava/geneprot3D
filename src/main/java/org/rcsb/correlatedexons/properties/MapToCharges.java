@@ -10,7 +10,7 @@ import org.biojava.nbio.aaproperties.PeptideProperties;
 
 import java.util.List;
 
-public class MapToAACharges implements MapFunction<Row, ProteinFeatures> {
+public class MapToCharges implements MapFunction<Row, ProteinFeatures> {
 
 	/**
 	 *

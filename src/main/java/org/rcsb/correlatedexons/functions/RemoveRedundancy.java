@@ -1,4 +1,4 @@
-package org.rcsb.correlatedexons;
+package org.rcsb.correlatedexons.functions;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.Dataset;

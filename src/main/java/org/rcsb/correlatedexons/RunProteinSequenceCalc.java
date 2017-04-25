@@ -21,7 +21,7 @@ public class RunProteinSequenceCalc {
 
     public static void getExonsAACharges(String chr, Encoder<ProteinFeatures> encoder, Dataset<Row> data) throws Exception {
 
-            Dataset<ProteinFeatures> featuresDf = data.map(new MapToAACharges(), encoder)
+            Dataset<ProteinFeatures> featuresDf = data.map(new MapToCharges(), encoder)
                     .filter(t->t!=null);
             List<String> features = featuresDf.map(new MapToChargesString(), Encoders.STRING()).collectAsList();
 
@@ -51,7 +51,7 @@ public class RunProteinSequenceCalc {
 
     public static void getExonsAAPolarity(String chr, Encoder<ProteinFeatures> encoder, Dataset<Row> data) throws Exception {
 
-            Dataset<ProteinFeatures> featuresDf = data.map(new MapToAAPolarity(), encoder)
+            Dataset<ProteinFeatures> featuresDf = data.map(new MapToPolarity(), encoder)
                     .filter(t->t!=null);
             List<String> features = featuresDf.map(new MapToPolarityString(), Encoders.STRING()).collectAsList();
 

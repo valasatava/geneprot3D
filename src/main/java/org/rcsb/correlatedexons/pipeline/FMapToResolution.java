@@ -3,7 +3,7 @@ package org.rcsb.correlatedexons.pipeline;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.rcsb.correlatedexons.mappers.FilterBounaries;
+import org.rcsb.correlatedexons.filters.FilterBounaries;
 import org.rcsb.correlatedexons.mappers.MapToResolution;
 import org.rcsb.correlatedexons.utils.RowUtils;
 import org.rcsb.genevariation.io.DataLocationProvider;

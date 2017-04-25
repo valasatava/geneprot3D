@@ -1,6 +1,6 @@
 package org.rcsb.correlatedexons;
 
-import org.rcsb.correlatedexons.pipeline.GetMinimumDistances;
+import org.rcsb.correlatedexons.functions.GetMinimumDistances;
 import org.rcsb.genevariation.io.DataLocationProvider;
 
 /**

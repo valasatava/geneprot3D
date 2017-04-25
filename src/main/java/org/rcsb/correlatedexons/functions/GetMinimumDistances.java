@@ -1,4 +1,4 @@
-package org.rcsb.correlatedexons.pipeline;
+package org.rcsb.correlatedexons.functions;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Dataset;

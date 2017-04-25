@@ -10,7 +10,7 @@ import org.biojava.nbio.aaproperties.PeptideProperties;
 
 import java.util.List;
 
-public class MapToAAPolarity implements MapFunction<Row, ProteinFeatures> {
+public class MapToPolarity implements MapFunction<Row, ProteinFeatures> {
 
 	/**
 	 *

@@ -97,8 +97,6 @@ public class MapToMinDistance implements Function<List<Row>, List<String>> {
                     results.add(line);
             }
         }
-
         return results;
-
     }
 }

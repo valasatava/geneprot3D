@@ -1,4 +1,4 @@
-package org.rcsb.correlatedexons.mappers;
+package org.rcsb.correlatedexons.filters;
 
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
