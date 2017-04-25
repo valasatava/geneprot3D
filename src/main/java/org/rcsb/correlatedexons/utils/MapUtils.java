@@ -3,6 +3,8 @@ package org.rcsb.correlatedexons.utils;
 import org.apache.spark.sql.Row;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by yana on 4/20/17.
@@ -45,5 +47,27 @@ public class MapUtils {
             }
         }
         return map;
+    }
+
+    public static int getBestCoverageValue(Map<String, List<String>> map, String key) {
+
+        int max_coverage = 0;
+        Stream<Map.Entry<String, List<String>>> pdbs = map.entrySet().stream()
+                .filter(e -> e.getKey().contains(key));
+        if ( pdbs.count() != 0 ) {
+            max_coverage = map.entrySet().stream()
+                    .filter(e -> e.getKey().contains(key))
+                    .max((entry1, entry2) -> entry1.getValue().size() > entry2.getValue().size() ? 1 : -1)
+                    .get().getValue().size();
+        }
+        return max_coverage;
+    }
+
+    public static List<String> getKeysWithBestCoverage(Map<String, List<String>> map, String key, int coverage) {
+
+        List<String> keys = map.entrySet().stream()
+                .filter(e -> (e.getValue().size() == coverage && e.getKey()
+                        .contains(key))).map(e -> e.getKey()).collect(Collectors.toList());
+        return keys;
     }
 }

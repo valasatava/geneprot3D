@@ -21,6 +21,12 @@ public class MapToResolution implements Function<Row, Row> {
         String pdbId = RowUtils.getPdbId(row);
 
         Float resolution;
+
+        // TODO: write a better handling
+        if ( pdbId.equals("4NL7") || pdbId.equals("4NL6")) {
+            return null;
+        }
+
         try {
             MmtfStructure mmtfData = ReaderUtils.getDataFromUrl(pdbId);
             resolution = mmtfData.getResolution();

@@ -170,4 +170,16 @@ public class RowUtils {
             }
         }
     }
+
+    public static String getUniProtId(Row row) {
+        return row.getString(8);
+    }
+
+    public static String getTemplate(Row row) {
+        return row.getString(15);
+    }
+
+    public static String getCoordinates(Row row) {
+        return row.getString(16);
+    }
 }

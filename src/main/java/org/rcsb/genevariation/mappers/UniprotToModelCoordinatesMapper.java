@@ -59,6 +59,7 @@ public class UniprotToModelCoordinatesMapper {
     public void map() throws Exception {
 
         Structure structure = StructureUtils.getModelStructure(coordinates);
+
         Chain chain = structure.getChainByIndex(0);
         List<Group> groups = chain.getAtomGroups();
 

@@ -78,11 +78,11 @@ public class StructureUtils {
             range.add(tail.get(0));
             while ( ( tail.get(ind).getResidueNumber().getSeqNum() - tail.get(ind-1).getResidueNumber().getSeqNum() ) == 1 ) {
                 range.add(tail.get(ind));
-                ind++;
-                if ( ind+1>=tail.size()) {
+                if ( ind+1 >= tail.size()) {
                     range.add(tail.get(ind));
                     break;
                 }
+                ind++;
             }
         }
 
@@ -98,7 +98,7 @@ public class StructureUtils {
                 while ( ( head.get(ind-1).getResidueNumber().getSeqNum() - head.get(ind).getResidueNumber().getSeqNum() ) == 1 ) {
                     range.add(head.get(ind));
                     ind--;
-                    if ( ind-1<0 ) {
+                    if ( ind-1 < 0 ) {
                         range.add(head.get(ind));
                         break;
                     }
@@ -117,5 +117,16 @@ public class StructureUtils {
             atoms.addAll(a);
         }
         return atoms;
+    }
+    
+    public static void main(String[] args) throws IOException, StructureException {
+
+        URL url = new URL("https://swissmodel.expasy.org/repository/uniprot/P51530.pdb?range=19-1054&template=5eaw.1.A&provider=swissmodel");
+
+        Structure structure = getBioJavaStructure("3S6N");
+        List<Chain> chains = structure.getChains();
+        Chain chain = structure.getPolyChainByPDB("2");
+        System.out.println(chain.getName());
+
     }
 }
