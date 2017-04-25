@@ -12,49 +12,48 @@ import org.rcsb.uniprot.config.RCSBUniProtMirror;
 /**
  * Created by yana on 4/25/17.
  */
-public class MapToUniprotFeatures implements Function<Row, Row> {
+public class MapToDomain implements Function<Row, Row> {
 
     @Override
     public Row call(Row row) throws Exception {
 
         String uniProtId = RowUtils.getUniProtId(row);
 
-        int uniStart = ( RowUtils.getUniProtStart(row) != -1 ) ? RowUtils.getUniProtStart(row) : Integer.MAX_VALUE;
-        int uniEnd = ( RowUtils.getUniProtEnd(row) != -1 ) ? RowUtils.getUniProtEnd(row) : Integer.MIN_VALUE;
+        int uniStart = RowUtils.getUniProtStart(row);
+        int uniEnd = RowUtils.getUniProtEnd(row);
+
+        if (uniStart == -1 || uniEnd == -1)
+            return null;
 
         Range<Integer> exonRange = Range.closed(uniStart, uniEnd);
 
+        boolean flag = false;
         Uniprot up = RCSBUniProtMirror.getUniProtFromFile(uniProtId);
         for(Entry e : up.getEntry()) {
             
             for (FeatureType ft : e.getFeature()) {
 
-                // ranged features
                 if (ft.getLocation() != null && ft.getLocation().getBegin() != null && ft.getLocation().getEnd() != null) {
 
-                    if ( ft.getType().equals("topological domain") ) {
+                    if ( ft.getType().equals("domain") ) {
 
-                        Range<Integer> featureRange = Range.closed(ft.getLocation().getBegin().getPosition().intValue(), ft.getLocation().getEnd().getPosition().intValue());
-
+                        Range<Integer> featureRange = Range.closed(ft.getLocation().getBegin().getPosition().intValue(),
+                                ft.getLocation().getEnd().getPosition().intValue());
                         if (featureRange.isConnected(exonRange)) {
-
-                            Range<Integer> intersrction = featureRange.intersection(exonRange);
-
+                            Range<Integer> coveredRange = featureRange.intersection(exonRange);
                             row = RowUtils.addField(row, ft.getDescription());
-                            row = RowUtils.addField(row, intersrction.lowerEndpoint());
-                            row = RowUtils.addField(row, intersrction.upperEndpoint());
-
+                            row = RowUtils.addField(row, coveredRange.lowerEndpoint());
+                            row = RowUtils.addField(row, coveredRange.upperEndpoint());
+                            flag = true;
                         }
                     }
-
-                    else if (ft.getType().equals("topological domain")) {
-
-                    }
-
                 }
             }
         }
 
+        if ( flag ) {
+            return row;
+        }
         return null;
     }
 }
