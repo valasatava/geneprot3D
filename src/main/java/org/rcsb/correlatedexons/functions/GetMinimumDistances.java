@@ -20,10 +20,7 @@ import java.util.List;
  */
 public class GetMinimumDistances {
 
-    public static void run(String chr) throws IOException {
-
-        Dataset<Row> mapping = SaprkUtils.getSparkSession()
-                .read().parquet(DataLocationProvider.getExonsStructuralMappingLocation() + "/" + chr);
+    public static List<String> run(Dataset<Row> mapping) {
 
         JavaRDD<List<String>> data = mapping.toJavaRDD()
                 .map(new MapToResolution())
@@ -38,8 +35,17 @@ public class GetMinimumDistances {
         for (List<String> t : results) {
             for (String l : t ) { out.add(l); }
         }
+        return out;
+    }
 
-        String path = "/Users/yana/ishaan/RESULTS/distances/";
+    public static void runExons(String chr) throws IOException {
+
+        Dataset<Row> mapping = SaprkUtils.getSparkSession()
+                .read().parquet(DataLocationProvider.getExonsStructuralMappingLocation() + "/" + chr);
+
+        List<String> results = run(mapping);
+
+        String path = DataLocationProvider.getExonsProjectResults()+"/distances/";
         File file = new File(path+chr);
         if (!file.exists()) {
             if (file.mkdir()) {
@@ -51,13 +57,13 @@ public class GetMinimumDistances {
 
         String filename = path+chr+"/minimum_distances.csv";
         FileWriter writer = new FileWriter(filename);
-        for(String str: out) {
+        for(String str: results) {
             writer.write(str);
         }
         writer.close();
     }
 
     public static void main(String[] args) throws IOException {
-        run("chr21");
+        runExons("chr21");
     }
 }

@@ -19,17 +19,21 @@ public class StructureUtils {
 
     public static Structure getBioJavaStructure(String pdbId) throws IOException, StructureException {
 
-        AtomCache cache = new AtomCache();
-        cache.setUseMmCif(true);
-
-        StructureIO.setAtomCache(cache);
-
         Structure structure = null;
         try {
-            structure = StructureIO.getStructure(pdbId);
-        } catch (FileNotFoundException e1) {
-            cache.setObsoleteBehavior(LocalPDBDirectory.ObsoleteBehavior.FETCH_OBSOLETE);
-            structure = StructureIO.getStructure(pdbId);
+            AtomCache cache = new AtomCache();
+            cache.setUseMmCif(true);
+
+            StructureIO.setAtomCache(cache);
+
+            try {
+                structure = StructureIO.getStructure(pdbId);
+            } catch (FileNotFoundException e1) {
+                cache.setObsoleteBehavior(LocalPDBDirectory.ObsoleteBehavior.FETCH_OBSOLETE);
+                structure = StructureIO.getStructure(pdbId);
+            }
+        } catch (Exception e) {
+            return null;
         }
         return structure;
     }
@@ -51,8 +55,6 @@ public class StructureUtils {
             for (Atom aa2 : a2) {
                 double distance = Calc.getDistance(aa1, aa2);
                 if (distance < min) {
-//                    if ( distance == 0.0 )
-//                        System.out.println();
                     min = distance;
                 }
             }
@@ -95,14 +97,15 @@ public class StructureUtils {
 
             int ind=head.size()-1;
             range.add(head.get(head.size()-1));
-                while ( ( head.get(ind-1).getResidueNumber().getSeqNum() - head.get(ind).getResidueNumber().getSeqNum() ) == 1 ) {
+
+            while ( ( head.get(ind).getResidueNumber().getSeqNum() - head.get(ind-1).getResidueNumber().getSeqNum() ) == 1 ) {
+                range.add(head.get(ind-1));
+                ind--;
+                if ( ind-1 < 0 ) {
                     range.add(head.get(ind));
-                    ind--;
-                    if ( ind-1 < 0 ) {
-                        range.add(head.get(ind));
-                        break;
-                    }
+                    break;
                 }
+            }
         }
         return range;
     }
@@ -110,15 +113,20 @@ public class StructureUtils {
     public static List<Atom> getAtomsInRange(List<Group> groups, int start, int end) {
 
         List<Group> g = getGroupsInRange(groups, start, end);
+        List<Atom> atoms = getAtomsInRange(g);
+        return atoms;
+    }
+
+    public static List<Atom> getAtomsInRange(List<Group> groups) {
 
         List<Atom> atoms = new ArrayList<Atom>();
-        for (Group group : g) {
+        for (Group group : groups) {
             List<Atom> a = group.getAtoms();
             atoms.addAll(a);
         }
         return atoms;
     }
-    
+
     public static void main(String[] args) throws IOException, StructureException {
 
         URL url = new URL("https://swissmodel.expasy.org/repository/uniprot/P51530.pdb?range=19-1054&template=5eaw.1.A&provider=swissmodel");
@@ -128,5 +136,27 @@ public class StructureUtils {
         Chain chain = structure.getPolyChainByPDB("2");
         System.out.println(chain.getName());
 
+    }
+
+    public static List<Atom> getResidue(List<Atom> atoms, int resNum) {
+        return atoms.stream()
+                .filter(a -> a.getGroup().getResidueNumber().getSeqNum()==resNum)
+                .collect(Collectors.toList());
+    }
+
+    public static List<Atom> getFirstResidue(List<Atom> atoms) {
+
+        Integer resNum = atoms.get(0).getGroup().getResidueNumber().getSeqNum();
+        return atoms.stream()
+                .filter(a -> a.getGroup().getResidueNumber().getSeqNum()==resNum)
+                .collect(Collectors.toList());
+    }
+
+    public static List<Atom> getLastResidue(List<Atom> atoms) {
+
+        Integer resNum = atoms.get(atoms.size()-1).getGroup().getResidueNumber().getSeqNum();
+        return atoms.stream()
+                .filter(a -> a.getGroup().getResidueNumber().getSeqNum()==resNum)
+                .collect(Collectors.toList());
     }
 }

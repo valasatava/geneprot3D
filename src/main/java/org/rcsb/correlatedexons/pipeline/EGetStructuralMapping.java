@@ -42,13 +42,15 @@ public class EGetStructuralMapping {
 
             Dataset<Row> df3 = df1.union(df2).orderBy("start","end");
 
-            //df3.filter(df3.col("geneName").equalTo("BROX").and(df3.col("start").equalTo(222731357))).show();
-
             df3.write().mode(SaveMode.Overwrite).parquet(structuralMapping+"/"+chr);
         }
     }
 
-    public static void runGencodeV24() throws Exception { }
+    public static void runGencodeV24() throws Exception {
+        combinePDBStructuresAndHomologyModels(DataLocationProvider.getGencodePDBLocation(),
+                DataLocationProvider.getGencodeHomologyModelsLocation(),
+                DataLocationProvider.getGencodeStructuralMappingLocation());
+    }
 
     public static void runCorrelatedExons() throws Exception {
         combinePDBStructuresAndHomologyModels(DataLocationProvider.getExonsPDBLocation(),

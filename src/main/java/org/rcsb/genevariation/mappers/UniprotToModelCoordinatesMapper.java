@@ -71,7 +71,7 @@ public class UniprotToModelCoordinatesMapper {
 
         IsoformMapper isomapper = new IsoformMapper(uniprotSequence, modelSequence);
 
-        uniprotCoordinates = IntStream.range(from, to - from + 1).toArray();
+        uniprotCoordinates = IntStream.range(from, to+1).toArray();
         modelCoordinates = new int[uniprotCoordinates.length];
 
         int tInd = 0;
