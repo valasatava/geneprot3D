@@ -83,7 +83,7 @@ public class DRunHomologyModelsMapping {
 
     public static void runGencodeV24() throws Exception {
         mapToHomologyModels(DataLocationProvider.getGencodeUniprotLocation(),
-                DataLocationProvider.getHumanGoodHomologyModelsLocation());
+                DataLocationProvider.getGencodeHomologyModelsLocation());
     }
 
     public static void runCorrelatedExons() throws Exception {

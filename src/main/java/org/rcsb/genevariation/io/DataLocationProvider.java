@@ -15,10 +15,11 @@ public class DataLocationProvider {
 
 	// Collaboration projects
 	private final static String exonsProject = getUserHome()+"/ishaan/";
+	private final static String exonsProjectResults = getExonsProject()+"RESULTS/";
 
 	// Human genome
-	private final static String humanGenomeLocation = getDataHome()
-			+"hg38.2bit";
+	private final static String humanGenomeLocation = getUserHome()+"spark/parquet/humangenome/20170413/hg38.2bit";
+
 	private static final String genesPredictionURL = "http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refFlat.txt.gz";
 
 	// Homology models data
@@ -46,16 +47,14 @@ public class DataLocationProvider {
 
 	private final static String gencodeGeneBankLocation = getExonsProject()
 			+"MAPS/gencode.v24.CDS.protein_coding.gene_bank_mapping";
-
 	private final static String gencodeUniprotLocation = DataLocationProvider.getExonsProject()
 			+"MAPS/gencode.v24.CDS.protein_coding.uniprot_mapping";
-
 	private final static String gencodePDBLocation = DataLocationProvider.getExonsProject()
 			+"MAPS/gencode.v24.CDS.protein_coding.pdb_mapping";
-
 	private final static String gencodeHomologyModelsLocation = DataLocationProvider.getExonsProject()
 			+"MAPS/gencode.v24.CDS.protein_coding.homology_mapping";
-
+	private final static String gencodeStructuralMappingLocation = DataLocationProvider.getExonsProject()
+			+"MAPS/gencode.v24.CDS.protein_coding.structural_mapping";
 
 	// Correlated exons data
 	private final static String exonsProteinCodingDataLocation = getExonsProject()
@@ -63,21 +62,14 @@ public class DataLocationProvider {
 
 	private final static String exonsGeneBankLocation = getExonsProject()
 			+"MAPS/correlated_exons.gene_bank_mapping";
-
 	private final static String exonsUniprotLocation = DataLocationProvider.getExonsProject()
 			+"MAPS/correlated_exons.uniprot_mapping";
-
 	private final static String exonsPDBLocation = DataLocationProvider.getExonsProject()
 			+"MAPS/correlated_exons.pdb_mapping";
-
 	private final static String exonsHomologyModelsLocation = DataLocationProvider.getExonsProject()
 			+"MAPS/correlated_exons.homology_mapping";
-
 	private final static String exonsStructuralMappingLocation = DataLocationProvider.getExonsProject()
 			+"MAPS/correlated_exons.structural_mapping";
-
-	private final static String exonsBestStructureMappingLocation = DataLocationProvider.getExonsProject()
-			+"MAPS/correlated_exons.best_structure_mapping";
 
 	// methods for this class
 
@@ -90,6 +82,10 @@ public class DataLocationProvider {
 
 	public static String getExonsProject() {
 		return exonsProject;
+	}
+
+	public static String getExonsProjectResults() {
+		return exonsProjectResults;
 	}
 
 	/** Get a location of a human genome in .2bit format.
@@ -144,6 +140,9 @@ public class DataLocationProvider {
 	public static String getGencodeHomologyModelsLocation() {
 		return gencodeHomologyModelsLocation;
 	}
+	public static String getGencodeStructuralMappingLocation() {
+		return gencodeStructuralMappingLocation;
+	}
 
 	public static String getExonsProteinCodingDataLocation() {
 		return exonsProteinCodingDataLocation;
@@ -162,8 +161,5 @@ public class DataLocationProvider {
 	}
 	public static String getExonsStructuralMappingLocation() {
 		return exonsStructuralMappingLocation;
-	}
-	public static String getExonsBestStructureMappingLocation() {
-		return exonsBestStructureMappingLocation;
 	}
 }

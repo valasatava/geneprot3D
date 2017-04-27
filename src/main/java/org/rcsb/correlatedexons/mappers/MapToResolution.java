@@ -21,20 +21,23 @@ public class MapToResolution implements Function<Row, Row> {
         String pdbId = RowUtils.getPdbId(row);
 
         // TODO: write a better handling
-        if ( pdbId.equals("4NL7") || pdbId.equals("4NL6")) {
+        if ( pdbId.equals("4NL7") || pdbId.equals("4NL6") || pdbId.equals("3G07")) {
             return null;
         }
 
         try {
-            MmtfStructure mmtfData = ReaderUtils.getDataFromUrl(pdbId);
-            resolution = mmtfData.getResolution();
+            try {
+                MmtfStructure mmtfData = ReaderUtils.getDataFromUrl(pdbId);
+                resolution = mmtfData.getResolution();
 
+            } catch (Exception e) {
+                Structure structure = StructureUtils.getBioJavaStructure(pdbId);
+                PDBHeader header = structure.getPDBHeader();
+                resolution = header.getResolution();
+            }
         } catch (Exception e) {
-            Structure structure = StructureUtils.getBioJavaStructure(pdbId);
-            PDBHeader header = structure.getPDBHeader();
-            resolution = header.getResolution();
+            return null;
         }
-
         return RowUtils.addField(row, resolution);
     }
 }

@@ -62,6 +62,7 @@ public class RowUtils {
     public static int getUniProtStart(Row row) {
 
         if (isForward(row)) {
+
             if (row.get(9) == null) {
                 return -1;
             } else {
@@ -72,6 +73,24 @@ public class RowUtils {
                 return -1;
             } else {
                 return row.getInt(10);
+            }
+        }
+    }
+
+    public static int getModelFrom(Row row) {
+
+        if (isForward(row)) {
+
+            if (row.get(13) == null) {
+                return -1;
+            } else {
+                return row.getInt(13);
+            }
+        } else {
+            if (row.get(14) == null) {
+                return -1;
+            } else {
+                return row.getInt(14);
             }
         }
     }
@@ -89,6 +108,23 @@ public class RowUtils {
                 return -1;
             } else {
                 return row.getInt(9);
+            }
+        }
+    }
+
+    public static int getModelTo(Row row) {
+
+        if (isForward(row)) {
+            if (row.get(14) == null) {
+                return -1;
+            } else {
+                return row.getInt(14);
+            }
+        } else {
+            if (row.get(13) == null) {
+                return -1;
+            } else {
+                return row.getInt(13);
             }
         }
     }

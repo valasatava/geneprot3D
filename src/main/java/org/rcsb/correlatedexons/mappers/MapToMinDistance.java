@@ -2,10 +2,7 @@ package org.rcsb.correlatedexons.mappers;
 
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
-import org.biojava.nbio.structure.Atom;
-import org.biojava.nbio.structure.Chain;
-import org.biojava.nbio.structure.Group;
-import org.biojava.nbio.structure.Structure;
+import org.biojava.nbio.structure.*;
 import org.rcsb.correlatedexons.utils.RowUtils;
 import org.rcsb.correlatedexons.utils.StructureUtils;
 import org.rcsb.genevariation.mappers.UniprotToModelCoordinatesMapper;
@@ -64,9 +61,28 @@ public class MapToMinDistance implements Function<List<Row>, List<String>> {
                 Row exon1 = transcript.get(i);
                 Row exon2 = transcript.get(j);
 
+                if (RowUtils.getExon(exon1).equals(RowUtils.getExon(exon2))){
+                    continue;
+                }
+
+                if (RowUtils.getExon(exon1).equals("46644306_46644488_0") && RowUtils.getExon(exon2).equals("46661800_46661936_0")){
+                    System.out.println();
+                }
+
+                int uniStart1 = RowUtils.getUniProtStart(exon1);
+                int uniEnd1 = RowUtils.getUniProtEnd(exon1);
+
+                int uniStart2 = RowUtils.getUniProtStart(exon2);
+                int uniEnd2 = RowUtils.getUniProtEnd(exon2);
+
+                // distance in sequence space
+                int aaDist = uniStart2 - uniEnd1;
+                if ( aaDist < 0 ) {
+                    aaDist = uniStart1 - uniEnd2;
+                }
+
                 int start1 = -1; int end1 = -1;
                 int start2 = -1; int end2 = -1;
-
                 if (pdbFlag) {
 
                     start1 = RowUtils.getPdbStart(exon1);
@@ -77,24 +93,75 @@ public class MapToMinDistance implements Function<List<Row>, List<String>> {
 
                 } else {
 
-                    int uniStart1 = RowUtils.getUniProtStart(exon1);
-                    start1 = mapper.getModelCoordinateByUniprotPosition(uniStart1);
-                    int uniEnd1 = RowUtils.getUniProtEnd(exon1);
-                    end1 = mapper.getModelCoordinateByUniprotPosition(uniEnd1);
+                    int modelFrom1 = RowUtils.getPdbStart(exon1);
+                    if ( modelFrom1 > uniStart1 ) {
+                        start1 = mapper.getModelCoordinateByUniprotPosition(modelFrom1);
+                    }
+                    else {
+                        start1 = mapper.getModelCoordinateByUniprotPosition(uniStart1);
+                    }
 
-                    int uniStart2 = RowUtils.getUniProtStart(exon2);
-                    start2 = mapper.getModelCoordinateByUniprotPosition(uniStart2);
-                    int uniEnd2 = RowUtils.getUniProtEnd(exon2);
-                    end2 = mapper.getModelCoordinateByUniprotPosition(uniEnd2);
+                    int modelTo1 = RowUtils.getPdbEnd(exon1);
+                    if ( modelTo1 < uniEnd1 )
+                        end1 = mapper.getModelCoordinateByUniprotPosition(modelTo1);
+                    else {
+                        end1 = mapper.getModelCoordinateByUniprotPosition(uniEnd1);
+                    }
+
+                    int modelFrom2 = RowUtils.getPdbStart(exon2);
+                    if ( modelFrom2 > uniStart2 ) {
+                        start2 = mapper.getModelCoordinateByUniprotPosition(modelFrom2);
+                    }
+                    else {
+                        start2 = mapper.getModelCoordinateByUniprotPosition(uniStart2);
+                    }
+
+                    int modelTo2 = RowUtils.getPdbEnd(exon2);
+                    if ( modelTo2 < uniEnd2 ) {
+                        end2 = mapper.getModelCoordinateByUniprotPosition(modelTo2);
+                    }
+                    else {
+                        end2 = mapper.getModelCoordinateByUniprotPosition(uniEnd2);
+                    }
                 }
 
-                List<Atom> atoms1 = StructureUtils.getAtomsInRange(groups, start1, end1);
-                List<Atom> atoms2 = StructureUtils.getAtomsInRange(groups, start2, end2);
+                List<Group> range1 = StructureUtils.getGroupsInRange(groups, start1, end1);
+                if (range1.size()==0) {
+                    System.out.println(String.format("%s,%s,%s,%s", gene, uniProtId, structureId, RowUtils.getExon(exon1)));
+                    continue;
+                }
+                List<Atom> atoms1 = StructureUtils.getAtomsInRange(range1);
 
+                List<Group> range2 = StructureUtils.getGroupsInRange(groups, start2, end2);
+                if (range2.size()==0) {
+                    System.out.println(String.format("%s,%s,%s,%s", gene, uniProtId, structureId, RowUtils.getExon(exon2)));
+                    continue;
+                }
+                List<Atom> atoms2 = StructureUtils.getAtomsInRange(range2);
+
+                // flags that indicate full or partial structural coverage
+                float cov1 = range1.size()/((float)(uniEnd1-uniStart1+1));
+                float cov2 = range2.size()/((float)(uniEnd2-uniStart2+1));
+
+                // minimal distance between any pair of atoms
                 double mindist = StructureUtils.getMinDistance(atoms1, atoms2);
-                String line = String.format("%s,%s,%s,%s,%s,%.2f\n", gene, RowUtils.getExon(exon1), RowUtils.getExon(exon2), uniProtId, structureId, mindist);
-                if (! results.contains(line))
+
+                List<Atom> aa11 = StructureUtils.getFirstResidue(atoms1);
+                List<Atom> aa1n = StructureUtils.getLastResidue(atoms1);
+
+                List<Atom> aa21 = StructureUtils.getFirstResidue(atoms2);
+                List<Atom> aa2n = StructureUtils.getLastResidue(atoms2);
+
+                // get distances start/end
+                double dS1S2 = StructureUtils.getMinDistance(aa11, aa21);
+                double dE1E2 = StructureUtils.getMinDistance(aa1n, aa2n);
+                double dS1E2 = StructureUtils.getMinDistance(aa11, aa2n);
+                double dE1S2 = StructureUtils.getMinDistance(aa1n, aa21);
+
+                String line = String.format("%s,%s,%s,%s,%.2f,%s,%.2f,%d,%.2f,%.2f,%.2f,%.2f,%.2f\n", gene, uniProtId, structureId, RowUtils.getExon(exon1), cov1, RowUtils.getExon(exon2), cov2, aaDist, mindist, dS1S2, dE1E2, dS1E2, dE1S2);
+                if (! results.contains(line)) {
                     results.add(line);
+                }
             }
         }
         return results;
