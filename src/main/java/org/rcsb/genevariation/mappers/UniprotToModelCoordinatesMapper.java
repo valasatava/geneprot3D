@@ -6,7 +6,7 @@ import org.biojava.nbio.structure.Group;
 import org.biojava.nbio.structure.Structure;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.rcsb.correlatedexons.utils.StructureUtils;
+import org.rcsb.coassociated_exons.utils.StructureUtils;
 import org.rcsb.genevariation.utils.CommonUtils;
 import org.rcsb.uniprot.isoform.IsoformMapper;
 import org.spark_project.guava.primitives.Ints;
