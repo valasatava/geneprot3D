@@ -63,7 +63,7 @@ public class MapToDistances implements Function<List<Row>, List<String>> {
                 Row exon1 = transcript.get(i);
                 Row exon2 = transcript.get(j);
 
-                if (RowUtils.getExon(exon1).equals("46644306_46644488_0") && RowUtils.getExon(exon2).equals("46661800_46661936_0")){
+                if (RowUtils.getExon(exon1).equals("46189273_46189357_1") || RowUtils.getExon(exon2).equals("46189273_46189357_1")){
                     System.out.println();
                 }
 
