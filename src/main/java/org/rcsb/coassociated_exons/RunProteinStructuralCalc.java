@@ -20,7 +20,7 @@ public class RunProteinStructuralCalc {
                                 "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",
                                 "chr20", "chr21", "chr22", "chrX", "chrY"};
 
-//        String[] chromosomes = {"chr21"};
+//        String[] chromosomes = {"chr1"};
 
         for (String chr : chromosomes) {
 

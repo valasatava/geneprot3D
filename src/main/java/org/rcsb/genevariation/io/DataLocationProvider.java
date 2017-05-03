@@ -25,6 +25,8 @@ public class DataLocationProvider {
 	// Homology models data
 	private final static String humanHomologyModelsLocation = getDataHome()
 			+"parquet/human-homology-models";
+	private final static String humanHomologyCoordinatesLocation = getDataHome()
+			+"structures/human-homology-models/";
 	private final static String humanGoodHomologyModelsLocation = getDataHome()
 			+"parquet/homology-models-pc30";
 
@@ -105,6 +107,9 @@ public class DataLocationProvider {
 
 	public static String getHumanHomologyModelsLocation() {
 		return humanHomologyModelsLocation;
+	}
+	public static String getHumanHomologyCoordinatesLocation() {
+		return humanHomologyCoordinatesLocation;
 	}
 
 	public static String getHumanGoodHomologyModelsLocation() {

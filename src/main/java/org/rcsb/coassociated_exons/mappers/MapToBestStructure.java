@@ -35,6 +35,7 @@ public class MapToBestStructure implements Function<Tuple2<String, Iterable<Row>
         }
 
         List<String> structures = MapUtils.getKeysWithBestCoverage(map, key, max_coverage);
+        //TODO add the range handling
         String[] beststructure = CommonUtils.getStructureWithBestResolution(data._2, structures);
 
         if (beststructure[0]==null)
@@ -42,10 +43,10 @@ public class MapToBestStructure implements Function<Tuple2<String, Iterable<Row>
 
         List<Row> best;
         if (key.equals("pdb")) {
-            best = CommonUtils.getPDBStructure(data._2, beststructure[0], beststructure[1]);
+            best = CommonUtils.getPDBStructure(data._2, beststructure);
         }
         else {
-            best = CommonUtils.getModelStructure(data._2, beststructure[0], beststructure[1]);
+            best = CommonUtils.getModelStructure(data._2, beststructure);
         }
         return best;
     }

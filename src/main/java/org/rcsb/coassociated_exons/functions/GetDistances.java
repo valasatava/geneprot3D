@@ -23,6 +23,8 @@ public class GetDistances {
     public static List<String> run(Dataset<Row> mapping) {
 
         JavaRDD<List<String>> data = mapping.toJavaRDD()
+                .filter( t -> ( t.getInt(9) != -1 && t.getInt(10) != -1 ))
+                //.filter( t -> t.getString(2).equals("ENST00000430393"))
                 .map(new MapToResolution())
                 .filter( t -> t != null )
                 .groupBy( t -> t.getString(2) )
