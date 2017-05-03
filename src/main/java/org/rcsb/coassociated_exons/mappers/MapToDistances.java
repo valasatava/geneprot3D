@@ -63,7 +63,10 @@ public class MapToDistances implements Function<List<Row>, List<String>> {
                 Row exon1 = transcript.get(i);
                 Row exon2 = transcript.get(j);
 
-                if (RowUtils.getExon(exon1).equals("46189273_46189357_1") || RowUtils.getExon(exon2).equals("46189273_46189357_1")){
+                if (RowUtils.getExon(exon1).equals(RowUtils.getExon(exon2)))
+                    continue;
+
+                if (RowUtils.getExon(exon1).equals("204954829_204954951_2") && RowUtils.getExon(exon2).equals("204962108_204962158_2")) {
                     System.out.println();
                 }
 
@@ -83,6 +86,7 @@ public class MapToDistances implements Function<List<Row>, List<String>> {
                 if (pdbFlag) {
                     pdbRange1 = RowUtils.getPdbRange(exon1);
                     pdbRange2 = RowUtils.getPdbRange(exon2);
+
                 } else {
                     pdbRange1 = RowUtils.getModelRange(mapper, exon1);
                     pdbRange2 = RowUtils.getModelRange(mapper, exon2);
@@ -92,7 +96,7 @@ public class MapToDistances implements Function<List<Row>, List<String>> {
                         pdbRange1.lowerEndpoint(), pdbRange1.upperEndpoint());
 
                 if (range1.size()==0) {
-                    System.out.println(String.format("%s,%s,%s,%s", gene, uniProtId, structureId, RowUtils.getExon(exon1)));
+                    System.out.println("exon 1: "+String.format("%s,%s,%s,%s,%d,%d", gene, uniProtId, structureId, RowUtils.getExon(exon1), pdbRange1.lowerEndpoint().intValue(), pdbRange1.upperEndpoint().intValue()));
                     continue;
                 }
                 List<Atom> atoms1 = StructureUtils.getAtomsInRange(range1);
@@ -100,7 +104,7 @@ public class MapToDistances implements Function<List<Row>, List<String>> {
                 List<Group> range2 = StructureUtils.getGroupsInRange(groups,
                         pdbRange2.lowerEndpoint(), pdbRange2.upperEndpoint());
                 if (range2.size()==0) {
-                    System.out.println(String.format("%s,%s,%s,%s", gene, uniProtId, structureId, RowUtils.getExon(exon2)));
+                    System.out.println("exon 2: "+String.format("%s,%s,%s,%s,%d,%d", gene, uniProtId, structureId, RowUtils.getExon(exon2), pdbRange2.lowerEndpoint().intValue(), pdbRange2.upperEndpoint().intValue()));
                     continue;
                 }
                 List<Atom> atoms2 = StructureUtils.getAtomsInRange(range2);

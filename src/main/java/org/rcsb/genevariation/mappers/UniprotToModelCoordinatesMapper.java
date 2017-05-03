@@ -95,4 +95,22 @@ public class UniprotToModelCoordinatesMapper {
             return ind;
         return modelCoordinates[ind];
     }
+
+    public int getFirstResidueNumber() {
+
+        for (int i=0; i<modelCoordinates.length;i++) {
+            if ( modelCoordinates[i] != -1 )
+                return modelCoordinates[i];
+        }
+        return -1;
+    }
+
+    public int getLastResidueNumber() {
+
+        for ( int i=modelCoordinates.length-1; i>=0; i-- ) {
+            if ( modelCoordinates[i] != -1 )
+                return modelCoordinates[i];
+        }
+        return -1;
+    }
 }

@@ -66,6 +66,10 @@ public class StructureUtils {
 
         List<Group> range = new ArrayList<Group>();
 
+        if ( start==Integer.MIN_VALUE && end == Integer.MAX_VALUE ) {
+            return range;
+        }
+
         if ( start!=Integer.MIN_VALUE && end != Integer.MAX_VALUE ) {
             range = groups.stream().filter(g -> ((g.getResidueNumber().getSeqNum() >= start) && (g.getResidueNumber().getSeqNum() <= end))).collect(Collectors.toList());
         }

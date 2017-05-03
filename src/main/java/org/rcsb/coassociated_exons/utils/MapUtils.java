@@ -2,6 +2,7 @@ package org.rcsb.coassociated_exons.utils;
 
 import org.apache.spark.sql.Row;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -11,7 +12,7 @@ import java.util.stream.Stream;
  */
 public class MapUtils {
 
-    public static Map<String, List<String>> getMapFromIterator(Iterable<Row> data ) {
+    public static Map<String, List<String>> getMapFromIterator(Iterable<Row> data ) throws IOException {
 
         Map<String, List<String>> map = new HashMap<String, List<String>>();
 
@@ -23,17 +24,23 @@ public class MapUtils {
             String pdbId = RowUtils.getPdbId(row);
             String chainId = RowUtils.getChainId(row);
 
-            // TODO: write a better handling
-            if ( pdbId.equals("4NL7") || pdbId.equals("4NL6"))
-                continue;
-
             String key = pdbId+"_"+chainId;
             if ( RowUtils.isPDBStructure(row) ) {
                 key += "_pdb";
             }
             else {
                 key += "_model";
+//                String urlString = RowUtils.getCoordinates(row);
+//                if ( CommonUtils.getResponseCode(urlString) == 404 ) {
+//                    System.out.println("Doesn't exists: "+urlString);
+//                    continue;
+//                }
             }
+
+            int start = RowUtils.getStructStart(row);
+            int end = RowUtils.getStructEnd(row);
+            key += String.format("_%d_%d", start, end);
+
             String exon = RowUtils.getExon(row);
 
             if ( !map.keySet().contains(key) ) {

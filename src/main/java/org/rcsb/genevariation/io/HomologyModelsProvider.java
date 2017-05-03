@@ -1,5 +1,6 @@
 package org.rcsb.genevariation.io;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
@@ -9,6 +10,8 @@ import org.rcsb.genevariation.datastructures.SwissHomology;
 import org.rcsb.genevariation.utils.CommonUtils;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
+import java.io.File;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -65,6 +68,12 @@ public class HomologyModelsProvider {
                 swissHomology.setTemplate(homologyObject.has("template") ? homologyObject.getString("template") : null);
 
                 allUniprotHomologs.add(swissHomology);
+
+                //Download the structure
+                URL url = new URL(swissHomology.getCoordinates());
+                File file = new File(DataLocationProvider.getHumanHomologyCoordinatesLocation()+swissHomology.getTemplate()+"_"+swissHomology.getFromPos()+"_"+swissHomology.getToPos());
+                FileUtils.copyURLToFile(url, file);
+
             }
             if (allUniprotHomologs.size() % 1000 == 0) {
             	DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -91,6 +100,5 @@ public class HomologyModelsProvider {
 
     public static void main(String[] args) throws Exception {
         createParquetFileHumanHomologues(DataLocationProvider.getHumanHomologyModelsLocation());
-    	printSchema();
 	}
 }

@@ -5,7 +5,6 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.rcsb.genevariation.mappers.UniprotToModelCoordinatesMapper;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.regex.Pattern;
 
 /**
@@ -121,9 +120,18 @@ public class RowUtils {
 
         if ( start == -1 ) {
             start = Integer.MIN_VALUE;
+            int resModelStart = mapper.getFirstResidueNumber();
+            if ((resModelStart > uniStart) && (resModelStart < uniEnd) ) {
+                start = resModelStart;
+            }
         }
+
         if ( end == -1 ) {
             end = Integer.MAX_VALUE;
+            int resModelEnd = mapper.getLastResidueNumber();
+            if ( (resModelEnd > uniStart) && (resModelEnd < uniEnd) ) {
+                end = resModelEnd;
+            }
         }
 
         return Range.closed(start, end);
@@ -133,13 +141,20 @@ public class RowUtils {
 
         int start = getPdbStart(row);
         int end = getPdbEnd(row);
+
         if ( start == -1 ) {
             start = Integer.MIN_VALUE;
         }
         if ( end == -1 ) {
             end = Integer.MAX_VALUE;
         }
-        return Range.closed(start, end);
+
+        if (end > start) {
+            return Range.closed(start, end);
+        }
+        else {
+            return Range.closed(end, start);
+        }
     }
 
     public static int getPdbStart(Row row) {
@@ -203,5 +218,19 @@ public class RowUtils {
 
         return RowFactory.create(fields);
 
+    }
+
+    public static int getStructStart(Row row) {
+        if (isPDBStructure(row)) {
+            return getPdbStart(row);
+        }
+        return getModelFrom(row);
+    }
+
+    public static int getStructEnd(Row row) {
+        if (isPDBStructure(row)) {
+            return getPdbEnd(row);
+        }
+        return getModelTo(row);
     }
 }
