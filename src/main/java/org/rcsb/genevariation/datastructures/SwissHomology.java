@@ -1,5 +1,7 @@
 package org.rcsb.genevariation.datastructures;
 
+import org.json.JSONObject;
+
 import java.io.Serializable;
 
 /**
@@ -149,5 +151,25 @@ public class SwissHomology implements Serializable {
 
     public void setTemplate(String template) {
         this.template = template;
+    }
+
+    public void setModelFromJSONObject(JSONObject homologyObject) {
+
+        this.setFromPos(homologyObject.getInt("from"));
+        this.setToPos(homologyObject.getInt("to"));
+        this.setAlignment(homologyObject.getString("alignment"));
+        this.setCoordinates(homologyObject.getString("coordinates"));
+
+        this.setCrc64(homologyObject.has("crc64") ? homologyObject.getString("crc64") : null);
+        this.setGmqe(homologyObject.has("gmqe") ? homologyObject.getDouble("gmqe") : null);
+        this.setIdentity(homologyObject.has("identity") ? homologyObject.getDouble("identity") : null);
+        this.setMd5(homologyObject.has("md5") ? homologyObject.getString("md5") : null);
+        this.setMethod(homologyObject.has("method") ? homologyObject.getString("method") : null);
+        this.setOligo_state(homologyObject.has("oligo-state") ? homologyObject.getString("oligo-state") : null);
+        this.setProvider(homologyObject.has("provider") ? homologyObject.getString("provider") : null);
+        this.setQmean(homologyObject.has("qmean") ? homologyObject.getDouble("qmean") : null);
+        this.setSimilarity(homologyObject.has("similarity") ? homologyObject.getDouble("similarity") : null);
+        this.setTemplate(homologyObject.has("template") ? homologyObject.getString("template") : null);
+
     }
 }

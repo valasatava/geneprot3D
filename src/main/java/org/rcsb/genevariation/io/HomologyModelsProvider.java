@@ -37,35 +37,22 @@ public class HomologyModelsProvider {
 
         // For each of those uniprot ids, call SWISS uniprot API to get the homology model sequences.
         List<SwissHomology> allUniprotHomologs = new ArrayList<>();
-        for (Iterator<Row> iter = allHumanUniprotIds.collectAsList().iterator(); iter.hasNext(); ) {
+
+        for (Iterator<Row> it = allHumanUniprotIds.collectAsList().iterator(); it.hasNext(); ) {
             
-        	String uniprotId = iter.next().get(0).toString();
+        	String uniprotId = it.next().get(0).toString();
             JSONArray homologyArray = CommonUtils.readJsonArrayFromUrl("https://swissmodel.expasy.org/repository/uniprot/" + uniprotId + ".json?provider=swissmodel");
 
             if (homologyArray.length() <= 0)
                 continue;
 
             for (int i = 0; i < homologyArray.length(); i++) {
-                JSONObject homologyObject = homologyArray.getJSONObject(i);
 
                 SwissHomology swissHomology = new SwissHomology();
                 swissHomology.setUniProtId(uniprotId);
 
-                swissHomology.setFromPos(homologyObject.getInt("from"));
-                swissHomology.setToPos(homologyObject.getInt("to"));
-                swissHomology.setAlignment(homologyObject.getString("alignment"));
-                swissHomology.setCoordinates(homologyObject.getString("coordinates"));
-
-                swissHomology.setCrc64(homologyObject.has("crc64") ? homologyObject.getString("crc64") : null);
-                swissHomology.setGmqe(homologyObject.has("gmqe") ? homologyObject.getDouble("gmqe") : null);
-                swissHomology.setIdentity(homologyObject.has("identity") ? homologyObject.getDouble("identity") : null);
-                swissHomology.setMd5(homologyObject.has("md5") ? homologyObject.getString("md5") : null);
-                swissHomology.setMethod(homologyObject.has("method") ? homologyObject.getString("method") : null);
-                swissHomology.setOligo_state(homologyObject.has("oligo-state") ? homologyObject.getString("oligo-state") : null);
-                swissHomology.setProvider(homologyObject.has("provider") ? homologyObject.getString("provider") : null);
-                swissHomology.setQmean(homologyObject.has("qmean") ? homologyObject.getDouble("qmean") : null);
-                swissHomology.setSimilarity(homologyObject.has("similarity") ? homologyObject.getDouble("similarity") : null);
-                swissHomology.setTemplate(homologyObject.has("template") ? homologyObject.getString("template") : null);
+                JSONObject homologyObject = homologyArray.getJSONObject(i);
+                swissHomology.setModelFromJSONObject(homologyObject);
 
                 allUniprotHomologs.add(swissHomology);
 
@@ -91,14 +78,26 @@ public class HomologyModelsProvider {
 	}
 
     public static Dataset<Row> getAllAsDataFrame() {
-        return SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanHomologyModelsLocation());
+        return SaprkUtils.getSparkSession().read()
+                .parquet(DataLocationProvider.getHumanHomologyModelsLocation());
     }
 
     public static Dataset<Row> get30pcAsDataFrame() {
-        return SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanGoodHomologyModelsLocation());
+
+        Dataset<Row> models = getAllAsDataFrame();
+
+        Dataset<Row> models30pc = models.select("uniProtId", "fromPos", "toPos",
+                "similarity", "template", "coordinates", "alignment")
+                .filter(models.col("similarity").gt(0.3))
+                .withColumnRenamed("fromPos", "fromUniprot")
+                .withColumnRenamed("toPos", "toUniprot")
+                .drop(models.col("similarity"));
+
+        return models30pc;
     }
 
     public static void main(String[] args) throws Exception {
         createParquetFileHumanHomologues(DataLocationProvider.getHumanHomologyModelsLocation());
+        printSchema();
 	}
 }

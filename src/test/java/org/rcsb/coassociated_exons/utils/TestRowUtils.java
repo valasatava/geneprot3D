@@ -5,6 +5,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.junit.Before;
 import org.junit.Test;
+import org.rcsb.coassociated_exons.utils.RowUtils;
 import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.genevariation.mappers.UniprotToModelCoordinatesMapper;
 import org.rcsb.genevariation.utils.SaprkUtils;

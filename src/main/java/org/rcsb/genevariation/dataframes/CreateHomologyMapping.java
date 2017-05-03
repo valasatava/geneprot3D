@@ -4,6 +4,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.rcsb.genevariation.io.DataLocationProvider;
+import org.rcsb.genevariation.io.HomologyModelsProvider;
 import org.rcsb.genevariation.io.MappingDataProvider;
 
 import static org.apache.spark.sql.functions.upper;
@@ -13,23 +14,10 @@ import static org.apache.spark.sql.functions.upper;
  */
 public class CreateHomologyMapping {
 
-    public static void runGood(String path) throws Exception {
+    public static void run(String path) throws Exception {
 
-        Dataset<Row> models = MappingDataProvider.getHomologyModels();
+        Dataset<Row> models = HomologyModelsProvider.getAllAsDataFrame();
 
-        Dataset<Row> homologues = models.select("uniProtId", "fromPos", "toPos", "similarity", "template", "coordinates")
-                .filter(models.col("similarity").gt(0.3))
-                .withColumnRenamed("fromPos", "fromUniprot")
-                .withColumnRenamed("toPos", "toUniprot")
-                .drop(models.col("similarity"));
-
-        homologues.write().mode(SaveMode.Overwrite).parquet(path);
-    }
-
-    public static void runMapping(String path) throws Exception {
-
-        Dataset<Row> models = MappingDataProvider.getHomologyModels();
-        
         Dataset<Row> homologues = models.select("uniProtId", "fromPos", "toPos", "similarity", "template", "coordinates")
                 .filter(models.col("similarity").gt(0.3))
                 .withColumnRenamed("fromPos", "fromUniprot")
@@ -80,8 +68,6 @@ public class CreateHomologyMapping {
     public static void main(String[] args) throws Exception {
 
         long start = System.nanoTime();
-
-        runGood(DataLocationProvider.getHumanGoodHomologyModelsLocation());
 
         System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
     }

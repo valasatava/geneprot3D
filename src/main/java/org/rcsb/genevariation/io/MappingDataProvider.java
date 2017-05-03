@@ -16,13 +16,6 @@ public class MappingDataProvider {
 		return mapping;
 	}
 
-	public static Dataset<Row> getHomologyModels() {
-		Dataset<Row> models = SaprkUtils.getSparkSession()
-				.read()
-				.parquet(DataLocationProvider.getHumanHomologyModelsLocation());
-		return models;
-	}
-
 	public static Dataset<Row> getGeneBankToEnsembleMapping() {
 		// Ensembl to gene bank id mapping
 		Dataset<Row> mp = SaprkUtils.getSparkSession()
