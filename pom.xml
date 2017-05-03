@@ -4,11 +4,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.rcsb</groupId>
-	<artifactId>genevariation</artifactId>
+	<artifactId>geneprot3D</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>genevariation</name>
+	<name>geneprot3D</name>
 	<url>http://maven.apache.org</url>
 	
 	<properties>
@@ -124,8 +124,13 @@
 			<!-- runtime scope includes the test scope as well -->
 			<scope>runtime</scope>
 		</dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_2.11</artifactId>
+            <version>2.1.0</version>
+        </dependency>
 
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>

@@ -1,4 +1,4 @@
-package org.rcsb.coassociated_exons;
+package org.rcsb.coassociated_exons.analysis;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
