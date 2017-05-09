@@ -12,6 +12,14 @@ import java.util.regex.Pattern;
  */
 public class RowUtils {
 
+    public static String getEnsemblId(Row row) {
+        return row.getString(2);
+    }
+
+    public static String getGeneBankId(Row row) {
+        return row.getString(3);
+    }
+
     public static String getPdbId(Row row) {
 
         String pdbId = row.getString(11);

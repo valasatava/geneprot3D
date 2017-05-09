@@ -1,9 +1,6 @@
 package org.rcsb.genevariation.utils;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -60,5 +57,14 @@ public class CommonUtils {
         } finally {
             is.close();
         }
+    }
+
+    public static void writeListToFile(List<String>results, String filename) throws IOException {
+
+        FileWriter writer = new FileWriter(filename);
+        for(String str: results) {
+            writer.write(str+"\n");
+        }
+        writer.close();
     }
 }

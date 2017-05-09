@@ -15,6 +15,7 @@ public class DataLocationProvider {
 
 	// Collaboration projects
 	private final static String exonsProject = getUserHome()+"/coassotiaded_exons/";
+	private final static String exonsProjectData = getExonsProject()+"EXONS_DATA/";
 	private final static String exonsProjectResults = getExonsProject()+"RESULTS/";
 
 	// Human genome
@@ -84,6 +85,9 @@ public class DataLocationProvider {
 
 	public static String getExonsProject() {
 		return exonsProject;
+	}
+	public static String getExonsProjectData() {
+		return exonsProjectData;
 	}
 
 	public static String getExonsProjectResults() {

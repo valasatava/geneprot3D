@@ -1,4 +1,4 @@
-package org.rcsb.exonscoassociation.properties;
+package org.rcsb.exonscoassociation.mappers;
 
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.Row;

@@ -30,7 +30,7 @@ public class MapToDomain implements Function<Row, Row> {
         boolean flag = false;
         Uniprot up = RCSBUniProtMirror.getUniProtFromFile(uniProtId);
         for(Entry e : up.getEntry()) {
-            
+
             for (FeatureType ft : e.getFeature()) {
 
                 if (ft.getLocation() != null && ft.getLocation().getBegin() != null && ft.getLocation().getEnd() != null) {
