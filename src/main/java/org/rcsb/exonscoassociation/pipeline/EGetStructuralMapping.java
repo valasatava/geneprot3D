@@ -27,9 +27,10 @@ public class EGetStructuralMapping {
             Dataset<Row> df1 = pdbs
                     .withColumn("template", functions.lit("null"))
                     .withColumn("coordinates", functions.lit("null"))
+                    .withColumn("alignment", functions.lit("null"))
                     .select("chromosome", "geneName", "ensemblId", "geneBankId", "start", "end",
                             "orientation", "offset", "uniProtId", "canonicalPosStart", "canonicalPosEnd",
-                            "pdbId", "chainId", "pdbPosStart", "pdbPosEnd", "template", "coordinates");
+                            "pdbId", "chainId", "pdbPosStart", "pdbPosEnd", "template", "coordinates", "alignment");
 
             Dataset<Row> models = SaprkUtils.getSparkSession().read().parquet(homologyMapping + "/" + chr);
             Dataset<Row> df2 = models
@@ -38,7 +39,7 @@ public class EGetStructuralMapping {
                     .withColumn("pdbId", functions.lit("null")).withColumn("chainId", functions.lit("null"))
                     .select("chromosome", "geneName", "ensemblId", "geneBankId", "start", "end",
                             "orientation", "offset", "uniProtId", "canonicalPosStart", "canonicalPosEnd",
-                            "pdbId", "chainId", "pdbPosStart", "pdbPosEnd", "template", "coordinates");
+                            "pdbId", "chainId", "pdbPosStart", "pdbPosEnd", "template", "coordinates", "alignment");
 
             Dataset<Row> df3 = df1.union(df2).orderBy("start","end");
 

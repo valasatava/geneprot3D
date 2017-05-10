@@ -14,7 +14,7 @@ public class DataLocationProvider {
 	private final static String dataHome = getUserHome()+"/data/genevariation/";
 
 	// Collaboration projects
-	private final static String exonsProject = getUserHome()+"/coassotiaded_exons/";
+	private final static String exonsProject = getUserHome()+"/coassociated_exons/";
 	private final static String exonsProjectData = getExonsProject()+"EXONS_DATA/";
 	private final static String exonsProjectResults = getExonsProject()+"RESULTS/";
 
