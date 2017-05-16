@@ -17,9 +17,9 @@ import org.rcsb.genevariation.datastructures.Transcript;
 import org.rcsb.genevariation.datastructures.VariantInterface;
 import org.rcsb.genevariation.expression.RNApolymerase;
 import org.rcsb.genevariation.expression.Ribosome;
-import org.rcsb.genevariation.filters.DataProviderFilterChromosome;
-import org.rcsb.genevariation.filters.DataProviderFilterSNP;
-import org.rcsb.genevariation.filters.IDataProviderFilter;
+import org.rcsb.genevariation.filters.VariantDataFilterChromosome;
+import org.rcsb.genevariation.filters.VariantDataFilterSNP;
+import org.rcsb.genevariation.filters.IVariantDataFilter;
 import org.rcsb.genevariation.io.VariantsDataProvider;
 import org.rcsb.genevariation.parser.GenePredictionsParser;
 import org.rcsb.genevariation.utils.SaprkUtils;
@@ -108,8 +108,8 @@ public class ProcessDataVCF {
 			// --> READ VCF FILE
 			VariantsDataProvider vdp = new VariantsDataProvider();
 			vdp.readVariantsFromVCFWithParser(Paths.get(variationDataPath));
-			IDataProviderFilter dataFilterChr = new DataProviderFilterChromosome(chr);
-			IDataProviderFilter dataFilterVar = new DataProviderFilterSNP();
+			IVariantDataFilter dataFilterChr = new VariantDataFilterChromosome(chr);
+			IVariantDataFilter dataFilterVar = new VariantDataFilterSNP();
 			vdp.setVariants(vdp.getVariantsByFilter(dataFilterChr));
 			vdp.setVariants(vdp.getVariantsByFilter(dataFilterVar));
 			System.out.println("Time to read VCF file: " + (System.nanoTime() - start) / 1E9 + " sec.");

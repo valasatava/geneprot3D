@@ -10,7 +10,7 @@ import org.rcsb.genevariation.datastructures.VariantInterface;
  * @author Yana Valasatava
  */
 
-public interface IDataProviderFilter {
+public interface IVariantDataFilter {
 
 	boolean filter(VariantInterface variant);
 

@@ -2,10 +2,10 @@ package org.rcsb.genevariation.filters;
 
 import org.rcsb.genevariation.datastructures.VariantInterface;
 
-public class DataProviderFilterChromosome implements IDataProviderFilter {
+public class VariantDataFilterChromosome implements IVariantDataFilter {
 
 	private String chr;
-	public DataProviderFilterChromosome(String chr) {
+	public VariantDataFilterChromosome(String chr) {
 		this.chr = chr;
 	}
 
