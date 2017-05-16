@@ -12,6 +12,8 @@ import java.util.regex.Pattern;
  */
 public class RowUtils {
 
+    private static int alignmentInd = 17;
+
     public static String getEnsemblId(Row row) {
         return row.getString(2);
     }
@@ -141,7 +143,6 @@ public class RowUtils {
                 end = resModelEnd;
             }
         }
-
         return Range.closed(start, end);
     }
 
@@ -228,17 +229,53 @@ public class RowUtils {
 
     }
 
-    public static int getStructStart(Row row) {
-        if (isPDBStructure(row)) {
-            return getPdbStart(row);
-        }
-        return getModelFrom(row);
+    public static void setUTMmapperFromRow(UniprotToModelCoordinatesMapper mapper, Row row) throws Exception {
+        mapper.setFrom(RowUtils.getModelFrom(row));
+        mapper.setTo(RowUtils.getModelTo(row));
+        mapper.setAlignment(RowUtils.getAlignment(row));
+        mapper.setTemplate(RowUtils.getTemplate(row));
+        mapper.map();
     }
 
-    public static int getStructEnd(Row row) {
+    public static int getStructureStart(Row row) throws Exception {
+
+        int residueNumber;
+
         if (isPDBStructure(row)) {
-            return getPdbEnd(row);
+            residueNumber = getPdbStart(row);
+            if ( residueNumber == -1 ) {
+                //TODO: get the residue mapping for the head
+            }
         }
-        return getModelTo(row);
+        else {
+            UniprotToModelCoordinatesMapper mapper = new UniprotToModelCoordinatesMapper();
+            setUTMmapperFromRow(mapper, row);
+            Range<Integer> range = RowUtils.getModelRange(mapper, row);
+            residueNumber = range.lowerEndpoint();
+        }
+        return residueNumber;
+    }
+
+    public static int getStructureEnd(Row row) throws Exception {
+
+        int residueNumber;
+
+        if (isPDBStructure(row)) {
+            residueNumber = getPdbEnd(row);
+            if ( residueNumber == -1 ) {
+                //TODO: get the residue mapping for the tail
+            }
+        }
+        else {
+            UniprotToModelCoordinatesMapper mapper = new UniprotToModelCoordinatesMapper();
+            setUTMmapperFromRow(mapper, row);
+            Range<Integer> range = RowUtils.getModelRange(mapper, row);
+            residueNumber = range.upperEndpoint();
+        }
+        return residueNumber;
+    }
+
+    public static String getAlignment(Row row) {
+        return row.getString(alignmentInd);
     }
 }

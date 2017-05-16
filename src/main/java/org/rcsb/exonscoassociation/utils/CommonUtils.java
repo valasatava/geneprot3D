@@ -81,7 +81,7 @@ public class CommonUtils {
         return best;
     }
 
-    public static String[] getStructureWithBestResolution(Iterable<Row> data, List<String> keys) throws IOException {
+    public static String[] getStructureWithBestResolution(Iterable<Row> data, List<String> keys) throws Exception {
 
         String[] best = new String[4];
 
@@ -113,8 +113,8 @@ public class CommonUtils {
                     String pdbIdRow = RowUtils.getPdbId(row);
                     String chainIdRow = RowUtils.getChainId(row);
 
-                    int startRow = RowUtils.getStructStart(row);
-                    int endRow = RowUtils.getStructEnd(row);
+                    int startRow = RowUtils.getStructureStart(row);
+                    int endRow = RowUtils.getStructureEnd(row);
 
                     if ( pdbIdb.equals(pdbIdRow) && chainId.equals(chainIdRow) && start==startRow && end==endRow ) {
 

@@ -16,45 +16,42 @@ import java.util.List;
  */
 public class MapToDistances implements Function<List<Row>, List<String>> {
 
+    private static UniprotToModelCoordinatesMapper mapper = null;
+
     @Override
     public List<String> call(List<Row> transcript) throws Exception {
 
         List<String> results = new ArrayList<>();
 
-        String gene = transcript.get(0).getString(0) + "," +
-                transcript.get(0).getString(1) + "," +
-                transcript.get(0).getString(2);
+        Row row = transcript.get(0);
 
-        String uniProtId = RowUtils.getUniProtId(transcript.get(0));
-        String structureId = RowUtils.getPdbId(transcript.get(0))+"_"+RowUtils.getChainId(transcript.get(0));
+        String gene = row.getString(0) + "," + row.getString(1) + "," + row.getString(2);
+
+        String uniProtId = RowUtils.getUniProtId(row);
+        String structureId;
 
         boolean pdbFlag = true;
-        UniprotToModelCoordinatesMapper mapper = null;
-        if (!RowUtils.isPDBStructure(transcript.get(0))) {
-            pdbFlag = false;
-            mapper = new UniprotToModelCoordinatesMapper(uniProtId);
+        List<Group> groups;
 
-            String url = RowUtils.getCoordinates(transcript.get(0));
-            mapper.setTemplate(url);
+        if (RowUtils.isPDBStructure(row)) {
+            structureId = RowUtils.getPdbId(transcript.get(0))+"_"+RowUtils.getChainId(row);
+            groups = StructureUtils.getGroupsFromPDBStructure(RowUtils.getPdbId(row), RowUtils.getPdbId(row));
+        }
+
+        else {
+
+            pdbFlag = false;
+
+            mapper = new UniprotToModelCoordinatesMapper();
+            RowUtils.setUTMmapperFromRow(mapper, row);
             try {
                 mapper.map();
             } catch (Exception e) {
                 return results;
             }
-            structureId = RowUtils.getTemplate(transcript.get(0));
+            structureId = RowUtils.getTemplate(row);
+            groups = StructureUtils.getGroupsFromModel(mapper.getCoordinates());
         }
-
-        Structure structure;
-        Chain chain;
-        if (pdbFlag) {
-            structure = StructureUtils.getBioJavaStructure(RowUtils.getPdbId(transcript.get(0)));
-            chain = structure.getPolyChainByPDB(RowUtils.getChainId(transcript.get(0)));
-        } else {
-            structure = StructureUtils.getModelStructure(RowUtils.getModelCoordinates(transcript.get(0)));
-            chain = structure.getChainByIndex(0);
-        }
-
-        List<Group> groups = chain.getAtomGroups();
 
         int n = transcript.size();
         for (int i = 0; i < n - 1; i++) {

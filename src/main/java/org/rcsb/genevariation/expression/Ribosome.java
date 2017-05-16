@@ -9,6 +9,7 @@ public class Ribosome {
 	
 	public static String getProteinSequence(String sequence) throws CompoundNotFoundException {
 		DNASequence dna = new DNASequence(sequence);
+		dna.getRNASequence();
 		RNASequence mRNA = dna.getRNASequence();
 		return mRNA.getProteinSequence().toString();
 	}

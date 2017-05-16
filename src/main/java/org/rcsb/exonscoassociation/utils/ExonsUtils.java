@@ -7,14 +7,19 @@ import org.apache.spark.sql.Row;
 import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
 import org.biojava.nbio.core.sequence.template.SequenceView;
+import org.biojava.nbio.genome.parsers.twobit.SimpleTwoBitFileProvider;
+import org.biojava.nbio.genome.parsers.twobit.TwoBitFacade;
 import org.rcsb.exonscoassociation.mappers.MapToExonSerializable;
+import org.rcsb.genevariation.datastructures.Exon;
 import org.rcsb.genevariation.datastructures.ExonSerializable;
 import org.rcsb.genevariation.datastructures.Transcript;
 import org.rcsb.genevariation.expression.RNApolymerase;
 import org.rcsb.genevariation.expression.Ribosome;
+import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.genevariation.parser.GenePredictionsParser;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -55,45 +60,46 @@ public class ExonsUtils {
         return exons;
     }
 
-    public static void getExonsPeptides() throws Exception {
+//    public static void getExonsPeptides(String chr) throws Exception {
+//
+//        File twoBitFileLocalLocation = new File(DataLocationProvider.getHumanGenomeLocation());
+//        SimpleTwoBitFileProvider.downloadIfNoTwoBitFileExists(twoBitFileLocalLocation, "hg38");
+//        TwoBitFacade twoBitFacade = new TwoBitFacade(twoBitFileLocalLocation);
+//
+//        twoBitFacade.setChromosome(chr);
+//
+//        Map<String, String> map = new HashMap<String, String>();
+//
+//        List<ExonSerializable> exons = getSerializableExons("");
+//        for (ExonSerializable exon : exons) {
+//
+//            String transcription = "";
+//            if ( !exon.getOrientation().equals("+") ) {
+//                int lenght = ((exon.getEnd()-exon.getOffset()) - exon.getStart())+1;
+//                int correction = lenght%3;
+//                lenght = lenght-correction;
+//
+//                twoBitFacade.getSequence();
+//
+//                transcription = polymerase.parser.loadFragment((exon.getStart()+correction)-1, lenght);
+//                transcription = new StringBuilder(transcription).reverse().toString();
+//                DNASequence dna = new DNASequence(transcription);
+//                SequenceView<NucleotideCompound> compliment = dna.getComplement();
+//                transcription = compliment.getSequenceAsString();
+//            }
+//            else {
+//                int length = (exon.getEnd() - (exon.getStart()+exon.getOffset()))+1;
+//                int correction = length%3;
+//                length = length-correction;
+//                transcription = polymerase.parser.loadFragment((exon.getStart()+exon.getOffset())-1, length);
+//            }
+//
+//            String peptide = Ribosome.getProteinSequence(transcription);
+//            map.put(exon.getGeneBankId(), peptide);
+//        }
+//    }
 
-        String chrSet="chr1";
-        RNApolymerase polymerase = new RNApolymerase(chrSet);
-
-        Map<String, String> map = new HashMap<String, String>();
-
-        List<ExonSerializable> exons = getSerializableExons("");
-        for (ExonSerializable exon : exons) {
-
-            if ( !chrSet.equals(exon.getChromosome())) {
-                polymerase.setChromosome(exon.getChromosome());
-                chrSet = exon.getChromosome();
-            }
-
-            String transcription = "";
-            if ( !exon.getOrientation().equals("+") ) {
-                int lenght = ((exon.getEnd()-exon.getOffset()) - exon.getStart())+1;
-                int correction = lenght%3;
-                lenght = lenght-correction;
-                transcription = polymerase.parser.loadFragment((exon.getStart()+correction)-1, lenght);
-                transcription = new StringBuilder(transcription).reverse().toString();
-                DNASequence dna = new DNASequence(transcription);
-                SequenceView<NucleotideCompound> compliment = dna.getComplement();
-                transcription = compliment.getSequenceAsString();
-            }
-            else {
-                int length = (exon.getEnd() - (exon.getStart()+exon.getOffset()))+1;
-                int correction = length%3;
-                length = length-correction;
-                transcription = polymerase.parser.loadFragment((exon.getStart()+exon.getOffset())-1, length);
-            }
-
-            String peptide = Ribosome.getProteinSequence(transcription);
-            map.put(exon.getGeneBankId(), peptide);
-        }
-    }
-
-    public static void sortExons(List<ExonSerializable> exons) {
+    public static void sortExonsByChromosome(List<ExonSerializable> exons) {
         //sorting the exons based on the chromosome name
         Collections.sort(exons, new Comparator<ExonSerializable>() {
             @Override
@@ -103,6 +109,13 @@ public class ExonsUtils {
         } );
     }
 
-
+    public static void orderExons(List<Exon> exons) {
+        Collections.sort(exons, new Comparator<Exon>() {
+            @Override
+            public int compare(Exon o1, Exon o2) {
+                return (o1.getStart() - o2.getStart());
+            }
+        });
+    }
 
 }

@@ -37,7 +37,7 @@ public class TestRNAPolymerase {
 						"TGGACCCGGTCAACTTCAAGCTCCTAAGCCACTGCCTGCTGGTGACCCTGGCCGCCCACCTCCCCGCCGA"+
 						"GTTCACCCCTGCGGTGCACGCCTCCCTGGACAAGTTCCTGGCTTCTGTGAGCACCGTGCTGACCTCCAAA"+
 						"TACCGTTAA";
-		RNApolymerase rnap = new RNApolymerase(chromosomeName);
+		RNApolymerase rnap = new RNApolymerase();
 		String actual = rnap.getCodingSequence(transcript);
 		assertEquals(expected, actual);
 	}

@@ -4,10 +4,8 @@ import org.biojava.nbio.core.sequence.ProteinSequence;
 import org.biojava.nbio.structure.Chain;
 import org.biojava.nbio.structure.Group;
 import org.biojava.nbio.structure.Structure;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.rcsb.exonscoassociation.utils.StructureUtils;
-import org.rcsb.genevariation.utils.CommonUtils;
+import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.uniprot.isoform.IsoformMapper;
 import org.spark_project.guava.primitives.Ints;
 
@@ -19,8 +17,6 @@ import java.util.stream.IntStream;
  */
 public class UniprotToModelCoordinatesMapper {
 
-    private String uniprotId;
-
     private int from;
     private int to;
 
@@ -30,35 +26,30 @@ public class UniprotToModelCoordinatesMapper {
     private int[] uniprotCoordinates;
     private int[] modelCoordinates;
 
-    public UniprotToModelCoordinatesMapper(String uniprotId) {
-        
-        this.uniprotId = uniprotId;
+    public void setFrom(int pos) {
+        from = pos;
     }
 
-    public void setTemplate(String template) throws Exception {
+    public void setTo(int pos) {
+        to = pos;
+    }
 
-        JSONArray homologyArray = CommonUtils.readJsonArrayFromUrl("https://swissmodel.expasy.org/repository/uniprot/" + uniprotId + ".json?provider=swissmodel");
+    public void setAlignment(String alignmentString) {
+        alignment = alignmentString;
+    }
 
-        for (int i = 0; i < homologyArray.length(); i++) {
+    public void setTemplate(String template) {
+        coordinates = DataLocationProvider.getHumanHomologyCoordinatesLocation()
+                +template+"_"+String.valueOf(from)+"_"+String.valueOf(to);
+    }
 
-            JSONObject homologyObject = homologyArray.getJSONObject(i);
-
-            if ( ! homologyObject.getString("coordinates").equals(template))
-                continue;
-
-            from = homologyObject.getInt("from");
-            to = homologyObject.getInt("to");
-
-            alignment = homologyObject.getString("alignment");
-            coordinates = homologyObject.getString("coordinates");
-
-            break;
-        }
+    public String getCoordinates() {
+        return coordinates;
     }
 
     public void map() throws Exception {
 
-        Structure structure = StructureUtils.getModelStructure(coordinates);
+        Structure structure = StructureUtils.getModelStructureFromURL(coordinates);
 
         Chain chain = structure.getChainByIndex(0);
         List<Group> groups = chain.getAtomGroups();

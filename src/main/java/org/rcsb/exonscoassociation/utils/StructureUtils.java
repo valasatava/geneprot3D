@@ -38,12 +38,20 @@ public class StructureUtils {
         return structure;
     }
 
-    public static Structure getModelStructure(String modelUrl) throws Exception {
+    public static Structure getModelStructureFromURL(String modelUrl) throws Exception {
 
         URL url = new URL(modelUrl);
 
         PDBFileReader reader = new PDBFileReader();
         Structure structure = reader.getStructure(url);
+
+        return structure;
+    }
+
+    public static Structure getModelStructureLocal(String path) throws Exception {
+
+        PDBFileReader reader = new PDBFileReader();
+        Structure structure = reader.getStructure(path);
 
         return structure;
     }
@@ -129,6 +137,20 @@ public class StructureUtils {
             atoms.addAll(a);
         }
         return atoms;
+    }
+
+    public static List<Group> getGroupsFromModel(String path) throws Exception {
+        Structure structure = getModelStructureLocal(path);
+        Chain chain = structure.getChainByIndex(0);
+        List<Group> groups = chain.getAtomGroups();
+        return groups;
+    }
+
+    public static List<Group> getGroupsFromPDBStructure(String pdbId, String chainId) throws Exception {
+        Structure structure = getBioJavaStructure(pdbId);
+        Chain chain = structure.getPolyChainByPDB(chainId);
+        List<Group> groups = chain.getAtomGroups();
+        return groups;
     }
 
     public static void main(String[] args) throws IOException, StructureException {

@@ -52,7 +52,7 @@ public class ProcessDataVCF {
 		long start4 = System.nanoTime();
 
 		List<Mutation> allMutations = new ArrayList<>();
-		RNApolymerase polymerase = new RNApolymerase(chrName);
+		RNApolymerase polymerase = new RNApolymerase();
 		while (variations.hasNext()) {
 
 			VariantInterface variant = variations.next();

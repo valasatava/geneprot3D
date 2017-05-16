@@ -58,9 +58,8 @@ public class TestRowUtils {
                 .and(col("start").equalTo(25585710)).and(col("end").equalTo(25585754)));
         Row row = data.collectAsList().get(0);
 
-        UniprotToModelCoordinatesMapper mapper = new UniprotToModelCoordinatesMapper(RowUtils.getUniProtId(row));
-        String url = RowUtils.getCoordinates(row);
-        mapper.setTemplate(url);
+        UniprotToModelCoordinatesMapper mapper = new UniprotToModelCoordinatesMapper();
+        RowUtils.setUTMmapperFromRow(mapper, row);
         mapper.map();
 
         Range<Integer> range = RowUtils.getModelRange(mapper, row);
@@ -76,9 +75,8 @@ public class TestRowUtils {
                 .and(col("start").equalTo(21286269)).and(col("end").equalTo(21286412)));
         Row row = data.collectAsList().get(0);
 
-        UniprotToModelCoordinatesMapper mapper = new UniprotToModelCoordinatesMapper(RowUtils.getUniProtId(row));
-        String url = RowUtils.getCoordinates(row);
-        mapper.setTemplate(url);
+        UniprotToModelCoordinatesMapper mapper = new UniprotToModelCoordinatesMapper();
+        RowUtils.setUTMmapperFromRow(mapper, row);
         mapper.map();
 
         Range<Integer> range = RowUtils.getModelRange(mapper, row);

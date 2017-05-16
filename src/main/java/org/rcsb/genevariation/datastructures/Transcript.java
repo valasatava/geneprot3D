@@ -18,7 +18,14 @@ public class Transcript {
 	
 	private int codingStart;
 	private int codingEnd;
-	
+
+	public Transcript() {}
+
+	public Transcript(Gene gene) {
+		setChromosomeName(gene.getChromosome());
+		setOrientation(gene.getOrientation());
+	}
+
 	public String getChromosomeName() {
 		return chromosomeName;
 	}
@@ -79,7 +86,7 @@ public class Transcript {
 		this.exonsCount = exonsCount;
 	}
 
-	public int getExonNumber() {
+	public int getNumberOfExons() {
 		return exons.size();
 	}
 	
@@ -121,5 +128,15 @@ public class Transcript {
 	
 	public void setOrientation(StrandOrientation orientation) {
 		this.orientation = orientation;
+	}
+
+	public int getExonIndexByStartPos(int start) {
+		if (getExonStarts().contains(start))
+			return getExonStarts().indexOf(start);
+		return -1;
+	}
+
+	public List<Exon> getExonsInRange(int i1, int i2) {
+		return getExons().subList(i1,i2+1);
 	}
 }

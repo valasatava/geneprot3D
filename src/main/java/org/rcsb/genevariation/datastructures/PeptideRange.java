@@ -3,22 +3,22 @@ package org.rcsb.genevariation.datastructures;
 /**
  * Created by yana on 5/9/17.
  */
-public class PeptidePosition {
+public class PeptideRange {
 
     private String chromosome;
     private String geneBankId;
     private String ensemblId;
-    private int genomicCoordsStart;
-    private int genomicCoordsEnd;
+    private int genomicCoordsStart=-1;
+    private int genomicCoordsEnd=-1;
 
     private String uniProtId;
-    private int uniProtCoordsStart;
-    private int uniProtCoordsEnd;
+    private int uniProtCoordsStart=-1;
+    private int uniProtCoordsEnd=-1;
 
     private String structureId;
     private boolean experimental;
-    private int structCoordsStart;
-    private int structCoordsEnd;
+    private int structCoordsStart=-1;
+    private int structCoordsEnd=-1;
 
     public String getChromosome() {
         return chromosome;
@@ -85,13 +85,13 @@ public class PeptidePosition {
     public int getStructCoordsStart() {
         return structCoordsStart;
     }
-    public void setStructCoordsStart(int structCoordsStart) {
+    public void setStructuralCoordsStart(int structCoordsStart) {
         this.structCoordsStart = structCoordsStart;
     }
     public int getStructCoordsEnd() {
         return structCoordsEnd;
     }
-    public void setStructCoordsEnd(int structCoordsEnd) {
+    public void setStructuralCoordsEnd(int structCoordsEnd) {
         this.structCoordsEnd = structCoordsEnd;
     }
 }

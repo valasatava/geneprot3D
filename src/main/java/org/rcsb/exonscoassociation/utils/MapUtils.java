@@ -12,7 +12,7 @@ import java.util.stream.Stream;
  */
 public class MapUtils {
 
-    public static Map<String, List<String>> getMapFromIterator(Iterable<Row> data ) throws IOException {
+    public static Map<String, List<String>> getMapFromIterator(Iterable<Row> data ) throws Exception {
 
         Map<String, List<String>> map = new HashMap<String, List<String>>();
 
@@ -37,8 +37,8 @@ public class MapUtils {
 //                }
             }
 
-            int start = RowUtils.getStructStart(row);
-            int end = RowUtils.getStructEnd(row);
+            int start = RowUtils.getStructureStart(row);
+            int end = RowUtils.getStructureEnd(row);
             key += String.format("_%d_%d", start, end);
 
             String exon = RowUtils.getExon(row);

@@ -12,15 +12,15 @@ public class DataLocationProvider {
 	
 	private final static String userHome = System.getProperty("user.home");
 	private final static String dataHome = getUserHome()+"/data/genevariation/";
+	private final static String projectsHome = getUserHome()+"/Projects/";
 
 	// Collaboration projects
-	private final static String exonsProject = getUserHome()+"/coassociated_exons/";
+	private final static String exonsProject = getProjectsHome()+"coassociated_exons/";
 	private final static String exonsProjectData = getExonsProject()+"EXONS_DATA/";
 	private final static String exonsProjectResults = getExonsProject()+"RESULTS/";
 
 	// Human genome
-	private final static String humanGenomeLocation = getUserHome()+"spark/parquet/humangenome/20170413/hg38.2bit";
-
+	private final static String humanGenomeLocation = getUserHome()+"/spark/parquet/humangenome/20170413/hg38.2bit";
 	private static final String genesPredictionURL = "http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refFlat.txt.gz";
 
 	// Homology models data
@@ -33,15 +33,15 @@ public class DataLocationProvider {
 
 	// Metal-binding data
 	private final static String metalPDBdataLocation = getDataHome()
-			+ "external/metal_binding_residues/";
+			+ "external/metalpdb/";
 	private final static String metalBindingMappingLocation = getDataHome()
-			+ "parquet/metal_binding_residues";
+			+ "parquet/metal-binding-residues";
 
 	// Mappings
 	private final static String hgMappingLocation = getUserHome()
 			+ "/spark/parquet/humangenome/20170413/hg38/";
 	private final static String uniprotPdbMappinlLocation = getDataHome()
-			+ "/parquet/uniprotpdb/20161104/";
+			+ "/parquet/uniprot-pdb/20161104/";
 
 
 	//Gencode v.24 data
@@ -81,6 +81,9 @@ public class DataLocationProvider {
 	}
 	public static String getDataHome() {
 		return dataHome;
+	}
+	public static String getProjectsHome() {
+		return projectsHome;
 	}
 
 	public static String getExonsProject() {

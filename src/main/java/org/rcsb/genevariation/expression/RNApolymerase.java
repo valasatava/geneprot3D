@@ -1,11 +1,15 @@
 package org.rcsb.genevariation.expression;
 
 import com.google.common.collect.Range;
+import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
+import org.biojava.nbio.core.sequence.template.SequenceView;
+import org.rcsb.genevariation.datastructures.Exon;
+import org.rcsb.genevariation.io.DataLocationProvider;
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.RNASequence;
-import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
-import org.biojava.nbio.core.sequence.template.SequenceView;
+import org.biojava.nbio.genome.parsers.twobit.SimpleTwoBitFileProvider;
+import org.biojava.nbio.genome.parsers.twobit.TwoBitFacade;
 import org.biojava.nbio.genome.parsers.twobit.TwoBitParser;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.rcsb.genevariation.constants.StrandOrientation;
@@ -14,6 +18,7 @@ import org.rcsb.genevariation.datastructures.Transcript;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Iterator;
 import java.util.List;
 
 public class RNApolymerase implements Serializable  {
@@ -23,64 +28,22 @@ public class RNApolymerase implements Serializable  {
 	 */
 	private static final long serialVersionUID = -6996001236685762558L;
 
-	public TwoBitParser parser;
-	private final static String userHome = System.getProperty("user.home");
-	private final static String DEFAULT_GENOME_URI = userHome+"/data/genevariation/hg38.2bit";	
-	public static final String DEFAULT_MAPPING_URL="http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refGene.txt.gz";
-	
-	public RNApolymerase() throws Exception {
-		//readGenome();
-	}
-	
-	public RNApolymerase(String chr) throws Exception {
-		readGenome();
-		setChromosome(chr);
-	}
-	
-	/**
-	 * Reads a genome from a locally stored .2bit file (hard-coded URI). 
-	 */
-	private void readGenome() throws Exception {
-		File f = new File(DEFAULT_GENOME_URI);
-		this.parser = new TwoBitParser(f);
-	}
-	
-	/**
-	 * Sets a chromosome number for TwoBitParser.
-	 */
-	public void setChromosome(String chr) throws Exception {
-		parser.close();
-		String[] names = parser.getSequenceNames();
-		for(int i=0;i<names.length;i++) {
-			if ( names[i].equals(chr) ) {
-				parser.setCurrentSequence(names[i]);
-				break;
-			}
-		}
-	}
-	
 	public int getmRNAPositionForGeneticCoordinate(int coordinate, Transcript transcript) {
-		
+
 		if ( transcript.getOrientation().equals(StrandOrientation.FORWARD)) {
-        	return ChromosomeMappingTools.getCDSPosForward(coordinate,
-        			transcript.getExonStarts(),
-        			transcript.getExonEnds(),
-            		transcript.getCodingStart(),
-            		transcript.getCodingEnd());
+			return ChromosomeMappingTools.getCDSPosForward(coordinate,
+					transcript.getExonStarts(),
+					transcript.getExonEnds(),
+					transcript.getCodingStart(),
+					transcript.getCodingEnd());
 		}
-        return ChromosomeMappingTools.getCDSPosReverse(coordinate,
-        		transcript.getExonStarts(),
-        		transcript.getExonEnds(),
-        		transcript.getCodingStart(),
-        		transcript.getCodingEnd());
+		return ChromosomeMappingTools.getCDSPosReverse(coordinate,
+				transcript.getExonStarts(),
+				transcript.getExonEnds(),
+				transcript.getCodingStart(),
+				transcript.getCodingEnd());
 	}
-	
-	public RNASequence getmRNAsequence(Transcript transcript) throws CompoundNotFoundException, IOException {
-		String cs = this.getCodingSequence(transcript);
-		DNASequence dna = new DNASequence(cs);
-		return dna.getRNASequence();
-	}
-	
+
 	public String getCodon(int cds, String codingSequence) throws IOException {
 		
 		int offset = cds%3;
@@ -98,34 +61,72 @@ public class RNApolymerase implements Serializable  {
 		return codon.toString();
 	}
 	
-	public String getCodingSequence(Transcript transcript) throws IOException, CompoundNotFoundException {
-		
-		List<Integer> exonStarts = transcript.getExonStarts();
-		List<Integer> exonEnds = transcript.getExonEnds();
-		int codingStart = transcript.getCodingStart();
-		int codingEnd = transcript.getCodingEnd();
-		boolean forward = true;
+	public String getCodingSequence(Transcript transcript) throws Exception {
+
+		char orientation = '+';
 		if ( transcript.getOrientation().equals(StrandOrientation.REVERSE) ) {
-			forward = false;
+			orientation = '-';
 		}
-		return getCodingSequence(exonStarts, exonEnds, codingStart, codingEnd, forward);
+
+		return getCodingSequence(transcript.getChromosomeName(),
+				transcript.getExonStarts(), transcript.getExonEnds(),
+				transcript.getCodingStart(), transcript.getCodingEnd(), orientation).toString();
 	}
 	
-	public String getCodingSequence(List<Integer> exonStarts, List<Integer> exonEnds, int codingStart, int codingEnd, boolean forward) throws IOException, CompoundNotFoundException {
+	public DNASequence getCodingSequence(String chromosome, List<Integer> exonStarts, List<Integer> exonEnds,
+									int codingStart, int codingEnd, char orientation) throws Exception {
 
-		List<Range<Integer>> cdsRegion = ChromosomeMappingTools.getCDSRegions(exonStarts, exonEnds,
-					codingStart, codingEnd);
+		File twoBitFileLocalLocation = new File(DataLocationProvider.getHumanGenomeLocation());
+		SimpleTwoBitFileProvider.downloadIfNoTwoBitFileExists(twoBitFileLocalLocation, "hg38");
+		TwoBitFacade twoBitFacade = new TwoBitFacade(twoBitFileLocalLocation);
+
+		DNASequence transcribedDNASequence = ChromosomeMappingTools.getTranscriptDNASequence(twoBitFacade,
+				chromosome, exonStarts, exonEnds, codingStart, codingEnd, orientation);
+
+		return transcribedDNASequence;
+	}
+
+	public static DNASequence getCodingSequence(TwoBitFacade twoBitFacade, String chromosome, StrandOrientation orientation, List<Exon> exons) throws Exception {
+
+		String dnaSequence = "";
+		for (Exon e : exons) {
+			dnaSequence += twoBitFacade.getSequence(chromosome, e.getStart()-1, e.getEnd());
+		}
+
+		if(orientation.equals(StrandOrientation.REVERSE)) {
+			dnaSequence = (new StringBuilder(dnaSequence)).reverse().toString();
+			DNASequence dna = new DNASequence(dnaSequence);
+			SequenceView<NucleotideCompound> compliment = dna.getComplement();
+			dnaSequence = compliment.getSequenceAsString();
+		}
+		return new DNASequence(dnaSequence.toUpperCase());
+	}
+
+	public static String getExonSequence(TwoBitFacade twoBitFacade, String chromosome, String orientation, Exon exon) throws Exception {
 
 		String transcription = "";
-		for (Range<Integer> range : cdsRegion) {
-			int length = range.upperEndpoint() - range.lowerEndpoint();
-			transcription += parser.loadFragment(range.lowerEndpoint(), length);
-		}
-		if ( !forward ) {
+		if (!orientation.equals("+")) {
+
+			int length = ((exon.getEnd() - exon.getPhase().getValue()) - exon.getStart()) + 1;
+			int correction = length % 3;
+			length = length - correction;
+
+			int start = (exon.getStart() + correction) - 1;
+			int end = start + length;
+			transcription = twoBitFacade.getSequence(chromosome, start, end);
 			transcription = new StringBuilder(transcription).reverse().toString();
 			DNASequence dna = new DNASequence(transcription);
 			SequenceView<NucleotideCompound> compliment = dna.getComplement();
 			transcription = compliment.getSequenceAsString();
+		} else {
+
+			int length = (exon.getEnd() - (exon.getStart() + exon.getPhase().getValue())) + 1;
+			int correction = length % 3;
+			length = length - correction;
+
+			int start = (exon.getStart() + correction) - 1;
+			int end = start + length;
+			transcription = twoBitFacade.getSequence(chromosome, start, end);
 		}
 		return transcription;
 	}

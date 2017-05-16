@@ -129,9 +129,4 @@ public class GenomeDataProvider {
 	public String readBaseFromChromosome(long position) throws Exception {
 		return parser.loadFragment(position-1, 1);
 	}
-	
-	public static String readDNASequenceFromChromosome(long startPos, long endPos) {
-		return null;		
-	}
-
 }

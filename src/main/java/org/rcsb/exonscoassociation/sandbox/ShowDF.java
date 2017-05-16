@@ -5,7 +5,10 @@ import org.apache.spark.sql.Row;
 import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
+import java.util.List;
+
 import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.not;
 
 /**
  * Created by yana on 4/19/17.
@@ -25,9 +28,9 @@ public class ShowDF {
 //            map.filter(col("uniProtId").equalTo("Q8WZA1").and(col("pdbId").equalTo("5GGF")).and(col("chainId").equalTo("B")).
 //                    and(col("start").equalTo(46189273))).show();
 //
-            Dataset<Row> map2 = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getGencodeStructuralMappingLocation() + "/" + chr);
-            map2.filter(col("uniProtId").equalTo("Q8WZA1").and(col("pdbId").equalTo("5GGF")).and(col("chainId").equalTo("B")).
-                    and(col("start").equalTo(46189273))).show();
+//            Dataset<Row> map2 = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getGencodeStructuralMappingLocation() + "/" + chr);
+//            map2.filter(col("uniProtId").equalTo("Q8WZA1").and(col("pdbId").equalTo("5GGF")).and(col("chainId").equalTo("B")).
+//                    and(col("start").equalTo(46189273))).show();
 //
 //            Dataset<Row> map3 = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getUniprotPdbMappinlLocation());
 //            map3.filter(col("uniProtId").equalTo("Q8WZA1").and(col("pdbId").equalTo("5GGF")).and(col("chainId").equalTo("B")).and(col("uniProtPos").equalTo(632))).show();
@@ -35,14 +38,15 @@ public class ShowDF {
 //            Dataset<Row> map4 = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getGencodeUniprotLocation()+"/chr1");
 //            map4.show();
 
-//            Dataset<Row> map = SaprkUtils.getSparkSession().read().parquet("/Users/yana/data/genevariation/parquet/hg38/chr7");
-//            map.filter(col("geneSymbol").equalTo("GUSB")
-//                    .and(       col("position").equalTo(65970282)
-//                            .or(col("position").equalTo(65970366))
-//                            .or(col("position").equalTo(65974919))
-//                            .or(col("position").equalTo(65975071))
-//                    ).and(col("isoformNr").equalTo(0))
-//            ).show();
+            Dataset<Row> map = SaprkUtils.getSparkSession().read()
+                    .parquet(DataLocationProvider.getGencodeStructuralMappingLocation()+"/chr1");
+            Dataset<Row> amap = map.filter(col("template").equalTo("3dmk.1.A")
+                    .and(col("uniProtId").equalTo("O94856"))
+                    .and(col("pdbPosStart").equalTo(38)).and(col("pdbPosEnd").equalTo(812)))
+                    .select(col("alignment"));
+
+            List<Row> alignment = amap.collectAsList();
+            System.out.println();
         }
     }
 }
