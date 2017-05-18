@@ -49,7 +49,7 @@ public class UniprotToModelCoordinatesMapper {
 
     public void map() throws Exception {
 
-        Structure structure = StructureUtils.getModelStructureFromURL(coordinates);
+        Structure structure = StructureUtils.getModelStructureLocal(coordinates);
 
         Chain chain = structure.getChainByIndex(0);
         List<Group> groups = chain.getAtomGroups();

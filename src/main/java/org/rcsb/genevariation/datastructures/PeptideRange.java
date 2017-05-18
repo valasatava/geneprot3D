@@ -20,6 +20,8 @@ public class PeptideRange {
     private int structCoordsStart=-1;
     private int structCoordsEnd=-1;
 
+    private float resolution=99.0f;
+
     public String getChromosome() {
         return chromosome;
     }
@@ -82,16 +84,30 @@ public class PeptideRange {
     public void setExperimental(boolean experimental) {
         this.experimental = experimental;
     }
-    public int getStructCoordsStart() {
+    public int getStructuralCoordsStart() {
         return structCoordsStart;
     }
     public void setStructuralCoordsStart(int structCoordsStart) {
         this.structCoordsStart = structCoordsStart;
     }
-    public int getStructCoordsEnd() {
+    public int getStructuralCoordsEnd() {
         return structCoordsEnd;
     }
     public void setStructuralCoordsEnd(int structCoordsEnd) {
         this.structCoordsEnd = structCoordsEnd;
+    }
+
+    public float getResolution() {
+        return resolution;
+    }
+    public void setResolution(float resolution) {
+        this.resolution = resolution;
+    }
+
+    public int getStructureLength() {
+        return (getStructuralCoordsEnd()-getStructuralCoordsStart());
+    }
+    public int getProteinSequenceLength() {
+        return (getUniProtCoordsEnd()-getUniProtCoordsStart());
     }
 }

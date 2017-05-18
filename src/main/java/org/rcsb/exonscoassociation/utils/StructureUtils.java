@@ -4,6 +4,8 @@ import org.biojava.nbio.structure.*;
 import org.biojava.nbio.structure.align.util.AtomCache;
 import org.biojava.nbio.structure.io.LocalPDBDirectory;
 import org.biojava.nbio.structure.io.PDBFileReader;
+import org.rcsb.mmtf.dataholders.MmtfStructure;
+import org.rcsb.mmtf.decoder.ReaderUtils;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -153,15 +155,22 @@ public class StructureUtils {
         return groups;
     }
 
-    public static void main(String[] args) throws IOException, StructureException {
+    public static float getResolution(String pdbId) {
+        float resolution;
+        try {
+            try {
+                MmtfStructure mmtfData = ReaderUtils.getDataFromUrl(pdbId);
+                resolution = mmtfData.getResolution();
 
-        URL url = new URL("https://swissmodel.expasy.org/repository/uniprot/P51530.pdb?range=19-1054&template=5eaw.1.A&provider=swissmodel");
-
-        Structure structure = getBioJavaStructure("3S6N");
-        List<Chain> chains = structure.getChains();
-        Chain chain = structure.getPolyChainByPDB("2");
-        System.out.println(chain.getName());
-
+            } catch (Exception e) {
+                Structure structure = StructureUtils.getBioJavaStructure(pdbId);
+                PDBHeader header = structure.getPDBHeader();
+                resolution = header.getResolution();
+            }
+        } catch (Exception e) {
+            return 0.0f;
+        }
+        return resolution;
     }
 
     public static List<Atom> getResidue(List<Atom> atoms, int resNum) {
@@ -184,5 +193,16 @@ public class StructureUtils {
         return atoms.stream()
                 .filter(a -> a.getGroup().getResidueNumber().getSeqNum()==resNum)
                 .collect(Collectors.toList());
+    }
+
+    public static void main(String[] args) throws IOException, StructureException {
+
+        URL url = new URL("https://swissmodel.expasy.org/repository/uniprot/P51530.pdb?range=19-1054&template=5eaw.1.A&provider=swissmodel");
+
+        Structure structure = getBioJavaStructure("3S6N");
+        List<Chain> chains = structure.getChains();
+        Chain chain = structure.getPolyChainByPDB("2");
+        System.out.println(chain.getName());
+
     }
 }
