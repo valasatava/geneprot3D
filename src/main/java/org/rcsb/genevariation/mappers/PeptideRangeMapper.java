@@ -2,6 +2,7 @@ package org.rcsb.genevariation.mappers;
 
 import com.google.common.collect.Range;
 import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +28,7 @@ import java.util.Map;
 import static org.apache.spark.sql.functions.col;
 
 /**
- * Created by yana on 5/9/17.
+ * Created by Yana Valasatava on 5/9/17.
  */
 public class PeptideRangeMapper {
 
@@ -35,12 +37,16 @@ public class PeptideRangeMapper {
     private static final String DEFAULT_MAPPING_LOCATION = DataLocationProvider.getGencodeStructuralMappingLocation();
     private String MAPPING_LOCATION;
 
+    private static UniprotToModelCoordinatesMapper mapper;
+
     public PeptideRangeMapper() {
         MAPPING_LOCATION = DEFAULT_MAPPING_LOCATION;
+        mapper = new UniprotToModelCoordinatesMapper();
     }
 
     public PeptideRangeMapper(String LOCATION) {
         MAPPING_LOCATION = LOCATION;
+        mapper = new UniprotToModelCoordinatesMapper();
     }
 
     public List<PeptideRange> getMappingForRange(String chr, int start, int end) throws Exception {
@@ -54,7 +60,6 @@ public class PeptideRangeMapper {
         List<Row> dataList = data.collectAsList();
 
         List<PeptideRange> mapping = new ArrayList<>();
-        UniprotToModelCoordinatesMapper mapper = new UniprotToModelCoordinatesMapper();
 
         for (Row row : dataList ) {
 
@@ -63,6 +68,7 @@ public class PeptideRangeMapper {
             pp.setChromosome(RowUtils.getChromosome(row));
             pp.setEnsemblId(RowUtils.getEnsemblId(row));
             pp.setGeneBankId(RowUtils.getGeneBankId(row));
+            pp.setGeneName(RowUtils.getGeneName(row));
             pp.setGenomicCoordsStart(start);
             pp.setGenomicCoordsEnd(end);
 
@@ -70,93 +76,34 @@ public class PeptideRangeMapper {
             pp.setUniProtCoordsStart(RowUtils.getUniProtStart(row));
             pp.setUniProtCoordsEnd(RowUtils.getUniProtEnd(row));
 
-            pp.setExperimental(RowUtils.isPDBStructure(row));
-
-            if ( !RowUtils.getPdbId(row).equals("null") ) {
-
-                List<Group> groups;
-                Range<Integer> range;
-
-                if (pp.isExperimental()) {
-
-                    pp.setStructureId(RowUtils.getPdbId(row) + "_" + RowUtils.getChainId(row));
-                    range = RowUtils.getPdbRange(row);
-
-                    Structure structure = null;
-                    try {structure = StructureUtils.getBioJavaStructure(RowUtils.getPdbId(row)); }
-                    catch (IOException ioe) {
-                        logger.error("Cannot download structure: " + RowUtils.getPdbId(row));
-                        continue; }
-                    catch (StructureException stre) {
-                        logger.error("StructureException for: " + RowUtils.getPdbId(row));
-                        continue; }
-
-                    float resolution = structure.getPDBHeader().getResolution();
-                    pp.setResolution(resolution);
-
-                    Chain chain = structure.getPolyChainByPDB(RowUtils.getChainId(row));
-                    groups = chain.getAtomGroups();
-                    List<Group> groupsInRange = StructureUtils.getGroupsInRange(groups, range.lowerEndpoint(),
-                            range.upperEndpoint());
-
-                    pp.setStructuralCoordsStart(groupsInRange.get(0).getResidueNumber().getSeqNum());
-                    pp.setStructuralCoordsEnd(groupsInRange.get(groupsInRange.size() - 1).getResidueNumber().getSeqNum());
-                    pp.setStructure(groupsInRange);
-
-                } else {
-
-                    pp.setStructureId(RowUtils.getTemplate(row)+".pdb");
-
-                    try { RowUtils.setUTMmapperFromRow(mapper, row); }
-
-                    catch (IOException ioe) {
-                        logger.error("Cannot find coordinates: " + mapper.getCoordinates());
-                        continue; }
-
-                    catch (CompoundNotFoundException cnfe){
-                        logger.error("Is not protein sequence: " + mapper.getAlignment());
-                        continue; }
-
-                    range = RowUtils.getModelRange(mapper, row);
-                    try { groups = StructureUtils.getGroupsFromModel(mapper.getCoordinates()); }
-                    catch (IOException ioe) {
-                        logger.error("Cannot find coordinates: " + mapper.getCoordinates());
-                        continue; }
-
-                    List<Group> groupsInRange = StructureUtils.getGroupsInRange(groups, range.lowerEndpoint(), range.upperEndpoint());
-                    if (groupsInRange.size() != 0) {
-                        pp.setStructuralCoordsStart(groupsInRange.get(0).getResidueNumber().getSeqNum());
-                        pp.setStructuralCoordsEnd(groupsInRange.get(groupsInRange.size() - 1).getResidueNumber().getSeqNum());
-                        pp.setStructure(groupsInRange);
-                    }
-                }
+            if ( RowUtils.isPDBStructure(row) ) {
+                pp.setExperimental(true);
+                pp = PeptideRangeTool.setStructureFromRow(pp, row);
+            } else {
+                pp = PeptideRangeTool.setTemplateFromRow(mapper, pp, row);
             }
             mapping.add(pp);
         }
         return mapping;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         PeptideRangeMapper mapper = new PeptideRangeMapper();
 
+        String chr = "chr8";
+        String r1 = "27516320_27516398";
+        String r2 = "27538659_27538692";
+
         Dataset<Row> chromosome = SaprkUtils.getSparkSession().read()
-                .parquet(mapper.MAPPING_LOCATION + "/" + "chr8")
+                .parquet(mapper.MAPPING_LOCATION + "/" + chr)
                 .distinct().cache();
 
-        List<PeptideRange> mapping1 = null;
-        List<PeptideRange> mapping2 = null;
-        try {
-            String r1 = "27516320_27516398";
-            mapping1 = mapper.getMappingForRange(chromosome, Integer.valueOf(r1.split("_")[0]),
+        List<PeptideRange> mapping1 = mapper.getMappingForRange(chromosome, Integer.valueOf(r1.split("_")[0]),
                     Integer.valueOf(r1.split("_")[1]));
 
-            String r2 = "27538659_27538692";
-            mapping2 = mapper.getMappingForRange(chromosome, Integer.valueOf(r2.split("_")[0]),
+        List<PeptideRange> mapping2 = mapper.getMappingForRange(chromosome, Integer.valueOf(r2.split("_")[0]),
                     Integer.valueOf(r2.split("_")[1]));
-        } catch (Exception e) {
-
-        }
 
         Tuple2<PeptideRange, PeptideRange> pair = PeptideRangeTool.getExonsPairWithBestStructuralCoverage(mapping1, mapping2);
         Tuple2<Atom, Atom> atoms = PeptideRangeTool.getClosestBackboneAtoms(pair._1, pair._2);
@@ -174,9 +121,16 @@ public class PeptideRangeMapper {
         model.put("resn2", atoms._2.getGroup().getResidueNumber());
 
         /* Merge data-model with template */
-        TemplatesGenerationTool templateTool = new TemplatesGenerationTool();
-        String path = DataLocationProvider.getProjectsHome() + "/test.out";
-        Template template = templateTool.getNGLtemplate();
-        templateTool.writeModelToTemplate(model, template, path);
+        TemplatesGenerationTool templateTool = null;
+        try {
+            templateTool = new TemplatesGenerationTool();
+            String path = DataLocationProvider.getExonsProjectResults() + "/ngl_scripts/"+chr+"_"+r1+"_"+r2+".js";
+            Template template = templateTool.getNGLtemplate();
+            templateTool.writeModelToTemplate(model, template, path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TemplateException e) {
+            e.printStackTrace();
+        }
     }
 }

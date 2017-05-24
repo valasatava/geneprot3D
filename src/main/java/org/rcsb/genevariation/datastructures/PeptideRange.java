@@ -13,6 +13,8 @@ public class PeptideRange {
     private String chromosome;
     private String geneBankId;
     private String ensemblId;
+    private String geneName;
+
     private int genomicCoordsStart=-1;
     private int genomicCoordsEnd=-1;
 
@@ -46,6 +48,10 @@ public class PeptideRange {
     public void setEnsemblId(String ensemblId) {
         this.ensemblId = ensemblId;
     }
+    public void setGeneName(String gene) {
+        geneName = gene;
+    }
+
     public int getGenomicCoordsStart() {
         return genomicCoordsStart;
     }

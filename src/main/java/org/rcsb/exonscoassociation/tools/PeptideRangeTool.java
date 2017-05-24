@@ -1,11 +1,21 @@
 package org.rcsb.exonscoassociation.tools;
 
+import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
-import org.biojava.nbio.structure.Atom;
+import org.apache.spark.sql.Row;
+import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
+import org.biojava.nbio.structure.*;
+import org.rcsb.exonscoassociation.utils.RowUtils;
 import org.rcsb.exonscoassociation.utils.StructureUtils;
 import org.rcsb.genevariation.datastructures.PeptideRange;
+import org.rcsb.genevariation.mappers.PeptideRangeMapper;
+import org.rcsb.genevariation.mappers.UniprotToModelCoordinatesMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -14,6 +24,8 @@ import java.util.stream.Collectors;
  * Created by yana on 5/17/17.
  */
 public class PeptideRangeTool {
+
+    private static final Logger logger = LoggerFactory.getLogger(PeptideRangeTool.class);
 
     public static Tuple2<PeptideRange, PeptideRange> getExonsPairWithBestStructuralCoverage(List<PeptideRange> mapping1,
                                                                                             List<PeptideRange> mapping2) {
@@ -72,6 +84,73 @@ public class PeptideRangeTool {
 
         Tuple2<Atom, Atom> atoms = StructureUtils.getAtomsAtMinDistance(atoms1, atoms2);
         return atoms;
+    }
 
+    public static PeptideRange setStructureFromRow(PeptideRange pp, Row row) {
+
+        pp.setStructureId(RowUtils.getPdbId(row) + "_" + RowUtils.getChainId(row));
+        Range<Integer> range = RowUtils.getPdbRange(row);
+
+        Structure structure = null;
+        try {structure = StructureUtils.getBioJavaStructure(RowUtils.getPdbId(row)); }
+
+        catch (IOException ioe) {
+            logger.error("Cannot download structure: " + RowUtils.getPdbId(row));
+            return pp; }
+
+        catch (StructureException stre) {
+            logger.error("StructureException for: " + RowUtils.getPdbId(row));
+            return pp; }
+
+        float resolution = structure.getPDBHeader().getResolution();
+        pp.setResolution(resolution);
+
+        Chain chain = structure.getPolyChainByPDB(RowUtils.getChainId(row));
+        List<Group> groups = chain.getAtomGroups();
+        List<Group> groupsInRange = StructureUtils.getGroupsInRange(groups, range.lowerEndpoint(),
+                range.upperEndpoint());
+
+        pp.setStructuralCoordsStart(groupsInRange.get(0).getResidueNumber().getSeqNum());
+        pp.setStructuralCoordsEnd(groupsInRange.get(groupsInRange.size() - 1).getResidueNumber().getSeqNum());
+        pp.setStructure(groupsInRange);
+
+        return pp;
+    }
+
+    public static PeptideRange setTemplateFromRow(UniprotToModelCoordinatesMapper mapper, PeptideRange pp, Row row) {
+
+        pp.setStructureId(RowUtils.getTemplate(row)+".pdb");
+
+        try { RowUtils.setUTMmapperFromRow(mapper, row); }
+
+        catch (FileNotFoundException fnfe) {
+            logger.error("Cannot find coordinates: " + mapper.getCoordinates());
+            return pp; }
+
+        catch (CompoundNotFoundException cnfe){
+            logger.error("Is not protein sequence: " + mapper.getAlignment());
+            return pp; }
+
+        catch (Exception e) {
+            logger.error("Problem with: " + mapper.getCoordinates());
+            return pp; }
+
+        Range<Integer> range = RowUtils.getModelRange(mapper, row);
+        List<Group> groups;
+        try { groups = StructureUtils.getGroupsFromModel(mapper.getCoordinates()); }
+        catch (FileNotFoundException fnfe) {
+            logger.error("Cannot find coordinates: " + mapper.getCoordinates());
+            return pp; }
+        catch (Exception e) {
+            logger.error("Problem with: " + mapper.getCoordinates());
+            return pp; }
+
+        List<Group> groupsInRange = StructureUtils.getGroupsInRange(groups, range.lowerEndpoint(), range.upperEndpoint());
+        if (groupsInRange.size() != 0) {
+            pp.setStructuralCoordsStart(groupsInRange.get(0).getResidueNumber().getSeqNum());
+            pp.setStructuralCoordsEnd(groupsInRange.get(groupsInRange.size() - 1).getResidueNumber().getSeqNum());
+            pp.setStructure(groupsInRange);
+        }
+        return pp;
     }
 }

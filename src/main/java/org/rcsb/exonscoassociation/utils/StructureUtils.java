@@ -158,7 +158,7 @@ public class StructureUtils {
         return atoms;
     }
 
-    public static List<Group> getGroupsFromModel(String path) throws IOException {
+    public static List<Group> getGroupsFromModel(String path) throws Exception {
 
         Structure structure = getModelStructureLocal(path);
         Chain chain = structure.getChainByIndex(0);

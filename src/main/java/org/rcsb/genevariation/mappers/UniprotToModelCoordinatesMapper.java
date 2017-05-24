@@ -53,7 +53,7 @@ public class UniprotToModelCoordinatesMapper {
         return coordinates;
     }
 
-    public void map() throws IOException, CompoundNotFoundException {
+    public void map() throws Exception {
 
         Structure structure = StructureUtils.getModelStructureLocal(coordinates);
 

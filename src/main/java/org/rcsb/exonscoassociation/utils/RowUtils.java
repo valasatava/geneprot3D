@@ -16,12 +16,16 @@ import java.util.regex.Pattern;
 public class RowUtils {
 
     private static int chromosomeInd = 0;
+    private static int geneNameInd = 1;
     private static int ensemblIdInd = 2;
     private static int geneBankIdInd = 3;
     private static int alignmentInd = 17;
 
     public static String getChromosome(Row row) {
         return row.getString(chromosomeInd);
+    }
+    public static String getGeneName(Row row) {
+        return row.getString(geneNameInd);
     }
     public static String getEnsemblId(Row row) {
         return row.getString(ensemblIdInd);
@@ -235,7 +239,7 @@ public class RowUtils {
 
     }
 
-    public static void setUTMmapperFromRow(UniprotToModelCoordinatesMapper mapper, Row row) throws IOException, CompoundNotFoundException {
+    public static void setUTMmapperFromRow(UniprotToModelCoordinatesMapper mapper, Row row) throws Exception {
 
         mapper.setFrom(RowUtils.getModelFrom(row));
         mapper.setTo(RowUtils.getModelTo(row));
