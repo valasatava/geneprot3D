@@ -4,6 +4,7 @@ import com.google.common.collect.Range;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.rcsb.genevariation.mappers.UniprotToModelCoordinatesMapper;
+import org.rcsb.uniprot.auto.FeatureType;
 
 import java.util.regex.Pattern;
 
@@ -277,5 +278,19 @@ public class RowUtils {
 
     public static String getAlignment(Row row) {
         return row.getString(alignmentInd);
+    }
+
+    public static Row mapToFeatureRange(FeatureType ft, Range<Integer> coveredRange, Row row) {
+
+        row = RowUtils.addField(row, ft.getDescription());
+        row = RowUtils.addField(row, coveredRange.lowerEndpoint());
+        row = RowUtils.addField(row, coveredRange.upperEndpoint());
+        return row;
+    }
+
+    public static Row mapToFeatureResidue(FeatureType ft, int i, Row row) {
+        row = RowUtils.addField(row, ft.getDescription());
+        row = RowUtils.addField(row, i);
+        return row;
     }
 }

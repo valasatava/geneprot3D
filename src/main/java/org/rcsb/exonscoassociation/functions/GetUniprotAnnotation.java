@@ -1,9 +1,10 @@
 package org.rcsb.exonscoassociation.functions;
 
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.rcsb.exonscoassociation.mappers.MapToDomain;
+import org.rcsb.exonscoassociation.mappers.MapToUniprotFeature;
 import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.genevariation.utils.SaprkUtils;
 
@@ -19,15 +20,15 @@ import java.util.List;
  */
 public class GetUniprotAnnotation {
 
-    public static  List<String> run(String chr) throws FileNotFoundException, JAXBException {
+    public static  List<String> runForChromosome(String chr, Function<Row, Row> f) throws FileNotFoundException, JAXBException {
 
         Dataset<Row> mapping = SaprkUtils.getSparkSession()
-                .read().parquet(DataLocationProvider.getExonsUniprotLocation() + "/" + chr);
+                .read().parquet(DataLocationProvider.getGencodeUniprotLocation() + "/" + chr);
         JavaRDD<Row> data = mapping
                 .drop(mapping.col("isoformIndex"))
                 .drop(mapping.col("isoformPosStart"))
                 .drop(mapping.col("isoformPosEnd"))
-                .toJavaRDD().map(new MapToDomain()).filter(t -> (t != null) );
+                .toJavaRDD().map(f).filter(t -> (t != null) );
 
         List<String> results = data.map( t -> ( t.toString()
                 .replace("[","")
@@ -35,7 +36,7 @@ public class GetUniprotAnnotation {
         return results;
     }
 
-    public static void main(String[] args) throws IOException, JAXBException {
+    public static List<String> run(Function<Row, Row> f) throws IOException, JAXBException {
 
         String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10",
                 "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",
@@ -46,12 +47,24 @@ public class GetUniprotAnnotation {
         for (String chr : chromosomes) {
 
             System.out.println("Prosessing "+chr);
-            List<String> data = run(chr);
+            List<String> data = runForChromosome(chr, f);
             results.addAll(data);
             System.out.println("done");
         }
 
-        String filename = "/Users/yana/ishaan/RESULTS/uniprot_domains.csv";
+        return results;
+    }
+
+    public static void main(String[] args) throws IOException, JAXBException {
+
+        //MapToUniprotFeature f = new MapToUniprotFeature("domain");
+        //String filename = DataLocationProvider.getExonsProjectResults()+"gencode.v24.CDS.uniprot_domains.csv";
+
+        MapToUniprotFeature f = new MapToUniprotFeature("active site");
+        String filename = DataLocationProvider.getExonsProjectResults()+"gencode.v24.CDS.uniprot_active_sites.csv";
+
+        List<String> results = run(f);
+
         FileWriter writer = new FileWriter(filename);
         for(String str: results) {
             writer.write(str);

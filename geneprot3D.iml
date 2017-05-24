@@ -266,5 +266,6 @@
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.apache.logging.log4j:log4j-slf4j-impl:2.6.1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.apache.logging.log4j:log4j-api:2.6.1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.apache.logging.log4j:log4j-core:2.6.1" level="project" />
+    <orderEntry type="library" name="Maven: org.rcsb:rcsb-redwood:2.0.0-SNAPSHOT" level="project" />
   </component>
 </module>
