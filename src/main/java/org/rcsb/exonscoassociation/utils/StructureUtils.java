@@ -51,7 +51,7 @@ public class StructureUtils {
         return structure;
     }
 
-    public static Structure getModelStructureLocal(String path) throws Exception {
+    public static Structure getModelStructureLocal(String path) throws IOException {
 
         PDBFileReader reader = new PDBFileReader();
         Structure structure = reader.getStructure(path);
@@ -158,13 +158,9 @@ public class StructureUtils {
         return atoms;
     }
 
-    public static List<Group> getGroupsFromModel(String path) throws Exception {
-        Structure structure = null;
-        try {
-            structure = getModelStructureLocal(path);
-        } catch (Exception e) {
-            return null;
-        }
+    public static List<Group> getGroupsFromModel(String path) throws IOException {
+
+        Structure structure = getModelStructureLocal(path);
         Chain chain = structure.getChainByIndex(0);
         List<Group> groups = chain.getAtomGroups();
         return groups;

@@ -1,5 +1,6 @@
 package org.rcsb.genevariation.mappers;
 
+import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.core.sequence.ProteinSequence;
 import org.biojava.nbio.structure.Chain;
 import org.biojava.nbio.structure.Group;
@@ -9,6 +10,7 @@ import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.uniprot.isoform.IsoformMapper;
 import org.spark_project.guava.primitives.Ints;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -38,6 +40,10 @@ public class UniprotToModelCoordinatesMapper {
         alignment = alignmentString;
     }
 
+    public String getAlignment() {
+        return alignment;
+    }
+
     public void setTemplate(String template) {
         coordinates = DataLocationProvider.getHumanHomologyCoordinatesLocation()
                 +template+"_"+String.valueOf(from)+"_"+String.valueOf(to)+".pdb";
@@ -47,14 +53,9 @@ public class UniprotToModelCoordinatesMapper {
         return coordinates;
     }
 
-    public void map() throws Exception {
+    public void map() throws IOException, CompoundNotFoundException {
 
-        Structure structure = null;
-        try {
-            structure = StructureUtils.getModelStructureLocal(coordinates);
-        } catch (Exception e) {
-            //e.printStackTrace();
-        }
+        Structure structure = StructureUtils.getModelStructureLocal(coordinates);
 
         Chain chain = structure.getChainByIndex(0);
         List<Group> groups = chain.getAtomGroups();

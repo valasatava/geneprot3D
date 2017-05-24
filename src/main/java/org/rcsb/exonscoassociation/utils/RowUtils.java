@@ -3,9 +3,11 @@ package org.rcsb.exonscoassociation.utils;
 import com.google.common.collect.Range;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
+import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.rcsb.genevariation.mappers.UniprotToModelCoordinatesMapper;
 import org.rcsb.uniprot.auto.FeatureType;
 
+import java.io.IOException;
 import java.util.regex.Pattern;
 
 /**
@@ -233,16 +235,15 @@ public class RowUtils {
 
     }
 
-    public static void setUTMmapperFromRow(UniprotToModelCoordinatesMapper mapper, Row row) throws Exception {
+    public static void setUTMmapperFromRow(UniprotToModelCoordinatesMapper mapper, Row row) throws IOException, CompoundNotFoundException {
+
         mapper.setFrom(RowUtils.getModelFrom(row));
         mapper.setTo(RowUtils.getModelTo(row));
         mapper.setAlignment(RowUtils.getAlignment(row));
         mapper.setTemplate(RowUtils.getTemplate(row));
-        try {
-            mapper.map();
-        } catch (Exception e) {
-            //e.printStackTrace();
-        }
+
+        mapper.map();
+
     }
 
     public static int getStructureStart(Row row) throws Exception {
