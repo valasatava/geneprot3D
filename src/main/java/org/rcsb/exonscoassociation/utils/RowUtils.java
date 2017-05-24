@@ -237,7 +237,11 @@ public class RowUtils {
         mapper.setTo(RowUtils.getModelTo(row));
         mapper.setAlignment(RowUtils.getAlignment(row));
         mapper.setTemplate(RowUtils.getTemplate(row));
-        mapper.map();
+        try {
+            mapper.map();
+        } catch (Exception e) {
+            //e.printStackTrace();
+        }
     }
 
     public static int getStructureStart(Row row) throws Exception {

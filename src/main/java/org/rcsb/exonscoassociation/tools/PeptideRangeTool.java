@@ -1,6 +1,8 @@
 package org.rcsb.exonscoassociation.tools;
 
 import com.google.common.collect.Sets;
+import org.biojava.nbio.structure.Atom;
+import org.rcsb.exonscoassociation.utils.StructureUtils;
 import org.rcsb.genevariation.datastructures.PeptideRange;
 import scala.Tuple2;
 
@@ -42,5 +44,34 @@ public class PeptideRangeTool {
             }
         }
         return pair;
+    }
+
+    public static Tuple2<Atom, Atom>  getClosestBackboneAtoms(PeptideRange p1, PeptideRange p2){
+
+        List<Atom> backbone1 = p1.getStructure().stream()
+                .map(t -> t.getAtoms().stream().filter(a -> a.getName().equals("CA")).collect(Collectors.toList()).get(0))
+                .collect(Collectors.toList());
+
+        List<Atom> backbone2 = p2.getStructure().stream()
+                .map(t -> t.getAtoms().stream().filter(a -> a.getName().equals("CA")).collect(Collectors.toList()).get(0))
+                .collect(Collectors.toList());
+
+        Tuple2<Atom, Atom> atoms = StructureUtils.getAtomsAtMinDistance(backbone1, backbone2);
+        return atoms;
+    }
+
+    public static Tuple2<Atom,Atom> getClosestAtoms(PeptideRange p1, PeptideRange p2) {
+
+        List<Atom> atoms1 = p1.getStructure().stream()
+                .flatMap(t -> t.getAtoms().stream())
+                .collect(Collectors.toList());
+
+        List<Atom> atoms2 = p2.getStructure().stream()
+                .flatMap(t -> t.getAtoms().stream())
+                .collect(Collectors.toList());
+
+        Tuple2<Atom, Atom> atoms = StructureUtils.getAtomsAtMinDistance(atoms1, atoms2);
+        return atoms;
+
     }
 }

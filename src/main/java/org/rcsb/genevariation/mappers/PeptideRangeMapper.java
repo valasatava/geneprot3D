@@ -3,6 +3,7 @@ package org.rcsb.genevariation.mappers;
 import com.google.common.collect.Range;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.biojava.nbio.structure.Atom;
 import org.biojava.nbio.structure.Chain;
 import org.biojava.nbio.structure.Group;
 import org.biojava.nbio.structure.Structure;
@@ -16,6 +17,8 @@ import scala.Tuple2;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.apache.spark.sql.functions.col;
 
@@ -77,35 +80,34 @@ public class PeptideRangeMapper {
                 float resolution = structure.getPDBHeader().getResolution();
                 pp.setResolution(resolution);
 
-                if ( range.lowerEndpoint()==Integer.MIN_VALUE
-                        || range.upperEndpoint()==Integer.MAX_VALUE ) {
+                Chain chain = structure.getPolyChainByPDB(RowUtils.getChainId(row));
+                groups = chain.getAtomGroups();
+                List<Group> groupsInRange = StructureUtils.getGroupsInRange(groups, range.lowerEndpoint(),
+                        range.upperEndpoint());
 
-                    Chain chain = structure.getPolyChainByPDB(RowUtils.getChainId(row));
-                    groups = chain.getAtomGroups();
-
-                    List<Group> groupsInRange = StructureUtils.getGroupsInRange(groups, range.lowerEndpoint(),
-                            range.upperEndpoint());
-                    pp.setStructuralCoordsStart(groupsInRange.get(0).getResidueNumber().getSeqNum());
-                    pp.setStructuralCoordsEnd(groupsInRange.get(groupsInRange.size()-1).getResidueNumber().getSeqNum());
-
-                } else {
-                    pp.setStructuralCoordsStart(range.lowerEndpoint());
-                    pp.setStructuralCoordsEnd(range.upperEndpoint());
-                }
+                pp.setStructuralCoordsStart(groupsInRange.get(0).getResidueNumber().getSeqNum());
+                pp.setStructuralCoordsEnd(groupsInRange.get(groupsInRange.size()-1).getResidueNumber().getSeqNum());
+                pp.setStructure(groupsInRange);
 
             } else {
 
                 pp.setStructureId(RowUtils.getTemplate(row));
-                RowUtils.setUTMmapperFromRow(mapper, row);
-                range = RowUtils.getModelRange(mapper, row);
-                groups = StructureUtils.getGroupsFromModel(mapper.getCoordinates());
-
-                List<Group> groupsInRange = StructureUtils.getGroupsInRange(groups, range.lowerEndpoint(), range.upperEndpoint());
-                if (groupsInRange.size()!=0) {
-                    pp.setStructuralCoordsStart(groupsInRange.get(0).getResidueNumber().getSeqNum());
-                    pp.setStructuralCoordsEnd(groupsInRange.get(groupsInRange.size()-1).getResidueNumber().getSeqNum());
+                try {
+                    RowUtils.setUTMmapperFromRow(mapper, row);
+                    range = RowUtils.getModelRange(mapper, row);
+                    groups = StructureUtils.getGroupsFromModel(mapper.getCoordinates());
+                    List<Group> groupsInRange = StructureUtils.getGroupsInRange(groups, range.lowerEndpoint(), range.upperEndpoint());
+                    if ( groupsInRange.size()!=0 ) {
+                        pp.setStructuralCoordsStart(groupsInRange.get(0).getResidueNumber().getSeqNum());
+                        pp.setStructuralCoordsEnd(groupsInRange.get(groupsInRange.size()-1).getResidueNumber().getSeqNum());
+                        pp.setStructure(groupsInRange);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Cannot find coordinates: "+ mapper.getCoordinates());
+                    continue;
                 }
             }
+
             mapping.add(pp);
         }
         return mapping;
@@ -115,13 +117,26 @@ public class PeptideRangeMapper {
 
         PeptideRangeMapper mapper = new PeptideRangeMapper();
 
-        Dataset<Row> chrom = SaprkUtils.getSparkSession().read()
-                .parquet(mapper.MAPPING_LOCATION + "/" + "chr7").distinct().cache();
+        Dataset<Row> chromosome = SaprkUtils.getSparkSession().read()
+                .parquet(mapper.MAPPING_LOCATION + "/" + "chr8").distinct().cache();
 
-        List<PeptideRange> mapping1 = mapper.getMappingForRange(chrom, 65970282, 65970366);
-        List<PeptideRange> mapping2 = mapper.getMappingForRange(chrom, 65974919, 65975071);
+        String r1 = "27516320_27516398";
+        List<PeptideRange> mapping1 = mapper.getMappingForRange(chromosome, Integer.valueOf(r1.split("_")[0]),
+                Integer.valueOf(r1.split("_")[1]));
+
+
+        String r2 = "27538659_27538692";
+        List<PeptideRange> mapping2 = mapper.getMappingForRange(chromosome, Integer.valueOf(r2.split("_")[0]),
+                Integer.valueOf(r2.split("_")[1]));
 
         Tuple2<PeptideRange, PeptideRange> pair = PeptideRangeTool.getExonsPairWithBestStructuralCoverage(mapping1, mapping2);
+
+        Tuple2<Atom, Atom> atomsCA = PeptideRangeTool.getClosestBackboneAtoms(pair._1, pair._2);
+
+        System.out.println(atomsCA._1.getGroup().toString());
+        System.out.println(atomsCA._2.getGroup().toString());
+
+        Tuple2<Atom, Atom> atomsANY = PeptideRangeTool.getClosestAtoms(pair._1, pair._2);
 
         System.out.println();
 

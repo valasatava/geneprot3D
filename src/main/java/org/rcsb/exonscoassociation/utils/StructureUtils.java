@@ -6,6 +6,7 @@ import org.biojava.nbio.structure.io.LocalPDBDirectory;
 import org.biojava.nbio.structure.io.PDBFileReader;
 import org.rcsb.mmtf.dataholders.MmtfStructure;
 import org.rcsb.mmtf.decoder.ReaderUtils;
+import scala.Tuple2;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -70,6 +71,22 @@ public class StructureUtils {
             }
         }
         return min;
+    }
+
+    public static Tuple2<Atom, Atom> getAtomsAtMinDistance(List<Atom> a1, List<Atom> a2) {
+
+        double min = 999.0d;
+        Tuple2<Atom, Atom> atoms=null;
+        for (Atom aa1 : a1) {
+            for (Atom aa2 : a2) {
+                double distance = Calc.getDistance(aa1, aa2);
+                if (distance < min) {
+                    min = distance;
+                    atoms = new Tuple2<>(aa1, aa2);
+                }
+            }
+        }
+        return atoms;
     }
 
     public static List<Group> getGroupsInRange(List<Group> groups, int start, int end) {
@@ -142,7 +159,12 @@ public class StructureUtils {
     }
 
     public static List<Group> getGroupsFromModel(String path) throws Exception {
-        Structure structure = getModelStructureLocal(path);
+        Structure structure = null;
+        try {
+            structure = getModelStructureLocal(path);
+        } catch (Exception e) {
+            return null;
+        }
         Chain chain = structure.getChainByIndex(0);
         List<Group> groups = chain.getAtomGroups();
         return groups;

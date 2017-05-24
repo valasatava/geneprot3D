@@ -41,4 +41,8 @@ public class SaprkUtils {
 		}
 		return sparkSession;
 	}
+
+	public static void stopSparkSession() {
+		getSparkSession().stop();
+	}
 }
