@@ -1,15 +1,12 @@
 package org.rcsb.genevariation.mappers;
 
-import com.google.common.collect.Range;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
-import org.biojava.nbio.structure.*;
+import org.biojava.nbio.structure.Atom;
 import org.rcsb.exonscoassociation.tools.PeptideRangeTool;
 import org.rcsb.exonscoassociation.utils.RowUtils;
-import org.rcsb.exonscoassociation.utils.StructureUtils;
 import org.rcsb.genevariation.datastructures.PeptideRange;
 import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.genevariation.tools.TemplatesGenerationTool;
@@ -18,10 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -99,24 +94,18 @@ public class PeptideRangeMapper {
                 .parquet(mapper.MAPPING_LOCATION + "/" + chr)
                 .distinct().cache();
 
+        /* Get structural mapping for exons */
         List<PeptideRange> mapping1 = mapper.getMappingForRange(chromosome, Integer.valueOf(r1.split("_")[0]),
                     Integer.valueOf(r1.split("_")[1]));
-
         List<PeptideRange> mapping2 = mapper.getMappingForRange(chromosome, Integer.valueOf(r2.split("_")[0]),
                     Integer.valueOf(r2.split("_")[1]));
-
         Tuple2<PeptideRange, PeptideRange> pair = PeptideRangeTool.getExonsPairWithBestStructuralCoverage(mapping1, mapping2);
+
+        /* Get closest atoms for two exons */
         Tuple2<Atom, Atom> atoms = PeptideRangeTool.getClosestBackboneAtoms(pair._1, pair._2);
 
-        /* Create a data-model for exons*/
-        Map model = new HashMap();
-        if (pair._1.isExperimental()) { model.put("source", "rcsb://"+pair._1.getPdbId()+".mmtf"); }
-        else { model.put("source", DataLocationProvider.getHumanHomologyCoordinatesLocation()+"/"+pair._1.getStructureId()); }
-        model.put("chain", pair._1.getChainId());
-        model.put("start1", pair._1.getStructuralCoordsStart());
-        model.put("end1", pair._1.getStructuralCoordsEnd());
-        model.put("start2", pair._2.getStructuralCoordsStart());
-        model.put("end2", pair._2.getStructuralCoordsEnd());
+        /* Create a data-model for exons */
+        Map model = PeptideRangeTool.getModelForPeptidePair(pair);
         model.put("resn1", atoms._1.getGroup().getResidueNumber());
         model.put("resn2", atoms._2.getGroup().getResidueNumber());
 
@@ -124,7 +113,7 @@ public class PeptideRangeMapper {
         TemplatesGenerationTool templateTool = null;
         try {
             templateTool = new TemplatesGenerationTool();
-            String path = DataLocationProvider.getExonsProjectResults() + "/ngl_scripts/"+chr+"_"+r1+"_"+r2+".js";
+            String path = DataLocationProvider.getExonsProjectResults() + "/ngl_scripts/"+pair._1.getGeneName()+"_"+chr+"_"+r1+"_"+r2+".js";
             Template template = templateTool.getNGLtemplate();
             templateTool.writeModelToTemplate(model, template, path);
         } catch (IOException e) {

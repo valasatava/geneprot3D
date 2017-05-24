@@ -8,7 +8,7 @@ import org.biojava.nbio.structure.*;
 import org.rcsb.exonscoassociation.utils.RowUtils;
 import org.rcsb.exonscoassociation.utils.StructureUtils;
 import org.rcsb.genevariation.datastructures.PeptideRange;
-import org.rcsb.genevariation.mappers.PeptideRangeMapper;
+import org.rcsb.genevariation.io.DataLocationProvider;
 import org.rcsb.genevariation.mappers.UniprotToModelCoordinatesMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,9 @@ import scala.Tuple2;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -153,4 +155,19 @@ public class PeptideRangeTool {
         }
         return pp;
     }
+
+    public static Map getModelForPeptidePair(Tuple2<PeptideRange, PeptideRange> pair) {
+
+        Map model = new HashMap();
+        if (pair._1.isExperimental()) { model.put("source", "rcsb://"+pair._1.getPdbId()+".mmtf"); }
+        else { model.put("source", DataLocationProvider.getHumanHomologyCoordinatesLocation()+"/"+pair._1.getStructureId()); }
+        model.put("chain", pair._1.getChainId());
+        model.put("start1", pair._1.getStructuralCoordsStart());
+        model.put("end1", pair._1.getStructuralCoordsEnd());
+        model.put("start2", pair._2.getStructuralCoordsStart());
+        model.put("end2", pair._2.getStructuralCoordsEnd());
+
+        return model;
+    }
+
 }

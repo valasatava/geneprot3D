@@ -51,6 +51,9 @@ public class PeptideRange {
     public void setGeneName(String gene) {
         geneName = gene;
     }
+    public String getGeneName(){
+        return geneName;
+    }
 
     public int getGenomicCoordsStart() {
         return genomicCoordsStart;
