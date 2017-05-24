@@ -1,7 +1,7 @@
 
 // Template
 
-var structure = "rcsb://3hn3.mmtf";
+var structure = "rcsb://1zd3.mmtf";
 
 stage.loadFile(structure).then( function( o ){
 
@@ -13,30 +13,30 @@ stage.loadFile(structure).then( function( o ){
 
     // select exon 1
     o.addRepresentation( "cartoon", {
-        sele: ":A and (159-355)",
+        sele: ":A and (276-302)",
         color: "green"
     } );
 
     // select exon 1
     o.addRepresentation( "cartoon", {
-        sele: ":A and (464-492)",
+        sele: ":A and (415-425)",
         color: "blue"
     } );
 
     // residues that are close in 3D space
     o.addRepresentation( "ball+stick", {
-      sele: "329:A or 477:A",
+      sele: "294:A or 418:A",
       color: "red",
     } );
 
     // atoms that are close in 3D space
     o.addRepresentation( "distance", {
-    atomPair: [
-        [ "329:A.CA", "477:A.CA" ],
-    ],
-    scale: 0.5,
-    color: "element",
-    labelVisible: true
-} );
+        atomPair: [
+            [ "294:A.CA", "418:A.CA" ],
+        ],
+        scale: 0.5,
+        color: "element",
+        labelVisible: true
+    } );
 
 } );

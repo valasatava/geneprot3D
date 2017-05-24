@@ -127,6 +127,14 @@
 		</dependency>
 		<!-- - - -  -->
 
+		<!-- FreeMarker templates engine dependency -->
+		<dependency>
+			<groupId>org.freemarker</groupId>
+			<artifactId>freemarker</artifactId>
+			<version>2.3.26-incubating</version>
+		</dependency>
+		<!-- - - -  -->
+
 		<!-- LOGGIN -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
