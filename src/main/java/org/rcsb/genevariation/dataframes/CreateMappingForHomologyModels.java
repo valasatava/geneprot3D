@@ -12,11 +12,17 @@ import static org.apache.spark.sql.functions.upper;
 /**
  * Created by yana on 4/13/17.
  */
-public class CreateHomologyMapping {
+public class CreateMappingForHomologyModels {
+
+    /**
+     *
+     * @param path
+     * @throws Exception
+     */
 
     public static void run(String path) throws Exception {
 
-        Dataset<Row> models = HomologyModelsProvider.getAllAsDataFrame();
+        Dataset<Row> models = HomologyModelsProvider.getAsDataFrame(DataLocationProvider.getHumanHomologyModelsLocation());
 
         Dataset<Row> homologues = models.select("uniProtId", "fromPos", "toPos", "similarity", "template", "coordinates")
                 .filter(models.col("similarity").gt(0.3))
@@ -31,9 +37,8 @@ public class CreateHomologyMapping {
                         .and(homologues.col("fromUniprot").equalTo(mapUniprotToPdb.col("uniProtPos")))
                         .and(upper(homologues.col("template")).contains(mapUniprotToPdb.col("pdbId")))
                         .and(upper(homologues.col("template")).contains(mapUniprotToPdb.col("chainId")))
-        )
-                .drop(mapUniprotToPdb.col("insCode"))
-                .drop(mapUniprotToPdb.col("uniProtId"))
+                )
+                .drop(mapUniprotToPdb.col("insCode")).drop(mapUniprotToPdb.col("uniProtId"))
                 .drop(mapUniprotToPdb.col("uniProtPos"))
                 .withColumnRenamed("pdbAtomPos", "fromPdb");
 

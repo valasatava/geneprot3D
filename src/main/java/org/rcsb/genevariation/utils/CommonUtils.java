@@ -1,6 +1,7 @@
 package org.rcsb.genevariation.utils;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +12,8 @@ import java.util.List;
 import org.apache.avro.generic.GenericData;
 import org.apache.spark.sql.Row;
 import org.json.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CommonUtils {
 
@@ -30,7 +33,7 @@ public class CommonUtils {
      * @return
      * @throws Exception
      */
-    private static String readAll(Reader rd) throws Exception {
+    private static String read(Reader rd) throws Exception {
         StringBuilder sb = new StringBuilder();
         int cp;
         while ((cp = rd.read()) != -1) {
@@ -42,21 +45,19 @@ public class CommonUtils {
     /**
      * A utility method to read JSON Array from URL.
      * @param url
-     * @return
+     * @return JSONArray
      * @throws Exception
      */
     public static JSONArray readJsonArrayFromUrl(String url) throws Exception {
-    	
-    	Charset ENCODING = StandardCharsets.UTF_8;
+
         InputStream is = new URL(url).openStream();
-        try {
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, ENCODING));
-            String jsonText = readAll(rd);
-            JSONArray json = new JSONArray(jsonText);
-            return json;
-        } finally {
-            is.close();
-        }
+        Charset ENCODING = StandardCharsets.UTF_8;
+        BufferedReader rd = new BufferedReader(new InputStreamReader(is, ENCODING));
+        String jsonText = read(rd);
+        JSONArray json = new JSONArray(jsonText);
+        is.close();
+
+        return json;
     }
 
     public static void writeListToFile(List<String>results, String filename) throws IOException {

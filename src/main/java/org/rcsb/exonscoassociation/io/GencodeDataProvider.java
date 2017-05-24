@@ -68,16 +68,4 @@ public class GencodeDataProvider {
         gene.setTranscripts(transcripts);
     }
 
-    public int[] getExonOffsets(String chr, int start, int end) {
-
-        List<Row> exons = annotation.filter(col("_c0").equalTo(chr)
-                .and(col("_c1").equalTo(start).and(col("_c2").equalTo(end))))
-                .drop("_c3").drop("_c5").drop("_c6").distinct().collectAsList();
-
-        int[] offsets = new int[exons.size()];
-        for ( int i=0; i<exons.size(); i++ ) {
-            offsets[i]= Integer.valueOf(exons.get(i).getString(3));
-        }
-        return offsets;
-    }
 }

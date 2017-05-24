@@ -23,8 +23,8 @@ import org.rcsb.genevariation.datastructures.Transcript;
 import org.rcsb.genevariation.datastructures.VariantInterface;
 import org.rcsb.genevariation.expression.RNApolymerase;
 import org.rcsb.genevariation.expression.Ribosome;
-import org.rcsb.genevariation.filters.DataProviderFilterSNP;
-import org.rcsb.genevariation.filters.IDataProviderFilter;
+import org.rcsb.genevariation.filters.VariantDataFilterSNP;
+import org.rcsb.genevariation.filters.IVariantDataFilter;
 import org.rcsb.genevariation.parser.GenePredictionsParser;
 import org.rcsb.genevariation.utils.SaprkUtils;
 import org.rcsb.genevariation.utils.VariationUtils;
@@ -159,10 +159,10 @@ public class VariantsDataProvider extends DataLocationProvider {
 	/**
 	 * Gets variation data by applying the given filter.
 	 *
-	 * @param dataFilter - an implementation class of IDataProviderFilter
+	 * @param dataFilter - an implementation class of IVariantDataFilter
 	 * @return An iterator over a collection of Variants
 	 */
-	public Iterator<VariantInterface> getVariantsByFilter(IDataProviderFilter dataFilter) {
+	public Iterator<VariantInterface> getVariantsByFilter(IVariantDataFilter dataFilter) {
 
 		List<VariantInterface> filteredVariants = new ArrayList<VariantInterface>();
 		for (VariantInterface variant : variants) {
@@ -188,7 +188,7 @@ public class VariantsDataProvider extends DataLocationProvider {
 		}
 	}
 
-	public List<Mutation> getMutations(IDataProviderFilter dataFilter) throws Exception {
+	public List<Mutation> getMutations(IVariantDataFilter dataFilter) throws Exception {
 
 		List<Mutation> mutations = new ArrayList<>();
 		List<Transcript> transcripts = GenePredictionsParser.getChromosomeMappings();
@@ -234,7 +234,7 @@ public class VariantsDataProvider extends DataLocationProvider {
 
 	public List<Mutation> getSNPMutations() throws Exception {
 
-		IDataProviderFilter dataFilterVar = new DataProviderFilterSNP();
+		IVariantDataFilter dataFilterVar = new VariantDataFilterSNP();
 		List<Mutation> mutations = getMutations(dataFilterVar);
 		return mutations;
 	}

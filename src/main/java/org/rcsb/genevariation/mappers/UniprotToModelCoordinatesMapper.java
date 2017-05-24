@@ -40,7 +40,7 @@ public class UniprotToModelCoordinatesMapper {
 
     public void setTemplate(String template) {
         coordinates = DataLocationProvider.getHumanHomologyCoordinatesLocation()
-                +template+"_"+String.valueOf(from)+"_"+String.valueOf(to);
+                +template+"_"+String.valueOf(from)+"_"+String.valueOf(to)+".pdb";
     }
 
     public String getCoordinates() {
@@ -49,7 +49,12 @@ public class UniprotToModelCoordinatesMapper {
 
     public void map() throws Exception {
 
-        Structure structure = StructureUtils.getModelStructureFromURL(coordinates);
+        Structure structure = null;
+        try {
+            structure = StructureUtils.getModelStructureLocal(coordinates);
+        } catch (Exception e) {
+            //e.printStackTrace();
+        }
 
         Chain chain = structure.getChainByIndex(0);
         List<Group> groups = chain.getAtomGroups();

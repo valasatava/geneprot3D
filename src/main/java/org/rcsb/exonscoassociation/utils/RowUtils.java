@@ -13,25 +13,28 @@ import java.util.regex.Pattern;
  */
 public class RowUtils {
 
+    private static int chromosomeInd = 0;
+    private static int ensemblIdInd = 2;
+    private static int geneBankIdInd = 3;
     private static int alignmentInd = 17;
 
-    public static String getEnsemblId(Row row) {
-        return row.getString(2);
+    public static String getChromosome(Row row) {
+        return row.getString(chromosomeInd);
     }
-
+    public static String getEnsemblId(Row row) {
+        return row.getString(ensemblIdInd);
+    }
     public static String getGeneBankId(Row row) {
-        return row.getString(3);
+        return row.getString(geneBankIdInd);
     }
 
     public static String getPdbId(Row row) {
-
         String pdbId = row.getString(11);
         if (pdbId.equals("null")) {
             pdbId = row.getString(15).split(Pattern.quote("."))[0];
         }
         return pdbId;
     }
-
     public static String getChainId(Row row) {
 
         String chainId = row.getString(12);
@@ -235,7 +238,11 @@ public class RowUtils {
         mapper.setTo(RowUtils.getModelTo(row));
         mapper.setAlignment(RowUtils.getAlignment(row));
         mapper.setTemplate(RowUtils.getTemplate(row));
-        mapper.map();
+        try {
+            mapper.map();
+        } catch (Exception e) {
+            //e.printStackTrace();
+        }
     }
 
     public static int getStructureStart(Row row) throws Exception {

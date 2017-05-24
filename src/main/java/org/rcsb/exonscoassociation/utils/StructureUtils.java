@@ -4,6 +4,9 @@ import org.biojava.nbio.structure.*;
 import org.biojava.nbio.structure.align.util.AtomCache;
 import org.biojava.nbio.structure.io.LocalPDBDirectory;
 import org.biojava.nbio.structure.io.PDBFileReader;
+import org.rcsb.mmtf.dataholders.MmtfStructure;
+import org.rcsb.mmtf.decoder.ReaderUtils;
+import scala.Tuple2;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -68,6 +71,22 @@ public class StructureUtils {
             }
         }
         return min;
+    }
+
+    public static Tuple2<Atom, Atom> getAtomsAtMinDistance(List<Atom> a1, List<Atom> a2) {
+
+        double min = 999.0d;
+        Tuple2<Atom, Atom> atoms=null;
+        for (Atom aa1 : a1) {
+            for (Atom aa2 : a2) {
+                double distance = Calc.getDistance(aa1, aa2);
+                if (distance < min) {
+                    min = distance;
+                    atoms = new Tuple2<>(aa1, aa2);
+                }
+            }
+        }
+        return atoms;
     }
 
     public static List<Group> getGroupsInRange(List<Group> groups, int start, int end) {
@@ -140,7 +159,12 @@ public class StructureUtils {
     }
 
     public static List<Group> getGroupsFromModel(String path) throws Exception {
-        Structure structure = getModelStructureLocal(path);
+        Structure structure = null;
+        try {
+            structure = getModelStructureLocal(path);
+        } catch (Exception e) {
+            return null;
+        }
         Chain chain = structure.getChainByIndex(0);
         List<Group> groups = chain.getAtomGroups();
         return groups;
@@ -153,15 +177,22 @@ public class StructureUtils {
         return groups;
     }
 
-    public static void main(String[] args) throws IOException, StructureException {
+    public static float getResolution(String pdbId) {
+        float resolution;
+        try {
+            try {
+                MmtfStructure mmtfData = ReaderUtils.getDataFromUrl(pdbId);
+                resolution = mmtfData.getResolution();
 
-        URL url = new URL("https://swissmodel.expasy.org/repository/uniprot/P51530.pdb?range=19-1054&template=5eaw.1.A&provider=swissmodel");
-
-        Structure structure = getBioJavaStructure("3S6N");
-        List<Chain> chains = structure.getChains();
-        Chain chain = structure.getPolyChainByPDB("2");
-        System.out.println(chain.getName());
-
+            } catch (Exception e) {
+                Structure structure = StructureUtils.getBioJavaStructure(pdbId);
+                PDBHeader header = structure.getPDBHeader();
+                resolution = header.getResolution();
+            }
+        } catch (Exception e) {
+            return 0.0f;
+        }
+        return resolution;
     }
 
     public static List<Atom> getResidue(List<Atom> atoms, int resNum) {
@@ -184,5 +215,16 @@ public class StructureUtils {
         return atoms.stream()
                 .filter(a -> a.getGroup().getResidueNumber().getSeqNum()==resNum)
                 .collect(Collectors.toList());
+    }
+
+    public static void main(String[] args) throws IOException, StructureException {
+
+        URL url = new URL("https://swissmodel.expasy.org/repository/uniprot/P51530.pdb?range=19-1054&template=5eaw.1.A&provider=swissmodel");
+
+        Structure structure = getBioJavaStructure("3S6N");
+        List<Chain> chains = structure.getChains();
+        Chain chain = structure.getPolyChainByPDB("2");
+        System.out.println(chain.getName());
+
     }
 }

@@ -1,5 +1,10 @@
 package org.rcsb.genevariation.datastructures;
 
+import org.biojava.nbio.structure.Group;
+
+import java.util.List;
+import java.util.regex.Pattern;
+
 /**
  * Created by yana on 5/9/17.
  */
@@ -19,6 +24,9 @@ public class PeptideRange {
     private boolean experimental;
     private int structCoordsStart=-1;
     private int structCoordsEnd=-1;
+
+    private float resolution=99.0f;
+    private List<Group> structure;
 
     public String getChromosome() {
         return chromosome;
@@ -82,16 +90,54 @@ public class PeptideRange {
     public void setExperimental(boolean experimental) {
         this.experimental = experimental;
     }
-    public int getStructCoordsStart() {
+    public int getStructuralCoordsStart() {
         return structCoordsStart;
     }
     public void setStructuralCoordsStart(int structCoordsStart) {
         this.structCoordsStart = structCoordsStart;
     }
-    public int getStructCoordsEnd() {
+    public int getStructuralCoordsEnd() {
         return structCoordsEnd;
     }
     public void setStructuralCoordsEnd(int structCoordsEnd) {
         this.structCoordsEnd = structCoordsEnd;
+    }
+
+    public String getPdbId() {
+        if (experimental) {
+            return getStructureId().split("_")[0];
+        }
+        else {
+            return getStructureId().split(Pattern.quote("."))[0];
+        }
+    }
+    public String getChainId() {
+        if (experimental) {
+            return getStructureId().split("_")[1];
+        }
+        else {
+            return getStructureId().split(Pattern.quote("."))[2];
+        }
+    }
+
+    public float getResolution() {
+        return resolution;
+    }
+    public void setResolution(float resolution) {
+        this.resolution = resolution;
+    }
+
+    public int getStructureLength() {
+        return (getStructuralCoordsEnd()-getStructuralCoordsStart());
+    }
+    public int getProteinSequenceLength() {
+        return (getUniProtCoordsEnd()-getUniProtCoordsStart());
+    }
+
+    public void setStructure(List<Group> structure) {
+        this.structure = structure;
+    }
+    public List<Group> getStructure() {
+        return structure;
     }
 }

@@ -17,7 +17,6 @@ public class MapToResolution implements Function<Row, Row> {
     @Override
     public Row call(Row row) throws Exception {
 
-        Float resolution;
         String pdbId = RowUtils.getPdbId(row);
 
         // TODO: write a better handling
@@ -25,19 +24,8 @@ public class MapToResolution implements Function<Row, Row> {
             return null;
         }
 
-        try {
-            try {
-                MmtfStructure mmtfData = ReaderUtils.getDataFromUrl(pdbId);
-                resolution = mmtfData.getResolution();
+        float resolution = StructureUtils.getResolution(pdbId);
 
-            } catch (Exception e) {
-                Structure structure = StructureUtils.getBioJavaStructure(pdbId);
-                PDBHeader header = structure.getPDBHeader();
-                resolution = header.getResolution();
-            }
-        } catch (Exception e) {
-            return null;
-        }
         return RowUtils.addField(row, resolution);
     }
 }
