@@ -1,5 +1,7 @@
 #!/bin/bash
 
 mvn install -DskipTests
-mvn exec:java -Dexec.mainClass="org.rcsb.common.dataframes.CreateHumanHomologuesParquetFile"
+export MAVEN_OPTS="-Xmx14G"
+mvn exec:java -Dexec.mainClass="org.rcsb.geneprot.common.dataframes.CreateHumanHomologuesParquetFile"
+
 

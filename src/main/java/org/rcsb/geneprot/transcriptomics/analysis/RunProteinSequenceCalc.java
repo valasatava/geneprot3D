@@ -1,13 +1,13 @@
 package org.rcsb.geneprot.transcriptomics.analysis;
 
-import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.datastructures.ProteinFeatures;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
-import org.rcsb.geneprot.transcriptomics.properties.*;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
+import org.rcsb.geneprot.common.datastructures.ProteinFeatures;
+import org.rcsb.geneprot.common.io.DataLocationProvider;
+import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.transcriptomics.properties.*;
 
 import java.util.List;
 
