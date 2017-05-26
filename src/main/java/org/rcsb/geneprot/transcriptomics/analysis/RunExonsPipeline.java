@@ -1,8 +1,6 @@
 package org.rcsb.geneprot.transcriptomics.analysis;
 
-import org.geneprot.transcriptomics.pipeline.*;
 import org.rcsb.geneprot.transcriptomics.pipeline.*;
-import org.rcsb.transcriptomics.pipeline.*;
 
 public class RunExonsPipeline {
 

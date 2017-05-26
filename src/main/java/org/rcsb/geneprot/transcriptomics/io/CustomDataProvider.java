@@ -12,11 +12,15 @@ import org.rcsb.geneprot.genes.datastructures.Transcript;
 import org.rcsb.geneprot.genes.expression.RNApolymerase;
 import org.rcsb.geneprot.genes.expression.Ribosome;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
+import org.rcsb.geneprot.transcriptomics.datastructures.ExonBoundariesPair;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -134,5 +138,19 @@ public class CustomDataProvider {
 
     public static void main(String args[]) throws Exception {
         runBothIn(DataLocationProvider.getExonsProject()+"DATA/bothIn.tab");
+    }
+
+    public static List<ExonBoundariesPair> getCoordinatedPairs(Path path) throws IOException {
+
+        List<ExonBoundariesPair> pairs = new ArrayList<>();
+        List<String> lines = Files.readAllLines(path);
+        for ( String line : lines ) {
+            String chr = line.split(",")[0].split("_")[0];
+            String e1=line.split(",")[0].split("_")[1];
+            String e2=line.split(",")[1].split("_")[1];
+            ExonBoundariesPair ebp = new ExonBoundariesPair(chr, e1, e2);
+            pairs.add(ebp);
+        }
+        return pairs;
     }
 }
