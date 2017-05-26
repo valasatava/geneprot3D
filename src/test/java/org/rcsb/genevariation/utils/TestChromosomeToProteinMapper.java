@@ -4,9 +4,9 @@ import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.genome.parsers.twobit.TwoBitFacade;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.junit.Test;
-import org.rcsb.genevariation.constants.StrandOrientation;
-import org.rcsb.genevariation.datastructures.Transcript;
-import org.rcsb.genevariation.parser.GenePredictionsParser;
+import org.rcsb.geneprot.genes.constants.StrandOrientation;
+import org.rcsb.geneprot.genes.datastructures.Transcript;
+import org.rcsb.geneprot.genes.parsers.GenePredictionsParser;
 
 import java.io.File;
 import java.util.List;

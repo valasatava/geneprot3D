@@ -3,6 +3,7 @@ package org.rcsb.genevariation.analysis;
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.core.sequence.ProteinSequence;
 import org.junit.Test;
+import org.rcsb.geneprot.transcriptomics.analysis.IsoformsMappingAnalysis;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

@@ -1,4 +1,5 @@
 #!/bin/bash
 
-mvn exec:java -Dexec.mainClass="org.rcsb.genevariation.dataframes.CreateHumanHomologuesParquetFile"
+mvn install -DskipTests
+mvn exec:java -Dexec.mainClass="org.rcsb.common.dataframes.CreateHumanHomologuesParquetFile"
 

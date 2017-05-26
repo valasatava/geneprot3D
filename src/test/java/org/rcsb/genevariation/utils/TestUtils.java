@@ -2,8 +2,9 @@ package org.rcsb.genevariation.utils;
 
 import static org.junit.Assert.*;
 
+import org.rcsb.geneprot.genevariation.utils.VariationUtils;
 import org.junit.Test;
-import org.rcsb.genevariation.constants.VariantType;
+import org.rcsb.geneprot.genevariation.constants.VariantType;
 
 /**
  * Class to test the utility methods
