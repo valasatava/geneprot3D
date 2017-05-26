@@ -1,10 +1,9 @@
 package org.rcsb.geneprot.common.dataframes;
 
-import org.rcsb.geneprot.common.io.HomologyModelsProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
 import org.rcsb.geneprot.common.datastructures.SwissHomology;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-
+import org.rcsb.geneprot.common.io.HomologyModelsProvider;
+import org.rcsb.geneprot.common.utils.SaprkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,56 +20,34 @@ public class CreateHumanHomologuesParquetFile {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateHumanHomologuesParquetFile.class);
 
-    public static List<SwissHomology> getModelsFromSMR() throws Exception {
+    public static void run() throws Exception {
 
         logger.info("Getting the UniProt accessory codes for human proteins...");
+
         String referenceProteome = "9606";
         File file = new File(DataLocationProvider.getHumanModelsJSONFileLocation());
+
         HomologyModelsProvider.downloadJSONFileForReferenceProteome(referenceProteome, file);
         List<String> uniprotIds = HomologyModelsProvider.getUniprotIdsFromJSONFile(file);
+
         logger.info("...done.");
 
         logger.info("Retriving the homolody models from SWISS-MODEL repository...");
-        List<SwissHomology> models = HomologyModelsProvider.getModelsFromSMR(uniprotIds);
+        List<SwissHomology> models = HomologyModelsProvider.getModelsFromSMR(uniprotIds,
+                DataLocationProvider.getHumanHomologyCoordinatesLocation());
         logger.info("...done.");
-
-        return models;
-    }
-
-    public static List<SwissHomology> getModelsFromLocalFile() throws Exception {
-
-        logger.info("Retriving the homolody models from JSON file...");
-        String referenceProteome = "9606";
-        File file = new File(DataLocationProvider.getHumanModelsJSONFileLocation());
-        HomologyModelsProvider.downloadJSONFileForReferenceProteome(referenceProteome, file);
-        List<SwissHomology> models = HomologyModelsProvider.getModelsFromJSONFile(file);
-        logger.info("...done.");
-
-        return models;
-    }
-
-    public static void run() throws Exception {
-
-        List<SwissHomology> models = getModelsFromSMR();
 
         logger.info("Creating the parquet file...");
         HomologyModelsProvider.createParquetFile(models, DataLocationProvider.getHumanHomologyModelsLocation());
-        logger.trace("...done.");
-
-        logger.info("Downloading the structure of models (if missing)");
-        HomologyModelsProvider.downloadCoordinates(models, DataLocationProvider.getHumanHomologyCoordinatesLocation());
-        logger.info("...the task is executed successfully!");
+        logger.info("...parquet file with homology models is created.");
     }
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws Exception {
 
         try { run(); }
 
         catch ( MalformedURLException mfe ) {
-            logger.error("Formatting problem with SWISS-MODEL homology models API URL"); }
-
-        catch (Exception e) {
-            logger.error("Error: something went wrong: " + e.getMessage()); }
+            logger.error("Formatting problem with SWISS-MODEL homology models API URL: "+ mfe.getMessage()); }
 
         finally { SaprkUtils.stopSparkSession(); }
     }
