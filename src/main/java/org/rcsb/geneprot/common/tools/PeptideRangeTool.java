@@ -10,16 +10,18 @@ import org.rcsb.geneprot.common.utils.StructureUtils;
 import org.rcsb.geneprot.common.datastructures.PeptideRange;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.mappers.UniprotToModelCoordinatesMapper;
+import org.rcsb.uniprot.auto.Entry;
+import org.rcsb.uniprot.auto.FeatureType;
+import org.rcsb.uniprot.auto.Uniprot;
+import org.rcsb.uniprot.config.RCSBUniProtMirror;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import javax.xml.bind.JAXBException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -148,17 +150,60 @@ public class PeptideRangeTool {
             return pp; }
     }
 
+    public static PeptideRange annotateResidues(PeptideRange pr, Uniprot up, String featureType) {
+
+        Range<Integer> exonRange = Range.closed(pr.getUniProtCoordsStart(), pr.getUniProtCoordsEnd());
+
+        for(Entry e : up.getEntry()) {
+
+            for (FeatureType ft : e.getFeature()) {
+
+                if (ft.getLocation() != null && ft.getLocation().getPosition() != null &&
+                        ft.getLocation().getPosition().getPosition() != null) {
+
+                    if (ft.getType().equals(featureType)) {
+
+                        if (ft.getLocation() != null && ft.getLocation().getPosition() != null &&
+                                ft.getLocation().getPosition().getPosition() != null) {
+
+                            if (exonRange.contains(ft.getLocation().getPosition().getPosition().intValue())) {
+                                pr.addActiveSiteResidue(ft.getLocation().getPosition().getPosition().intValue());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return pr;
+    }
+
     public static Map getModelForPeptidePair(Tuple2<PeptideRange, PeptideRange> pair) {
 
         Map model = new HashMap();
+
         if (pair._1.isExperimental()) { model.put("source", "rcsb://"+pair._1.getPdbId()+".mmtf"); }
         else { model.put("source", DataLocationProvider.getHumanHomologyCoordinatesLocation()
                 +pair._1.getStructureId()+pair+".pdb"); }
+
         model.put("chain", pair._1.getChainId());
         model.put("start1", pair._1.getStructuralCoordsStart());
         model.put("end1", pair._1.getStructuralCoordsEnd());
         model.put("start2", pair._2.getStructuralCoordsStart());
         model.put("end2", pair._2.getStructuralCoordsEnd());
+        model.put("distRes1", pair._1.getOtherResidues().get(0));
+        model.put("distRes2", pair._2.getOtherResidues().get(0));
+
+        String activeSites = "";
+        List<Integer> sites = new ArrayList<>();
+        sites.addAll(pair._1.getActiveSiteResidues());
+        sites.addAll(pair._2.getActiveSiteResidues());
+        if ( sites.size()!= 0) {
+            activeSites = String.valueOf(sites.get(0))+":"+pair._1.getChainId();
+            for ( int i=1; i<sites.size(); i++ ) {
+                activeSites += " or "+ String.valueOf(sites.get(0))+":"+pair._1.getChainId();
+            }
+        }
+        model.put("activeSites", activeSites);
 
         return model;
     }
