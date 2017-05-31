@@ -2,6 +2,7 @@ package org.rcsb.geneprot.common.datastructures;
 
 import org.biojava.nbio.structure.Group;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -18,17 +19,21 @@ public class PeptideRange {
     private int genomicCoordsStart=-1;
     private int genomicCoordsEnd=-1;
 
-    private String uniProtId;
+    private String uniProtId="";
     private int uniProtCoordsStart=-1;
     private int uniProtCoordsEnd=-1;
 
-    private String structureId;
+    private String structureId="";
     private boolean experimental;
     private int structCoordsStart=-1;
     private int structCoordsEnd=-1;
 
     private float resolution=99.0f;
     private List<Group> structure;
+
+    private List<Integer> otherResidues = new ArrayList<>();
+    private List<Integer> activeSiteResidues = new ArrayList<>();
+    private List<Integer> phosphoSiteResidues = new ArrayList<>();
 
     public String getChromosome() {
         return chromosome;
@@ -125,7 +130,7 @@ public class PeptideRange {
             return getStructureId().split("_")[1];
         }
         else {
-            return getStructureId().split(Pattern.quote("."))[2];
+            return getStructureId().split(Pattern.quote("."))[2].split("_")[0];
         }
     }
 
@@ -148,5 +153,35 @@ public class PeptideRange {
     }
     public List<Group> getStructure() {
         return structure;
+    }
+
+    public List<Integer> getOtherResidues() {
+        return otherResidues;
+    }
+    public void setOtherResidues(List<Integer> otherResidues) {
+        this.otherResidues = otherResidues;
+    }
+    public void addOtherResidue(Integer otherResidue) {
+        this.otherResidues.add(otherResidue);
+    }
+
+    public List<Integer> getActiveSiteResidues() {
+        return activeSiteResidues;
+    }
+    public void setActiveSiteResidues(List<Integer> activeSiteResidues) {
+        this.activeSiteResidues = activeSiteResidues;
+    }
+    public void addActiveSiteResidue(Integer activeSite) {
+        this.activeSiteResidues.add(activeSite);
+    }
+
+    public List<Integer> getPhosphoSiteResidues() {
+        return phosphoSiteResidues;
+    }
+    public void setPhosphoSiteResidues(List<Integer> phosphoSiteResidues) {
+        this.phosphoSiteResidues = phosphoSiteResidues;
+    }
+    public void addPhosphoSiteResidue(Integer phosphoSite) {
+        this.phosphoSiteResidues.add(phosphoSite);
     }
 }

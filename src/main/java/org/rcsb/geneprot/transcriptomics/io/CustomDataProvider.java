@@ -146,8 +146,8 @@ public class CustomDataProvider {
         List<String> lines = Files.readAllLines(path);
         for ( String line : lines ) {
             String chr = line.split(",")[0].split("_")[0];
-            String e1=line.split(",")[0].split("_")[1];
-            String e2=line.split(",")[1].split("_")[1];
+            String e1=line.split(",")[0].split("_")[1]+"_"+line.split(",")[0].split("_")[2];
+            String e2=line.split(",")[1].split("_")[1]+"_"+line.split(",")[1].split("_")[2];
             ExonBoundariesPair ebp = new ExonBoundariesPair(chr, e1, e2);
             pairs.add(ebp);
         }

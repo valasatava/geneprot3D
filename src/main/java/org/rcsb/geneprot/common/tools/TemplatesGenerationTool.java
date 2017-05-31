@@ -20,9 +20,6 @@ public class TemplatesGenerationTool {
 
     public TemplatesGenerationTool() throws IOException {
 
-        //cfg = new Configuration(Configuration.VERSION_2_3_25);
-        //cfg.setLogTemplateExceptions(false);
-
         cfg = new Configuration();
         cfg.setDefaultEncoding("UTF-8");
         cfg.setDirectoryForTemplateLoading(new File( "." ));

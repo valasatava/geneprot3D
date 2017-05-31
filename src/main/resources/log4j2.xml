@@ -32,6 +32,9 @@
 		<Logger name="org.biojava" level="error" additivity="false">
 			<appender-ref ref="console"/>
 		</Logger>
+		<Logger name="org.biojava.nbio.core.util.FlatFileCache" level="off" additivity="false">
+			<appender-ref ref="console"/>
+		</Logger>
 
 		<!-- Spark info messages -->
 

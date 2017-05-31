@@ -25,18 +25,27 @@ stage.loadFile(structure).then( function( o ){
 
     // residues that are close in 3D space
     o.addRepresentation( "ball+stick", {
-      sele: "${resn1}:${chain} or ${resn2}:${chain}",
-      color: "red",
+      sele: "${distRes1}:${chain}",
+      color: "green",
+    } );
+    o.addRepresentation( "ball+stick", {
+        sele: "${distRes2}:${chain}",
+        color: "blue",
     } );
 
     // atoms that are close in 3D space
     o.addRepresentation( "distance", {
         atomPair: [
-            [ "${resn1}:${chain}.CA", "${resn2}:${chain}.CA" ],
+            [ "${distRes1}:${chain}.CA", "${distRes2}:${chain}.CA" ],
         ],
         scale: 0.5,
         color: "element",
         labelVisible: true
     } );
+
+    // active sites residues
+    "${activeSitesSelection}"
+
+    stage.autoView();
 
 } );
