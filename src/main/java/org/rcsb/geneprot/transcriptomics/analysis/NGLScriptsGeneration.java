@@ -49,7 +49,7 @@ public class NGLScriptsGeneration {
         List<PeptideRange> mapping2 = mapper.mapGeneticCoordinatesToPeptideRange(chromosome,
                                                 Integer.valueOf(exon2.split("_")[0]),
                                                 Integer.valueOf(exon2.split("_")[1]));
-        if (mapping1.size()==0 || mapping2.size()!=0) {
+        if (mapping1.size()==0 || mapping2.size()==0) {
             logger.info( mapping1.size()==0 ?
                     chr + " " + exon1 + " cannot be mapped to 3D coordinates" :
                     chr + " " + exon2 + " cannot be mapped to 3D coordinates");
@@ -93,7 +93,7 @@ public class NGLScriptsGeneration {
 
             String pathToTemplate = DataLocationProvider.getExonsProjectResults() + "/ngl_scripts/"+
                     pair._1.getGeneName()+"_"+pair._1.getChromosome()+"_"+exon1+"-"+exon2+"_"+
-                    String.valueOf(distance1D)+
+                    String.valueOf(distance1D)+"_"+
                     String.valueOf(Math.round(distance3D))+".js";
 
             Template template = templateTool.getNGLtemplate();
@@ -118,11 +118,16 @@ public class NGLScriptsGeneration {
             logger.error("Cannot get coordinated pairs: " + e.getMessage()); }
 
         for (ExonBoundariesPair pair : pairs) {
+            if ( ! ( pair.getChromosome().equals("chr2") &&
+                     pair.getExon1().equals("121409024_121409047") &&
+                     pair.getExon2().equals("121444939_121444962")) )
+                continue;
             createForBoundariesPair(pair.getChromosome(),
                     pair.getExon1(), pair.getExon2()); }
     }
 
     public static void main(String[] args) {
-         run();
+        run();
+        SaprkUtils.getSparkSession().stop();
     }
 }

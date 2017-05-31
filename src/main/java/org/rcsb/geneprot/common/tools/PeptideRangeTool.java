@@ -34,15 +34,19 @@ public class PeptideRangeTool {
     public static Tuple2<PeptideRange, PeptideRange> getBestPair(List<PeptideRange> mapping1,
                                                                  List<PeptideRange> mapping2) {
 
-        Set<String> s1 = mapping1.stream().map(t -> t.getStructureId()).collect(Collectors.toSet());
-        Set<String> s2 = mapping2.stream().map(t -> t.getStructureId()).collect(Collectors.toSet());
-        Sets.SetView<String> intersection = Sets.intersection(s1, s2);
+        Set<String> s1 = mapping1.stream().map(t -> t.getStructureId()).filter(t -> !t.equals("")).collect(Collectors.toSet());
+        Set<String> s2 = mapping2.stream().map(t -> t.getStructureId()).filter(t -> !t.equals("")).collect(Collectors.toSet());
+        Set<String> intersection = Sets.intersection(s1, s2);
 
         int coverage=0;
         Tuple2<PeptideRange, PeptideRange> pair = null;
-        for (String structureId : intersection) {
+        Iterator<String> it = intersection.iterator();
 
-            PeptideRange r1 = mapping1.stream().filter(t -> t.getStructureId().equals(structureId))
+        while (it.hasNext()) {
+
+            String structureId = it.next();
+
+            PeptideRange r1  = mapping1.stream().filter(t -> t.getStructureId().equals(structureId))
                     .collect(Collectors.toList()).get(0);
             PeptideRange r2 = mapping2.stream().filter(t -> t.getStructureId().equals(structureId))
                     .collect(Collectors.toList()).get(0);
@@ -152,7 +156,7 @@ public class PeptideRangeTool {
 
     public static PeptideRange annotateResidues(PeptideRange pr, Uniprot up, String featureType) {
 
-        Range<Integer> exonRange = Range.closed(pr.getUniProtCoordsStart(), pr.getUniProtCoordsEnd());
+        Range<Integer> range = Range.closed(pr.getUniProtCoordsStart(), pr.getUniProtCoordsEnd());
 
         for(Entry e : up.getEntry()) {
 
@@ -166,7 +170,7 @@ public class PeptideRangeTool {
                         if (ft.getLocation() != null && ft.getLocation().getPosition() != null &&
                                 ft.getLocation().getPosition().getPosition() != null) {
 
-                            if (exonRange.contains(ft.getLocation().getPosition().getPosition().intValue())) {
+                            if (range.contains(ft.getLocation().getPosition().getPosition().intValue())) {
                                 pr.addActiveSiteResidue(ft.getLocation().getPosition().getPosition().intValue());
                             }
                         }
@@ -183,7 +187,7 @@ public class PeptideRangeTool {
 
         if (pair._1.isExperimental()) { model.put("source", "rcsb://"+pair._1.getPdbId()+".mmtf"); }
         else { model.put("source", DataLocationProvider.getHumanHomologyCoordinatesLocation()
-                +pair._1.getStructureId()+pair+".pdb"); }
+                +pair._1.getStructureId()+".pdb"); }
 
         model.put("chain", pair._1.getChainId());
         model.put("start1", pair._1.getStructuralCoordsStart());
@@ -202,8 +206,12 @@ public class PeptideRangeTool {
             for ( int i=1; i<sites.size(); i++ ) {
                 activeSites += " or "+ String.valueOf(sites.get(0))+":"+pair._1.getChainId();
             }
+            String activeSitesSelection = "o.addRepresentation( " + '"' + "ball+stick" + '"' + ", { sele: " + '"' + "${" + activeSites + "}" + '"' + ", color: " + '"' + "red" + '"' + ",} );";
+            model.put("activeSitesSelection", activeSitesSelection);
         }
-        model.put("activeSites", activeSites);
+        else {
+            model.put("activeSitesSelection", "");
+        }
 
         return model;
     }

@@ -44,10 +44,7 @@ stage.loadFile(structure).then( function( o ){
     } );
 
     // active sites residues
-    o.addRepresentation( "ball+stick", {
-        sele: "${activeSites}",
-        color: "red",
-    } );
+    "${activeSitesSelection}"
 
     stage.autoView();
 

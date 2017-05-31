@@ -15,7 +15,7 @@ public class PrintUniprotFeatures {
 
     public static void main(String args[]) throws FileNotFoundException, JAXBException {
 
-        String uniProtId = "P38398";
+        String uniProtId = "P13569";
         Uniprot up = RCSBUniProtMirror.getUniProtFromFile(uniProtId);
 
         for(Entry e : up.getEntry()){

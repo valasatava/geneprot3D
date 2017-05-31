@@ -19,11 +19,11 @@ public class PeptideRange {
     private int genomicCoordsStart=-1;
     private int genomicCoordsEnd=-1;
 
-    private String uniProtId;
+    private String uniProtId="";
     private int uniProtCoordsStart=-1;
     private int uniProtCoordsEnd=-1;
 
-    private String structureId;
+    private String structureId="";
     private boolean experimental;
     private int structCoordsStart=-1;
     private int structCoordsEnd=-1;
@@ -130,7 +130,7 @@ public class PeptideRange {
             return getStructureId().split("_")[1];
         }
         else {
-            return getStructureId().split(Pattern.quote("."))[2];
+            return getStructureId().split(Pattern.quote("."))[2].split("_")[0];
         }
     }
 
