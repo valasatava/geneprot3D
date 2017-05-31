@@ -299,7 +299,9 @@ public class RowUtils {
 
     public static Row mapToFeatureRange(FeatureType ft, Range<Integer> coveredRange, Row row) {
 
-        row = RowUtils.addField(row, ft.getDescription());
+        if (ft.getType().equals("transmembrane region")) {row = RowUtils.addField(row, ft.getDescription() +";transmembrane"); }
+        else { row = RowUtils.addField(row, ft.getDescription()); }
+
         row = RowUtils.addField(row, coveredRange.lowerEndpoint());
         row = RowUtils.addField(row, coveredRange.upperEndpoint());
         return row;

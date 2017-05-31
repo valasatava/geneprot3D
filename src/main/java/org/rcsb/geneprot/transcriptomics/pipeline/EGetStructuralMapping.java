@@ -12,7 +12,7 @@ import org.rcsb.geneprot.common.utils.SaprkUtils;
  */
 public class EGetStructuralMapping {
 
-    public static void combinePDBStructuresAndHomologyModels(String pdbMapping, String homologyMapping, String structuralMapping) {
+    public static void combinePDBStructuresAndHomologyModels(String pdbMapping, String homologyMapping, String whereToWriteMapping) {
 
         Dataset<Row> mapUniprotToPdb = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getUniprotPdbMappinlLocation());
         mapUniprotToPdb.persist();
@@ -42,13 +42,13 @@ public class EGetStructuralMapping {
 
             Dataset<Row> df3 = df1.union(df2).orderBy("start","end");
 
-            df3.write().mode(SaveMode.Overwrite).parquet(structuralMapping+"/"+chr);
+            df3.write().mode(SaveMode.Overwrite).parquet(whereToWriteMapping+"/"+chr);
         }
     }
 
     public static void runGencodeV24() throws Exception {
         combinePDBStructuresAndHomologyModels(DataLocationProvider.getGencodePDBLocation(),
-                DataLocationProvider.getGencodeHomologyModelsLocation(),
+                DataLocationProvider.getGencodeHomologyMappingLocation(),
                 DataLocationProvider.getGencodeStructuralMappingLocation());
     }
 

@@ -45,18 +45,18 @@ public class DataLocationProvider {
 
 	//Gencode v.24 data
 	private final static String gencodeProteinCodingDataLocation = getExonsProject()
-			+"GENCODE_DATA/gencode.v24.CDS.protein_coding.gtf";
+			+"GENCODE_DATA/gencode.v24.CDS.gtf";
 
 	private final static String gencodeGeneBankLocation = getExonsProject()
-			+"MAPS/gencode.v24.CDS.protein_coding.gene_bank_mapping";
+			+"MAPS/gencode.v24.CDS.gene_bank_mapping";
 	private final static String gencodeUniprotLocation = DataLocationProvider.getExonsProject()
-			+"MAPS/gencode.v24.CDS.protein_coding.uniprot_mapping";
+			+"MAPS/gencode.v24.CDS.uniprot_mapping";
 	private final static String gencodePDBLocation = DataLocationProvider.getExonsProject()
-			+"MAPS/gencode.v24.CDS.protein_coding.pdb_mapping";
-	private final static String gencodeHomologyModelsLocation = DataLocationProvider.getExonsProject()
-			+"MAPS/gencode.v24.CDS.protein_coding.homology_mapping";
+			+"MAPS/gencode.v24.CDS.pdb_mapping";
+	private final static String gencodeHomologyMappingLocation = DataLocationProvider.getExonsProject()
+			+"MAPS/gencode.v24.CDS.homology_mapping";
 	private final static String gencodeStructuralMappingLocation = DataLocationProvider.getExonsProject()
-			+"MAPS/gencode.v24.CDS.protein_coding.structural_mapping";
+			+"MAPS/gencode.v24.CDS.structural_mapping";
 
 	// Correlated exons data
 	private final static String exonsProteinCodingDataLocation = getExonsProject()
@@ -148,8 +148,8 @@ public class DataLocationProvider {
 	public static String getGencodePDBLocation() {
 		return gencodePDBLocation;
 	}
-	public static String getGencodeHomologyModelsLocation() {
-		return gencodeHomologyModelsLocation;
+	public static String getGencodeHomologyMappingLocation() {
+		return gencodeHomologyMappingLocation;
 	}
 	public static String getGencodeStructuralMappingLocation() {
 		return gencodeStructuralMappingLocation;

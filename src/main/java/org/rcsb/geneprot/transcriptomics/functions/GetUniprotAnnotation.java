@@ -57,14 +57,22 @@ public class GetUniprotAnnotation {
 
     public static void main(String[] args) throws IOException, JAXBException {
 
-        //MapToUniprotFeature f = new MapToUniprotFeature("domain");
-        //String filename = DataLocationProvider.getExonsProjectResults()+"gencode.v24.CDS.uniprot_domains.csv";
+//        MapToUniprotFeature f = new MapToUniprotFeature("domain");
+//        String filename = DataLocationProvider.getExonsProjectResults()+"gencode.v24.CDS.uniprot_domains.csv";
 
-        MapToUniprotFeature f = new MapToUniprotFeature("active site");
-        String filename = DataLocationProvider.getExonsProjectResults()+"gencode.v24.CDS.uniprot_active_sites.csv";
+//        MapToUniprotFeature f = new MapToUniprotFeature("active site");
+//        String filename = DataLocationProvider.getExonsProjectResults()+"gencode.v24.CDS.uniprot_active_sites.csv";
 
-        List<String> results = run(f);
+        MapToUniprotFeature f1 = new MapToUniprotFeature("topological domain");
+        MapToUniprotFeature f2 = new MapToUniprotFeature("transmembrane region");
+        String filename = DataLocationProvider.getExonsProjectResults()+"gencode.v24.CDS.topological_domains.csv";
 
+        List<String> results1 = run(f1);
+        List<String> results2 = run(f2);
+
+        List<String> results = new ArrayList<>();
+        results.addAll(results1);
+        results.addAll(results2);
         FileWriter writer = new FileWriter(filename);
         for(String str: results) {
             writer.write(str);
