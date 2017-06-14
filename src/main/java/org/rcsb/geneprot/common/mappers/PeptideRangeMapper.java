@@ -109,13 +109,11 @@ public class PeptideRangeMapper {
 
     public static void main(String[] args) throws IOException {
 
-        String path = DataLocationProvider.getExonsProjectData() + "/exons_of_interesting_genes.txt";
-        List<String> lines = Files.readAllLines(Paths.get(path));
-        for (String line : lines) {
-            String chr = line.split(",")[2];
-            String r1 = line.split(",")[3];
-            String r2 = line.split(",")[4];
-            NGLScriptsGeneration.createForBoundariesPair(chr, r1, r2);
-        }
+        String chr = "chr7";
+        String r1 = "108168277_108168402";
+        String r2 = "108166921_108167073";
+
+        NGLScriptsGeneration.createForBoundariesPair(chr, r1, r2);
+
     }
 }
