@@ -8,13 +8,18 @@ import org.rcsb.uniprot.auto.Entry;
 import org.rcsb.uniprot.auto.FeatureType;
 import org.rcsb.uniprot.auto.Uniprot;
 import org.rcsb.uniprot.config.RCSBUniProtMirror;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by yana on 4/25/17.
  */
 public class MapToUniprotFeature implements Function<Row, Row> {
 
+    private static final Logger logger = LoggerFactory.getLogger(MapToUniprotFeature.class);
+
     private static String featureType;
+
     public MapToUniprotFeature(String feature) {
         featureType = feature;
     }
@@ -35,37 +40,40 @@ public class MapToUniprotFeature implements Function<Row, Row> {
 
         Row mapped = null;
         Uniprot up = RCSBUniProtMirror.getUniProtFromFile(uniProtId);
-        try {
-            for(Entry e : up.getEntry()) {
-                for (FeatureType ft : e.getFeature()) {
-                    if ( ft.getLocation() != null && ft.getLocation().getPosition() != null && ft.getLocation().getPosition().getPosition() != null) {
 
-                        if ( ft.getType().equals(featureType) ) {
+        for (Entry e : up.getEntry()) {
+            for (FeatureType ft : e.getFeature()) {
 
-                            // ranged features
-                            if ( ft.getLocation() != null && ft.getLocation().getBegin() != null && ft.getLocation().getEnd() != null)
-                            {
-                                Range<Integer> featureRange = Range.closed(ft.getLocation().getBegin().getPosition().intValue(),
-                                        ft.getLocation().getEnd().getPosition().intValue());
+                //if (ft.getType().equals(featureType)) {
+                if (ft.getType().equals("topological domain") || ft.getType().equals("transmembrane region")) {
 
-                                if (featureRange.isConnected(exonRange)) {
-                                    Range<Integer> coveredRange = featureRange.intersection(exonRange);
-                                    mapped = RowUtils.mapToFeatureRange(ft, coveredRange, row);
-                                }
-                            }
-                            // single resiude position features
-                            else if ( ft.getLocation() != null && ft.getLocation().getPosition() != null && ft.getLocation().getPosition().getPosition() != null)
-                            {
-                                if ( exonRange.contains(ft.getLocation().getPosition().getPosition().intValue()) ) {
-                                    mapped = RowUtils.mapToFeatureResidue(ft, ft.getLocation().getPosition().getPosition().intValue(), row);
-                                }
+                    try {
+                        // ranged features
+                        if (ft.getLocation() != null &&
+                            ft.getLocation().getBegin() != null && ft.getLocation().getBegin().getPosition() != null &&
+                            ft.getLocation().getEnd() != null && ft.getLocation().getEnd().getPosition() != null) {
+
+                            Range<Integer> featureRange = Range.closed(ft.getLocation().getBegin().getPosition().intValue(),
+                                    ft.getLocation().getEnd().getPosition().intValue());
+
+                            if (featureRange.isConnected(exonRange)) {
+                                Range<Integer> coveredRange = featureRange.intersection(exonRange);
+                                mapped = RowUtils.mapToFeatureRange(ft, coveredRange, row);
+                                logger.info(uniProtId + " has " + featureType + " mapped");
                             }
                         }
+                        // single resiude position features
+                        else if (ft.getLocation() != null && ft.getLocation().getPosition() != null && ft.getLocation().getPosition().getPosition() != null) {
+                            if (exonRange.contains(ft.getLocation().getPosition().getPosition().intValue())) {
+                                mapped = RowUtils.mapToFeatureResidue(ft, ft.getLocation().getPosition().getPosition().intValue(), row);
+                                logger.info(uniProtId + " has " + featureType + " mapped");
+                            }
+                        }
+                    } catch (Exception err) {
+                        logger.error(uniProtId+": "+err.getMessage());
                     }
                 }
             }
-        } catch (Exception e) {
-            System.out.println("NOT FOUND: "+uniProtId);
         }
         return mapped;
     }
