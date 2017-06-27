@@ -16,7 +16,7 @@
 		<log4j.version>2.6.1</log4j.version>
 		<spark.version>2.1.0</spark.version>
 		<biojava.version>5.0.0-SNAPSHOT</biojava.version>
-		<uniprot.version>2017.04.13-SNAPSHOT</uniprot.version>
+		<uniprot.version>2017.06.15.01</uniprot.version>
 	</properties>
 	
 	<dependencies>
