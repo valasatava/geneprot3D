@@ -38,8 +38,8 @@ public class DataLocationProvider {
 			+ "parquet/metal-binding-residues";
 
 	// Mappings
-	private final static String hgMappingLocation = getUserHome()
-			+ "/spark/parquet/humangenome/20170413/hg38/";
+	private final static String hgMappingLocation = getDataHome()
+			+ "/parquet/hg38/";
 	private final static String uniprotPdbMappinlLocation = getDataHome()
 			+ "/parquet/uniprot-pdb/20161104/";
 
