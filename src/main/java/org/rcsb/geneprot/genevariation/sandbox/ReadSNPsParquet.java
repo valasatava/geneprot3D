@@ -16,7 +16,7 @@ import java.io.IOException;
  */
 public class ReadSNPsParquet {
 
-	private final static String path = DataLocationProvider.getDataHome() + "variations.parquet";
+	private final static String path = DataLocationProvider.getDataHome() + "variation";
 	
 	public static void main(String[] args) throws IOException {
 		
