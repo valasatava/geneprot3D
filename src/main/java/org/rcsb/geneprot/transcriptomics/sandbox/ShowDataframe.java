@@ -14,12 +14,9 @@ public class ShowDataframe {
 
     public static void main(String[] args) {
 
-        Dataset<Row>  df2 = SaprkUtils.getSparkSession().read()
-                .format("com.databricks.spark.csv")
-                .option("delimiter", "\t")
-                .option("header", "true")
-                .load("/Users/yana/Projects/mmtf_workshop/oncokb_variants_missense.txt");
-        df2.show();
+        Dataset<Row>  d = SaprkUtils.getSparkSession().read()
+                .parquet(DataLocationProvider.getUniprotPdbMappinlLocation());
+        d.filter(col("pdbId").equalTo("5IRC").and(col("chainId").equalTo("F"))).show();
 
         SaprkUtils.stopSparkSession();
     }
