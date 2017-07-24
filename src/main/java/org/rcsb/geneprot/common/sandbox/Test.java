@@ -16,17 +16,15 @@ public class Test {
 
     public static void main(String[] args) throws Exception {
 
-//        Dataset<Row> gene2acc = SaprkUtils.getSparkSession()
-//                .read().format("com.databricks.spark.csv")
-//                .option("delimiter", "\t").option("header", "true")
-//                .load("/Users/yana/Downloads/gene2accession")
-//                .withColumnRenamed("`protein_accession.version`", "protein_accession")
-//                .select(col("GeneID"), split(col("protein_accession"), "\\."))
-//                .filter(not(col("protein_accession").equalTo("-")))
-//                .filter(not(col("protein_accession").contains("_")));
-//        gene2acc.show();
-
-        System.out.println("ok");
+        Dataset<Row> gene2acc = SaprkUtils.getSparkSession()
+                .read().format("com.databricks.spark.csv")
+                .option("delimiter", "\t").option("header", "true")
+                .load("/Users/yana/Downloads/gene2accession")
+                .withColumnRenamed("`protein_accession.version`", "protein_accession")
+                .select(col("GeneID"), split(col("protein_accession"), "\\."))
+                .filter(not(col("protein_accession").equalTo("-")))
+                .filter(not(col("protein_accession").contains("_")));
+        gene2acc.show();
 
     }
 }

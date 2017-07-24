@@ -14,15 +14,12 @@ public class ShowDataframe {
 
     public static void main(String[] args) {
 
-        Dataset<Row>  df = SaprkUtils.getSparkSession().read()
-                .parquet("/Users/yana/data/parquet/dataframes.rcsb.org/parquet/humangenome/20170413/hg38/chr17");
-
-        //df.show();
-
-        df.createOrReplaceTempView("hgMapping");
-        df.sqlContext().sql("SELECT chromosome, position, geneSymbol, uniProtId, " +
-                "uniProtCanonicalPos, isoformIndex, uniProtIsoformPos FROM hgMapping " +
-                "WHERE position IN (76091144, 76091235) ORDER BY position, isoformIndex").show();
+        Dataset<Row>  df2 = SaprkUtils.getSparkSession().read()
+                .format("com.databricks.spark.csv")
+                .option("delimiter", "\t")
+                .option("header", "true")
+                .load("/Users/yana/Projects/mmtf_workshop/oncokb_variants_missense.txt");
+        df2.show();
 
         SaprkUtils.stopSparkSession();
     }
