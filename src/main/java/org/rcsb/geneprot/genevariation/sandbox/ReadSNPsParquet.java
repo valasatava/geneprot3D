@@ -16,7 +16,7 @@ import java.io.IOException;
  */
 public class ReadSNPsParquet {
 
-	private final static String path = DataLocationProvider.getDataHome() + "variation";
+	private final static String path = DataLocationProvider.getDataHome() + "parquet/variations";
 	
 	public static void main(String[] args) throws IOException {
 		
@@ -29,6 +29,7 @@ public class ReadSNPsParquet {
         
         Dataset<Row> uniprotpdb = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getUniprotPdbMappinlLocation());
         uniprotpdb.createOrReplaceTempView("uniprotpdb");
+		//uniprotpdb.show();
 
         Dataset<Row> metals = MetalBindingDataProvider.readParquetFile();
         metals.createOrReplaceTempView("metals");
@@ -40,17 +41,18 @@ public class ReadSNPsParquet {
 			System.out.println("getting the data for the chromosome "+ chr);
 			Dataset<Row> chromMapping = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHgMappingLocation()+chr);
 			chromMapping.createOrReplaceTempView("hgmapping");
+			//chromMapping.show();
 			System.out.println("...done");
 			
 			// uniprotpdb.pdbId, uniprotpdb.pdbAtomPos as pdbResNum,
 	        Dataset<Row> mutationsMapping = SaprkUtils.getSparkSession().sql("select hgmapping.geneSymbol, mutations.geneBankId, hgmapping.chromosome, hgmapping.position, "
-	        		+ "hgmapping.uniProtId, hgmapping.uniProtPos, uniprotpdb.pdbId, uniprotpdb.chainId, uniprotpdb.pdbAtomPos, mutations.refAminoAcid, mutations.mutAminoAcid from mutations " +
+	        		+ "hgmapping.uniProtId, hgmapping.uniProtCanonicalPos, uniprotpdb.pdbId, uniprotpdb.chainId, uniprotpdb.pdbAtomPos, mutations.refAminoAcid, mutations.mutAminoAcid from mutations " +
 	                "inner join hgmapping on ( hgmapping.chromosome = mutations.chromosomeName and hgmapping.position = mutations.position ) "+
-	        		"left join uniprotpdb on (uniprotpdb.uniProtId = hgmapping.uniProtId and uniprotpdb.uniProtPos = hgmapping.uniProtPos) order by position");
+	        		"left join uniprotpdb on (uniprotpdb.uniProtId = hgmapping.uniProtId and uniprotpdb.uniProtPos = hgmapping.uniProtCanonicalPos) order by position");
 	        mutationsMapping.createOrReplaceTempView("mutationsMapping");
 	        
 	        Dataset<Row> newdf = SaprkUtils.getSparkSession().sql("select mutationsMapping.geneSymbol, mutationsMapping.geneBankId, mutationsMapping.chromosome, mutationsMapping.position, "
-	        		+ "mutationsMapping.uniProtId, mutationsMapping.uniProtPos, mutationsMapping.pdbId, mutationsMapping.chainId, mutationsMapping.pdbAtomPos as pdbResNum, "
+	        		+ "mutationsMapping.uniProtId, mutationsMapping.uniProtCanonicalPos, mutationsMapping.pdbId, mutationsMapping.chainId, mutationsMapping.pdbAtomPos as pdbResNum, "
 	        		+ "metals.resName, metals.cofactorName, metals.cofactorResNumber, mutationsMapping.refAminoAcid, mutationsMapping.mutAminoAcid "
 	        		+ "from mutationsMapping left join metals on (mutationsMapping.pdbId=metals.pdbId and mutationsMapping.chainId=metals.chainId and mutationsMapping.pdbAtomPos=metals.resNumber)");
 	        newdf.createOrReplaceTempView("mutationsmetals");

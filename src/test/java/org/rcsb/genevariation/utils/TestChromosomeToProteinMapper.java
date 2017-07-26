@@ -4,6 +4,7 @@ import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.genome.parsers.twobit.TwoBitFacade;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.junit.Test;
+import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.genes.constants.StrandOrientation;
 import org.rcsb.geneprot.genes.datastructures.Transcript;
 import org.rcsb.geneprot.genes.parsers.GenePredictionsParser;
@@ -43,8 +44,8 @@ public class TestChromosomeToProteinMapper {
 						"TACCGTTAA");
 		
 		ChromosomeMappingTools mapper = new ChromosomeMappingTools();
-		
-		File f = new File(System.getProperty("user.home")+"/data/genevariation/hg38.2bit");
+
+		File f = new File(DataLocationProvider.getHumanGenomeLocation());
 		TwoBitFacade twoBitFacade = new TwoBitFacade(f);
 		
 		Character orientation='+';
@@ -95,7 +96,7 @@ public class TestChromosomeToProteinMapper {
 		
 		ChromosomeMappingTools mapper = new ChromosomeMappingTools();
 		
-		File f = new File(System.getProperty("user.home")+"/data/genevariation/hg38.2bit");
+		File f = new File(DataLocationProvider.getHumanGenomeLocation());
 		TwoBitFacade twoBitFacade = new TwoBitFacade(f);
 		
 		Character orientation='+';
