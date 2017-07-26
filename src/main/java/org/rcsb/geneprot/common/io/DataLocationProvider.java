@@ -12,6 +12,7 @@ public class DataLocationProvider {
 	
 	private final static String userHome = System.getProperty("user.home");
 	private final static String dataHome = getUserHome()+"/data/";
+	private final static String sparkHome = getUserHome() + "/spark/";
 	private final static String projectsHome = getUserHome()+"/Projects/";
 
 	// Collaboration projects
@@ -38,8 +39,8 @@ public class DataLocationProvider {
 			+ "parquet/metal-binding-residues";
 
 	// Mappings
-	private final static String hgMappingLocation = getDataHome()
-			+ "/parquet/hg38/";
+	private final static String hgMappingLocation = getSparkHome()
+			+ "parquet/humangenome/20170413/hg38";
 	private final static String uniprotPdbMappinlLocation = getDataHome()
 			+ "/parquet/uniprot-pdb/20161104/";
 
@@ -81,6 +82,8 @@ public class DataLocationProvider {
 	public static String getDataHome() {
 		return dataHome;
 	}
+	public static String getSparkHome() {return sparkHome;}
+
 	public static String getProjectsHome() {
 		return projectsHome;
 	}

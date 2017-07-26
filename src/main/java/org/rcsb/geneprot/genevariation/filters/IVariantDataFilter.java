@@ -3,7 +3,7 @@ package org.rcsb.geneprot.genevariation.filters;
 import org.rcsb.geneprot.genevariation.datastructures.VariantInterface;
 
 /**
- * This Interface provides the facility to provide the custom filtering logic based on the needs. 
+ * This Interface provides custom filtering logic based on the needs.
  * User can create the custom filter class by implementing this filter and invoke the filter based methods 
  * to apply the filter.
  * 
