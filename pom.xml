@@ -21,6 +21,13 @@
 	
 	<dependencies>
 
+		<!-- Spark datamining dependency -->
+		<dependency>
+			<groupId>org.rcsb</groupId>
+			<artifactId>spark-datamining</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+
 		<!-- BioJava dependency -->
 		<dependency>
 			<groupId>org.biojava</groupId>
