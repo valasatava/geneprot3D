@@ -33,12 +33,30 @@ import java.util.*;
 
 /**
  */
-public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,SparkGeneChromosomePosition>, String,UniprotGeneMapping> {
+public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String, SparkGeneChromosomePosition>, String,UniprotGeneMapping> {
 
     private static final Logger PdbLogger = LoggerFactory.getLogger(GetUniprotGeneMapping.class);
 
+    private static Map<String, String> genes;
+    private static Map<String, String> uniprotIds;
+    private static UniprotDAO uniprotDAO;
+
+    public GetUniprotGeneMapping()  throws Exception
+    {
+        try {
+            uniprotDAO = new UniprotDAOImpl();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (genes == null)
+            genes = MetadataDAO.getGeneSymbols();
+        if (uniprotIds == null)
+            uniprotIds = MetadataDAO.getGeneSwissProt();
+    }
+
     @Override
-    public Iterator<Tuple2<String,UniprotGeneMapping>> call(Tuple2<String, SparkGeneChromosomePosition> position) throws Exception
+    public Iterator<Tuple2<String, UniprotGeneMapping>> call(Tuple2<String, SparkGeneChromosomePosition> position) throws Exception
     {
         List<Tuple2<String, UniprotGeneMapping>> data = new ArrayList<>();
 
@@ -46,10 +64,6 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
         SparkGeneChromosomePosition chromosomePosition = position._2;
 
         String geneSymbol = chromosomePosition.getGeneName();
-
-        Map<String, String> genes = MetadataDAO.getGeneSymbols();
-        Map<String, String> uniprotIds = MetadataDAO.getGeneSwissProt();
-
         Set<String> keys = CommonUtils.getKeysByValue(genes, geneSymbol);
         List<String> uniprots = new ArrayList<>();
         for (String transcriptId : keys) {
@@ -57,46 +71,45 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
             if (uid != null && ! uniprots.contains(uid))
                 uniprots.add(uid);
         }
+
+        if (uniprots.size()==0)
+            return data.iterator();
+
         String uniProtId = uniprots.get(0);
-
-        EntityManager upEM = JpaUtilsUniProt.getEntityManager();
-
         if(StringUtils.isBlank(uniProtId))
             return data.iterator();
 
         // there is a data issue on chr2 where two IDs are merged by a comma
         int cpos = uniProtId.indexOf(",");
-        if (  cpos > -1){
-            uniProtId = uniProtId.substring(0,cpos);
+        if (  cpos > -1) {
+            uniProtId = uniProtId.substring(0, cpos);
         }
 
-        UniprotDAO uniprotDAO = new UniprotDAOImpl();
-
+        EntityManager upEM = JpaUtilsUniProt.getEntityManager();
         Uniprot uniProt = uniprotDAO.getUniProt(upEM, uniProtId);
 
         if(uniProt == null)
             return data.iterator();
 
-        PdbLogger.debug("Processing chromosome/gene name/uniProtId: " + chromosome + "/" + chromosomePosition.getGeneName() + "/" + uniProtId);
+        PdbLogger.info("Processing chromosome/gene name/uniProtId: " + chromosome + "/" + chromosomePosition.getGeneName() + "/" + uniProtId);
 
         data = getGeneMappingForChromosomePosition(uniProtId, geneSymbol, uniProt, chromosomePosition);
 
         upEM.close();
+
         return data.iterator();
     }
 
     private List<Tuple2<String,UniprotGeneMapping>> getGeneMappingForChromosomePosition(String uniProtId, String geneSymbol,
                                                                                         Uniprot uniprot, SparkGeneChromosomePosition chromosomePosition)
     {
-        List<Tuple2<String,UniprotGeneMapping>> results = new ArrayList<>();
+        List<Tuple2<String, UniprotGeneMapping>> results = new ArrayList<>();
 
         try {
-
-            PdbLogger.debug(chromosomePosition.toString());
-
+            ChromosomeMappingTools.setCoordinateSystem(0);
             int dnaLength = ChromosomeMappingTools.getCDSLength(chromosomePosition.getOrig());
 
-            PdbLogger.debug("### " + chromosomePosition.getChromosome() + " " + ChromosomeUtils.format(chromosomePosition.getTranscriptionStart()) +
+            PdbLogger.info("### " + chromosomePosition.getChromosome() + " " + ChromosomeUtils.format(chromosomePosition.getTranscriptionStart()) +
                     " - " + ChromosomeUtils.format(chromosomePosition.getTranscriptionEnd()) + " " + uniProtId + " " + dnaLength);
 
             ChromosomeUtils cu = new ChromosomeUtils();
@@ -107,7 +120,7 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
             }
 
             if (dnaLength < 1) {
-                PdbLogger.warn("Skipping gene "+ geneSymbol+ ". Problem with retrieving the DNA length from the chromosome position for: " + chromosomePosition.getChromosome());
+                PdbLogger.warn("Skipping gene "+ geneSymbol+" ("+chromosomePosition.getGenebankId()+ "). Problem with retrieving the DNA length from the chromosome position for: " + chromosomePosition.getChromosome());
                 return results;
             }
 
@@ -134,7 +147,7 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
             }
 
             int isoformNr = -1;
-            PdbLogger.debug("### nr of isoforms " + isoforms.length + " ");
+            PdbLogger.info("### nr of isoforms " + isoforms.length + " ");
 
             if (SequenceTools.equalLengthSequences(isoforms)) {
 
@@ -143,8 +156,6 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
                     Files.createDirectories(twoBitFolderPath);
                 }
                 File twoBitFileLocalLocation = new File("/Users/yana/spark/2bit/mm10.2bit");
-
-                //SimpleTwoBitFileProvider.downloadIfNoTwoBitFileExists(twoBitFileLocalLocation);
 
                 TwoBitFacade twoBitFacade = new TwoBitFacade(twoBitFileLocalLocation);
 
@@ -156,7 +167,7 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
                 try {
                     sequence = ProteinMappingTools.convertDNAtoProteinSequence(transcriptDNASequence);
                 } catch (Exception e) {
-                    PdbLogger.debug("Could not translate the transcript DNA sequence for "+ chromosomePosition.getGeneName()+" "+ chromosomePosition.getGenebankId());
+                    PdbLogger.info("Could not translate the transcript DNA sequence for "+ chromosomePosition.getGeneName()+" "+ chromosomePosition.getGenebankId());
                     return results;
                 }
 
@@ -167,18 +178,16 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
             }
 
             if (isoformNr ==  -1) {
-                PdbLogger.debug("Did not find a matching protein sequence of length for uniprot: " + uniProtId + "(" + uniprot.getEntry().get(0).getAccession().get(0)+ ") and dna length: " + (dnaLength / 3) + " " + geneSymbol);
+                PdbLogger.info("Did not find a matching protein sequence of length for uniprot: " + uniProtId + "(" + uniprot.getEntry().get(0).getAccession().get(0)+ ") and dna length: " + (dnaLength / 3) + " " + geneSymbol);
                 return results;
             }
 
             correctIsoform = isoforms[isoformNr];
             int length = correctIsoform.getLength();
 
-            PdbLogger.debug("uniprot id: "+ uniProtId + " length: " + length + " dna length:" + dnaLength);
             if (length * 3 != dnaLength) {
                 PdbLogger.error("Mapping problem. Coding DNA sequence is not 3x the length of the protein sequence! " + uniProtId + " " + dnaLength + " " + (length * 3));
                 return results;
-
             }
 
             // we map the main uniprot sequence and the isoform used in the genome mapping
@@ -233,11 +242,11 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
 
                     if (chromosomePosition != null && chromosomePosition.getOrientation().equals("+")) {
                         ugm.setOrientation("+");
-                    }else{
+                    } else {
                         ugm.setOrientation("-");
                     }
 
-                    if(absPosition > cdsStart && absPosition <= cdsEnd){
+                    if ( absPosition >= cdsStart && absPosition <= cdsEnd ) {
 
                         ugm.setInUtr(Boolean.FALSE);
 
@@ -259,8 +268,11 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
                         }
                     }
 
+//                    if ( ! ugm.isInCoding())
+//                        continue;
+
                     String chromosome = ugm.getChromosome();
-                    Tuple2 t2 = new Tuple2(chromosome,ugm);
+                    Tuple2 t2 = new Tuple2(chromosome, ugm);
                     results.add(t2);
                 }
 
@@ -295,7 +307,7 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
                         ugm.setOrientation("-");
                     }
 
-                    if(absPosition > cdsStart && absPosition <= cdsEnd){
+                    if(absPosition >= cdsStart && absPosition <= cdsEnd){
 
                         if(exonMap.keySet().contains(absPosition)){
                             ugm.setMRNAPos(mRNAPos+1);
@@ -315,6 +327,9 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
                             mRNAPos++;
                         }
                     }
+
+//                    if ( ! ugm.isInCoding())
+//                        continue;
 
                     String chromosome = ugm.getChromosome();
                     Tuple2 t2 = new Tuple2(chromosome,ugm);

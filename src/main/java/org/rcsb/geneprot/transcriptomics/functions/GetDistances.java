@@ -3,7 +3,7 @@ package org.rcsb.geneprot.transcriptomics.functions;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.transcriptomics.mapfunctions.MapToBestStructure;
 import org.rcsb.geneprot.transcriptomics.mapfunctions.MapToDistances;
 import org.rcsb.geneprot.transcriptomics.mapfunctions.MapToResolution;
@@ -42,7 +42,7 @@ public class GetDistances {
 
     public static void runExons(String chr) throws IOException {
 
-        Dataset<Row> mapping = SaprkUtils.getSparkSession()
+        Dataset<Row> mapping = SparkUtils.getSparkSession()
                 .read().parquet(DataLocationProvider.getExonsStructuralMappingLocation() + "/" + chr);
 
         List<String> results = run(mapping);

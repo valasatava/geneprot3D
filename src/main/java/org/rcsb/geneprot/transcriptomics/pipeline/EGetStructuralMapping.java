@@ -5,7 +5,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.functions;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 
 /**
  * Created by yana on 4/13/17.
@@ -14,7 +14,7 @@ public class EGetStructuralMapping {
 
     public static void combinePDBStructuresAndHomologyModels(String pdbMapping, String homologyMapping, String whereToWriteMapping) {
 
-        Dataset<Row> mapUniprotToPdb = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getUniprotPdbMappinlLocation());
+        Dataset<Row> mapUniprotToPdb = SparkUtils.getSparkSession().read().parquet(DataLocationProvider.getUniprotPdbMappinlLocation());
         mapUniprotToPdb.persist();
 
         String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",
@@ -22,7 +22,7 @@ public class EGetStructuralMapping {
 
         for (String chr : chromosomes) {
 
-            Dataset<Row> pdbs = SaprkUtils.getSparkSession().read().parquet(pdbMapping + "/" + chr);
+            Dataset<Row> pdbs = SparkUtils.getSparkSession().read().parquet(pdbMapping + "/" + chr);
             Dataset<Row> df1 = pdbs
                     .withColumn("template", functions.lit("null"))
                     .withColumn("coordinates", functions.lit("null"))
@@ -31,7 +31,7 @@ public class EGetStructuralMapping {
                             "orientation", "offset", "uniProtId", "canonicalPosStart", "canonicalPosEnd",
                             "pdbId", "chainId", "pdbPosStart", "pdbPosEnd", "template", "coordinates", "alignment");
 
-            Dataset<Row> models = SaprkUtils.getSparkSession().read().parquet(homologyMapping + "/" + chr);
+            Dataset<Row> models = SparkUtils.getSparkSession().read().parquet(homologyMapping + "/" + chr);
             Dataset<Row> df2 = models
                     .withColumnRenamed("fromUniprot", "pdbPosStart")
                     .withColumnRenamed("toUniprot", "pdbPosEnd")
@@ -60,7 +60,7 @@ public class EGetStructuralMapping {
 
     public static void main(String[] args) {
 
-        Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getExonsStructuralMappingLocation() + "/chr1");
+        Dataset<Row> mapping = SparkUtils.getSparkSession().read().parquet(DataLocationProvider.getExonsStructuralMappingLocation() + "/chr1");
         mapping.orderBy("start", "end", "pdbId", "chainId").show(100);
     }
 }

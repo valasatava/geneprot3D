@@ -3,7 +3,7 @@ package org.rcsb.geneprot.genevariation.sandbox;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genevariation.io.MetalBindingDataProvider;
 import org.rcsb.geneprot.genevariation.io.VariantsDataProvider;
 
@@ -27,7 +27,7 @@ public class ReadSNPsParquet {
         
         System.out.println("missense muttations are mapped to the protein sequence");
         
-        Dataset<Row> uniprotpdb = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getUniprotPdbMappinlLocation());
+        Dataset<Row> uniprotpdb = SparkUtils.getSparkSession().read().parquet(DataLocationProvider.getUniprotPdbMappinlLocation());
         uniprotpdb.createOrReplaceTempView("uniprotpdb");
 		//uniprotpdb.show();
 
@@ -39,25 +39,25 @@ public class ReadSNPsParquet {
 		for (String chr : chromosomes) {
 			
 			System.out.println("getting the data for the chromosome "+ chr);
-			Dataset<Row> chromMapping = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHgMappingLocation()+chr);
+			Dataset<Row> chromMapping = SparkUtils.getSparkSession().read().parquet(DataLocationProvider.getHgMappingLocation()+chr);
 			chromMapping.createOrReplaceTempView("hgmapping");
 			//chromMapping.show();
 			System.out.println("...done");
 			
 			// uniprotpdb.pdbId, uniprotpdb.pdbAtomPos as pdbResNum,
-	        Dataset<Row> mutationsMapping = SaprkUtils.getSparkSession().sql("select hgmapping.geneSymbol, mutations.geneBankId, hgmapping.chromosome, hgmapping.position, "
+	        Dataset<Row> mutationsMapping = SparkUtils.getSparkSession().sql("select hgmapping.geneSymbol, mutations.geneBankId, hgmapping.chromosome, hgmapping.position, "
 	        		+ "hgmapping.uniProtId, hgmapping.uniProtCanonicalPos, uniprotpdb.pdbId, uniprotpdb.chainId, uniprotpdb.pdbAtomPos, mutations.refAminoAcid, mutations.mutAminoAcid from mutations " +
 	                "inner join hgmapping on ( hgmapping.chromosome = mutations.chromosomeName and hgmapping.position = mutations.position ) "+
 	        		"left join uniprotpdb on (uniprotpdb.uniProtId = hgmapping.uniProtId and uniprotpdb.uniProtPos = hgmapping.uniProtCanonicalPos) order by position");
 	        mutationsMapping.createOrReplaceTempView("mutationsMapping");
 	        
-	        Dataset<Row> newdf = SaprkUtils.getSparkSession().sql("select mutationsMapping.geneSymbol, mutationsMapping.geneBankId, mutationsMapping.chromosome, mutationsMapping.position, "
+	        Dataset<Row> newdf = SparkUtils.getSparkSession().sql("select mutationsMapping.geneSymbol, mutationsMapping.geneBankId, mutationsMapping.chromosome, mutationsMapping.position, "
 	        		+ "mutationsMapping.uniProtId, mutationsMapping.uniProtCanonicalPos, mutationsMapping.pdbId, mutationsMapping.chainId, mutationsMapping.pdbAtomPos as pdbResNum, "
 	        		+ "metals.resName, metals.cofactorName, metals.cofactorResNumber, mutationsMapping.refAminoAcid, mutationsMapping.mutAminoAcid "
 	        		+ "from mutationsMapping left join metals on (mutationsMapping.pdbId=metals.pdbId and mutationsMapping.chainId=metals.chainId and mutationsMapping.pdbAtomPos=metals.resNumber)");
 	        newdf.createOrReplaceTempView("mutationsmetals");
 	        
-	        Dataset<Row> mutationsMappingPdb = SaprkUtils.getSparkSession().sql("select * from mutationsmetals where mutationsmetals.cofactorName is not null");
+	        Dataset<Row> mutationsMappingPdb = SparkUtils.getSparkSession().sql("select * from mutationsmetals where mutationsmetals.cofactorName is not null");
 	        mutationsMappingPdb.createOrReplaceTempView("mappingPDB");
 	        mutationsMappingPdb.show();
 	        

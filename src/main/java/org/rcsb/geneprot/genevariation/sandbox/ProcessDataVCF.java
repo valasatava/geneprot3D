@@ -22,7 +22,7 @@ import org.rcsb.geneprot.genevariation.filters.IVariantDataFilter;
 import org.rcsb.geneprot.genevariation.filters.VariantDataFilterChromosome;
 import org.rcsb.geneprot.genevariation.filters.VariantDataFilterSNP;
 import org.rcsb.geneprot.genevariation.io.VariantsDataProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genevariation.utils.VariationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,7 +118,7 @@ public class ProcessDataVCF {
 			allMutations.addAll(mutations);
 		}
 
-		Dataset<Row> mydf = SaprkUtils.getSparkSession().createDataFrame(allMutations, Mutation.class);
+		Dataset<Row> mydf = SparkUtils.getSparkSession().createDataFrame(allMutations, Mutation.class);
 		mydf.write().mode(SaveMode.Overwrite).parquet(userHome + "/data/genevariation/mutations");
 
 		System.out.println("DONE!");

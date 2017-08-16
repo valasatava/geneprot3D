@@ -3,7 +3,7 @@ package org.rcsb.geneprot.common.dataframes;
 import org.rcsb.geneprot.common.datastructures.SwissHomology;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.io.HomologyModelsProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +49,6 @@ public class CreateHumanHomologuesParquetFile {
         catch ( MalformedURLException mfe ) {
             logger.error("Formatting problem with SWISS-MODEL homology models API URL: "+ mfe.getMessage()); }
 
-        finally { SaprkUtils.stopSparkSession(); }
+        finally { SparkUtils.stopSparkSession(); }
     }
 }

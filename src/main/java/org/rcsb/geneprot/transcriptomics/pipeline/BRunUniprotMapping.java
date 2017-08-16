@@ -5,7 +5,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.storage.StorageLevel;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 
 /**
  * Created by yana on 4/13/17.
@@ -14,7 +14,7 @@ public class BRunUniprotMapping {
 
     public static void mapToUniprotPositions(String datapath, String mappingpath) {
 
-        Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(datapath);
+        Dataset<Row> data = SparkUtils.getSparkSession().read().parquet(datapath);
         data.persist(StorageLevel.MEMORY_AND_DISK());
 
         String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",
@@ -22,7 +22,7 @@ public class BRunUniprotMapping {
 
         for (String chr : chromosomes) {
 
-            Dataset<Row> map = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHgMappingLocation()+chr);
+            Dataset<Row> map = SparkUtils.getSparkSession().read().parquet(DataLocationProvider.getHgMappingLocation()+chr);
 
             Dataset<Row> df1 = data.join(map, data.col("chromosome").equalTo(map.col("chromosome"))
                     .and(data.col("geneBankId").equalTo(map.col("geneBankId"))).and(data.col("start").equalTo(map.col("position"))), "inner")

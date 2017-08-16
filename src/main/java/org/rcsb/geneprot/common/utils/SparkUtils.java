@@ -5,7 +5,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
 
-public class SaprkUtils {
+public class SparkUtils {
 	
 	private static int cores = Runtime.getRuntime().availableProcessors();
 	
@@ -16,10 +16,17 @@ public class SaprkUtils {
 	
 	public static JavaSparkContext getSparkContext() {
 
+		Integer blockSize = 1024 * 1024 * 1024;
 		if (sContext==null) {
 			conf = new SparkConf()
 					.setMaster("local[" + cores + "]")
-					.setAppName("");
+					.setAppName("")
+					.set("parquet.block.size", blockSize.toString() )
+					.set("parquet.dictionary.page.size", blockSize.toString())
+					.set("parquet.page.size", blockSize.toString())
+					.set("spark.executor.memory","8g")
+					.set("spark.driver.memory","4g")
+					.set("spark.driver.maxResultSize", "8g");
 			sContext = new JavaSparkContext(conf);
 			sContext.setCheckpointDir(DataLocationProvider.getDataHome());
 		}
@@ -33,7 +40,6 @@ public class SaprkUtils {
 					.builder()
 					.master("local[" + cores + "]")
 					.appName("app")
-					// the default in spark 2 seems to be 1g (see http://spark.apache.org/docs/latest/configuration.html) - JD 2016-10-06
 					.config("spark.driver.maxResultSize", "4g")
 					.config("spark.executor.memory", "4g")
 					.config("spark.debug.maxToStringFields", 80)

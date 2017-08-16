@@ -10,7 +10,7 @@ import org.biojava.nbio.genome.parsers.genename.GeneChromosomePositionParser;
 import org.biojava.nbio.genome.parsers.twobit.TwoBitFacade;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.biojava.nbio.genome.util.ProteinMappingTools;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.uniprot.auto.Uniprot;
 import org.rcsb.uniprot.auto.tools.UniProtTools;
@@ -64,7 +64,7 @@ public class IsoformsMappingAnalysis {
 
         for (String chr:chromosomes) {
 
-            Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanGenomeMappingPath().toString()+"/"+chr);
+            Dataset<Row> mapping = SparkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanGenomeMappingPath().toString()+"/"+chr);
             Dataset<Row> uniprotIds = mapping.select(mapping.col("geneSymbol"), mapping.col("uniProtId")).distinct();
 
             List<Row> data = uniprotIds.collectAsList();

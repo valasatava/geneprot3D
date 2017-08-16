@@ -27,7 +27,7 @@ import org.rcsb.geneprot.genevariation.datastructures.VariantInterface;
 import org.rcsb.geneprot.genes.expression.RNApolymerase;
 import org.rcsb.geneprot.genes.expression.Ribosome;
 import org.rcsb.geneprot.genevariation.filters.VariantDataFilterSNP;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genevariation.utils.VariationUtils;
 
 import com.google.common.collect.ListMultimap;
@@ -84,7 +84,7 @@ public class VariantsDataProvider extends DataLocationProvider {
 
 	public void readVariantsFromVCFWithSpark(String filepath) {
 
-		Dataset<Row> df = SaprkUtils.getSparkSession().read()
+		Dataset<Row> df = SparkUtils.getSparkSession().read()
 				.format("com.databricks.spark.csv")
 				.option("header", "false")
 				.option("delimiter", "\t")
@@ -242,13 +242,13 @@ public class VariantsDataProvider extends DataLocationProvider {
 
 	public void createVariationDataFrame(List<Mutation> mutations, String filename) {
 
-		Dataset<Row> mydf = SaprkUtils.getSparkSession().createDataFrame(mutations, Mutation.class);
+		Dataset<Row> mydf = SparkUtils.getSparkSession().createDataFrame(mutations, Mutation.class);
 		mydf.write().mode(SaveMode.Overwrite).parquet(getDataHome() + filename);
 	}
 
 	public Dataset<Row> getMissenseVariationDF(String path) {
 
-        Dataset<Row> mutations = SaprkUtils.getSparkSession().read().parquet(path);
+        Dataset<Row> mutations = SparkUtils.getSparkSession().read().parquet(path);
         mutations.createOrReplaceTempView("mutations");
 
         Dataset<Row> missense = mutations.filter(mutations.col("refAminoAcid").notEqual(mutations.col("mutAminoAcid")));

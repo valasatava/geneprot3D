@@ -31,12 +31,17 @@ public class GTF2RefFlat {
         buildMap(gtfFile);
         PrintWriter output = new PrintWriter(new OutputStreamWriter(new FileOutputStream(outFile), "UTF-8"));
         
-        for(String id : map.keySet()) {
+        for(String id : map.keySet())
+        {
             TranscriptData data = null;
             for(String line : map.get(id)) {
                 Feature feature;
                 try {
                     feature = parser.parseLine(line);
+                    if ( ! feature.getAttribute("gene_type").equals("protein_coding") ) {
+                        continue;
+                    }
+
                 } catch (GTFParseException e) {
                     logger.fatal("Invalid GTF format. Could not parse line: "+e.getMessage());
                     continue;
@@ -44,8 +49,11 @@ public class GTF2RefFlat {
                 if(data == null) {
                     data = new TranscriptData(feature.getTranscriptId(), feature.getGeneName(), feature.getSeqname(), feature.getStrand());
                 }
-                
+
                 data.addFeature(feature);
+            }
+            if(data == null) {
+                continue;
             }
 
             Collections.sort(data.getFeatures(), new FeatureCompare());

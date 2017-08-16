@@ -6,7 +6,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.transcriptomics.mapfunctions.MapToUniprotFeature;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 
 import javax.xml.bind.JAXBException;
 import java.io.FileNotFoundException;
@@ -22,7 +22,7 @@ public class GetUniprotAnnotation {
 
     public static  List<String> runForChromosome(String chr, Function<Row, Row> f) throws FileNotFoundException, JAXBException {
 
-        Dataset<Row> mapping = SaprkUtils.getSparkSession()
+        Dataset<Row> mapping = SparkUtils.getSparkSession()
                 .read().parquet(DataLocationProvider.getGencodeUniprotLocation() + "/" + chr);
         JavaRDD<Row> data = mapping
                 .drop(mapping.col("isoformIndex"))
@@ -73,6 +73,6 @@ public class GetUniprotAnnotation {
         }
         writer.close();
 
-        SaprkUtils.stopSparkSession();
+        SparkUtils.stopSparkSession();
     }
 }

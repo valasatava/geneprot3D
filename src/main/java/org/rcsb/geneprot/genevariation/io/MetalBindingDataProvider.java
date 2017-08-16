@@ -10,7 +10,7 @@ import org.biojava.nbio.structure.Structure;
 import org.biojava.nbio.structure.io.PDBFileParser;
 import org.rcsb.geneprot.common.datastructures.MetalBindingResidue;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -94,7 +94,7 @@ public class MetalBindingDataProvider extends DataLocationProvider {
 
 	public static void createParquetFile(List<MetalBindingResidue> residues) {
 		String dataPath = getDataHome() + "metal_binding_residues";
-		Dataset<Row> mydf = SaprkUtils.getSparkSession().createDataFrame(residues, MetalBindingResidue.class);
+		Dataset<Row> mydf = SparkUtils.getSparkSession().createDataFrame(residues, MetalBindingResidue.class);
 		mydf.write().mode(SaveMode.Overwrite).parquet(dataPath);
 	}
 	
@@ -104,7 +104,7 @@ public class MetalBindingDataProvider extends DataLocationProvider {
 	}
 	
 	public static Dataset<Row> readParquetFile() {
-		 return SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getMetalBindingMappingLocation());
+		 return SparkUtils.getSparkSession().read().parquet(DataLocationProvider.getMetalBindingMappingLocation());
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException {

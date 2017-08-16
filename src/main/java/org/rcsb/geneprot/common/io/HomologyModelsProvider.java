@@ -12,7 +12,7 @@ import org.rauschig.jarchivelib.ArchiverFactory;
 import org.rcsb.geneprot.common.datastructures.SwissHomology;
 import org.rcsb.geneprot.common.utils.CommonUtils;
 import org.rcsb.geneprot.common.utils.FileCustomUtils;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,7 +148,7 @@ public class HomologyModelsProvider {
      */
     public static void createParquetFile(List<SwissHomology> models, String path) {
 
-        Dataset<Row> mydf = SaprkUtils.getSparkSession()
+        Dataset<Row> mydf = SparkUtils.getSparkSession()
                 .createDataFrame(models, SwissHomology.class);
         mydf.write().mode(SaveMode.Overwrite).parquet(path);
     }
@@ -199,7 +199,7 @@ public class HomologyModelsProvider {
     }
 
     public static Dataset<Row> getAsDataFrame(String path) {
-        return SaprkUtils.getSparkSession().read()
+        return SparkUtils.getSparkSession().read()
                 .parquet(path);
     }
 

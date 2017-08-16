@@ -6,7 +6,7 @@ import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.common.datastructures.ProteinFeatures;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.transcriptomics.properties.*;
 
 import java.util.List;
@@ -68,7 +68,7 @@ public class RunProteinSequenceCalc {
             System.out.println("Processing chromosome: "+chr);
 
             Encoder<ProteinFeatures> encoder = Encoders.bean(ProteinFeatures.class);
-            Dataset<Row> data = SaprkUtils.getSparkSession().read().parquet(exonsuniprotpath+"/"+chr);
+            Dataset<Row> data = SparkUtils.getSparkSession().read().parquet(exonsuniprotpath+"/"+chr);
             Dataset<ProteinFeatures> featuresDF = data.map(new MapToProteinFeatures(), encoder)
                     .filter(t->t!=null);
             featuresDF.persist();

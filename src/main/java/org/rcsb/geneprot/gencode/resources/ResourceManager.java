@@ -20,7 +20,6 @@ import java.util.Map;
 public class ResourceManager {
 
     private static String TMP_RESOURCE_DIRECTORY = "/Users/yana/spark/tmp/";
-
     private static final Logger logger = LoggerFactory.getLogger(ResourceManager.class);
 
     private Map<String, String> resources;
@@ -30,7 +29,8 @@ public class ResourceManager {
         return resources;
     }
 
-    public void setResources(Map<String, String> resources) {
+    public void setResources(Map<String, String> resources)
+    {
         this.resources = resources;
     }
 
@@ -52,8 +52,8 @@ public class ResourceManager {
         return f;
     }
 
-    public boolean downloadRequiredExternalResources() {
-
+    public boolean downloadRequiredExternalResources()
+    {
         Map<String, String> resources = this.getResources();
 
         for (String fileName : resources.keySet())
@@ -66,7 +66,7 @@ public class ResourceManager {
                 return false;
             }
 
-            File fileResource = new File(TMP_RESOURCE_DIRECTORY+fileName);
+            File fileResource = new File(TMP_RESOURCE_DIRECTORY + fileName);
 
             if(fileResource == null || !fileResource.exists()) {
                 try {

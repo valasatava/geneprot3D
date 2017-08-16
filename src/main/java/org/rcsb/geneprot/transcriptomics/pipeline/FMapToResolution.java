@@ -7,7 +7,7 @@ import org.rcsb.geneprot.transcriptomics.mapfunctions.MapToResolution;
 import org.rcsb.geneprot.transcriptomics.utils.RowUtils;
 import org.rcsb.geneprot.transcriptomics.filters.FilterBounaries;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import scala.Tuple2;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class FMapToResolution {
 
         for (String chr : chromosomes) {
 
-            Dataset<Row> map = SaprkUtils.getSparkSession().read().parquet(source + "/" + chr);
+            Dataset<Row> map = SparkUtils.getSparkSession().read().parquet(source + "/" + chr);
             JavaRDD<Row> extended = map.toJavaRDD().map(new MapToResolution());
 
             List<Tuple2<String, Iterable<Row>>> data = extended.map(new FilterBounaries()).filter(t -> (t != null))

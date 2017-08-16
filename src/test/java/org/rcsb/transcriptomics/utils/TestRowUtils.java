@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.mappers.UniprotToModelCoordinatesMapper;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 
 import static org.apache.spark.sql.functions.col;
 import static org.junit.Assert.assertEquals;
@@ -21,7 +21,7 @@ public class TestRowUtils {
     Dataset<Row> mapping;
     @Before
     public void setup() {
-        mapping = SaprkUtils.getSparkSession().read()
+        mapping = SparkUtils.getSparkSession().read()
                 .parquet(DataLocationProvider.getGencodeStructuralMappingLocation() + "/chr21");
     }
 

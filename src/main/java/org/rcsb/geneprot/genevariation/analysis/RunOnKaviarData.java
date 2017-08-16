@@ -9,7 +9,7 @@ import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.biojava.nbio.genome.parsers.twobit.TwoBitFacade;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genes.expression.RNApolymerase;
 import org.rcsb.geneprot.genes.expression.Ribosome;
 import org.rcsb.geneprot.genes.parsers.GenePredictionsParser;
@@ -35,13 +35,13 @@ public class RunOnKaviarData {
 
         long start = System.nanoTime();
 
-        JavaSparkContext sc = SaprkUtils.getSparkContext();
+        JavaSparkContext sc = SparkUtils.getSparkContext();
         List<GeneChromosomePosition> transcripts = GenePredictionsParser.getGeneChromosomePositions();
         Broadcast<List<GeneChromosomePosition>> transcriptsBroadcast = sc.broadcast(transcripts);
 
         Encoder<VcfContainer> vcfContainerEncoder = Encoders.bean(VcfContainer.class);
 
-        SaprkUtils.getSparkSession().read()
+        SparkUtils.getSparkSession().read()
                 .format("com.databricks.spark.csv")
                 .option("header", "false")
                 .option("delimiter", "\t")
@@ -60,7 +60,7 @@ public class RunOnKaviarData {
         long start = System.nanoTime();
 
         Encoder<VcfContainer> vcfContainerEncoder = Encoders.bean(VcfContainer.class);
-        SaprkUtils.getSparkSession().read()
+        SparkUtils.getSparkSession().read()
                 .format("com.databricks.spark.csv")
                 .option("header", "false")
                 .option("delimiter", "\t")
@@ -74,7 +74,7 @@ public class RunOnKaviarData {
     public static void readKaviar() {
 
         long start = System.nanoTime();
-        Dataset<Row> df = SaprkUtils.getSparkSession().read().parquet(filepathParquet);
+        Dataset<Row> df = SparkUtils.getSparkSession().read().parquet(filepathParquet);
         df.createOrReplaceTempView("Kaviar");
         df.show();
         System.out.println("Done: " + (System.nanoTime() - start) / 1E9 + " sec.");
@@ -84,7 +84,7 @@ public class RunOnKaviarData {
 
         long start = System.nanoTime();
 
-        Dataset<Row> df = SaprkUtils.getSparkSession().read().parquet(filepathParquet);
+        Dataset<Row> df = SparkUtils.getSparkSession().read().parquet(filepathParquet);
         df.persist();
 
         String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",
@@ -93,7 +93,7 @@ public class RunOnKaviarData {
         for (String chr : chromosomes) {
 
             System.out.println("getting the data for the chromosome " + chr);
-            Dataset<Row> chrom = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHgMappingLocation()+chr);
+            Dataset<Row> chrom = SparkUtils.getSparkSession().read().parquet(DataLocationProvider.getHgMappingLocation()+chr);
             Dataset<Row> mapping = df.join(chrom, chrom.col("chromosome").equalTo(df.col("chromosome"))
                     .and(chrom.col("position").equalTo(df.col("position"))));
             mapping.write().mode(SaveMode.Overwrite).parquet(DataLocationProvider.getDataHome() + "parquet/Kaviar-hg-mapping/" + chr);
@@ -112,10 +112,10 @@ public class RunOnKaviarData {
         for (String chr : chromosomes) {
 
             String filepath = DataLocationProvider.getDataHome() + "parquet/Kaviar-hg-mapping/" + chr;
-            Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(filepath);
+            Dataset<Row> mapping = SparkUtils.getSparkSession().read().parquet(filepath);
             mapping.createOrReplaceTempView("mapping");
 
-            Dataset<Row> coding = SaprkUtils.getSparkSession().sql("select * from mapping where inCoding=true");
+            Dataset<Row> coding = SparkUtils.getSparkSession().sql("select * from mapping where inCoding=true");
 
             if (all == null) {
                 all = coding;
@@ -128,7 +128,7 @@ public class RunOnKaviarData {
 
     public static void mapKaviarToMutations() throws AnalysisException, Exception {
 
-        JavaSparkContext sc = SaprkUtils.getSparkContext();
+        JavaSparkContext sc = SparkUtils.getSparkContext();
         List<GeneChromosomePosition> transcripts = GenePredictionsParser.getGeneChromosomePositions();
         Broadcast<List<GeneChromosomePosition>> transcriptsBroadcast = sc.broadcast(transcripts);
 
@@ -144,7 +144,7 @@ public class RunOnKaviarData {
             TwoBitFacade twoBitFacade = new TwoBitFacade(f);
 
             String filepath = DataLocationProvider.getDataHome() + "parquet/Kaviar-hg-mapping/" + chr;
-            Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(filepath).distinct();
+            Dataset<Row> mapping = SparkUtils.getSparkSession().read().parquet(filepath).distinct();
 
             Dataset<Row> filtered = mapping.filter((FilterFunction<Row>) (Row row) -> {
                 if (row.get(4).equals(true)) {
@@ -215,7 +215,7 @@ public class RunOnKaviarData {
                 }
             }
 
-            Dataset<Row> df = SaprkUtils.getSparkSession().createDataFrame(mutations, Mutation.class);
+            Dataset<Row> df = SparkUtils.getSparkSession().createDataFrame(mutations, Mutation.class);
 //            Dataset<Row> chromMut = df.drop(df.col("geneBankId"));
 //            chromMut.show();
 //            chromMut.collect();
@@ -231,7 +231,7 @@ public class RunOnKaviarData {
     public static void readKaviarOnHumanGenome() throws AnalysisException {
 
         String filepath = DataLocationProvider.getDataHome() + "parquet/Kaviar-hg-mapping-coding.parquet/";
-        Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(filepath);
+        Dataset<Row> mapping = SparkUtils.getSparkSession().read().parquet(filepath);
         mapping.createOrReplaceTempView("kaviar");
 
         mapping.show();

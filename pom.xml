@@ -16,7 +16,7 @@
 		<log4j.version>2.6.1</log4j.version>
 		<spark.version>2.1.0</spark.version>
 		<biojava.version>5.0.0-SNAPSHOT</biojava.version>
-		<uniprot.version>2017.06.15.01</uniprot.version>
+		<uniprot.version>2017.08.16.00.05</uniprot.version>
 	</properties>
 	
 	<dependencies>
@@ -26,13 +26,19 @@
 			<groupId>org.rcsb</groupId>
 			<artifactId>spark-datamining</artifactId>
 			<version>1.0-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.rcsb</groupId>
+					<artifactId>pdbormapping</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- BioJava dependency -->
 		<dependency>
 			<groupId>org.biojava</groupId>
 			<artifactId>biojava-genome</artifactId>
-			<version>${biojava.version}</version>
+			<version>5.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.biojava</groupId>
@@ -69,38 +75,38 @@
     	</dependency>
 		<!-- - - -  -->
 
-		<!-- Spark dependency -->
-		<dependency>
-			<groupId>org.apache.spark</groupId>
-			<artifactId>spark-core_2.11</artifactId>
-			<version>${spark.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.logging.log4j</groupId>
-					<artifactId>log4j-slf4j-impl</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-log4j12</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.spark</groupId>
-			<artifactId>spark-sql_2.11</artifactId>
-			<version>${spark.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.logging.log4j</groupId>
-					<artifactId>log4j-slf4j-impl</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-log4j12</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<!-- - - -  -->
+		<!--&lt;!&ndash; Spark dependency &ndash;&gt;-->
+		<!--<dependency>-->
+			<!--<groupId>org.apache.spark</groupId>-->
+			<!--<artifactId>spark-core_2.11</artifactId>-->
+			<!--<version>${spark.version}</version>-->
+			<!--<exclusions>-->
+				<!--<exclusion>-->
+					<!--<groupId>org.apache.logging.log4j</groupId>-->
+					<!--<artifactId>log4j-slf4j-impl</artifactId>-->
+				<!--</exclusion>-->
+				<!--<exclusion>-->
+					<!--<groupId>org.slf4j</groupId>-->
+					<!--<artifactId>slf4j-log4j12</artifactId>-->
+				<!--</exclusion>-->
+			<!--</exclusions>-->
+		<!--</dependency>-->
+		<!--<dependency>-->
+			<!--<groupId>org.apache.spark</groupId>-->
+			<!--<artifactId>spark-sql_2.11</artifactId>-->
+			<!--<version>${spark.version}</version>-->
+			<!--<exclusions>-->
+				<!--<exclusion>-->
+					<!--<groupId>org.apache.logging.log4j</groupId>-->
+					<!--<artifactId>log4j-slf4j-impl</artifactId>-->
+				<!--</exclusion>-->
+				<!--<exclusion>-->
+					<!--<groupId>org.slf4j</groupId>-->
+					<!--<artifactId>slf4j-log4j12</artifactId>-->
+				<!--</exclusion>-->
+			<!--</exclusions>-->
+		<!--</dependency>-->
+		<!--&lt;!&ndash; - - -  &ndash;&gt;-->
 
 		<!-- XML dependency -->
 		<dependency>

@@ -9,7 +9,7 @@ import org.rcsb.geneprot.transcriptomics.mapfunctions.MapToExonSerializable;
 import org.rcsb.geneprot.genes.datastructures.Exon;
 import org.rcsb.geneprot.genes.datastructures.ExonSerializable;
 import org.rcsb.geneprot.genes.datastructures.Transcript;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -21,7 +21,7 @@ public class ExonsUtils {
 
     public static List<ExonSerializable> getSerializableExons(String dataPath) {
 
-        Dataset<Row> data = SaprkUtils.getSparkSession().read().csv(dataPath);
+        Dataset<Row> data = SparkUtils.getSparkSession().read().csv(dataPath);
 
         Encoder<ExonSerializable> encoder = Encoders.bean(ExonSerializable.class);
         List<ExonSerializable> exons = data

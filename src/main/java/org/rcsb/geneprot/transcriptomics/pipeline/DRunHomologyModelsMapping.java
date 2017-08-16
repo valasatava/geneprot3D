@@ -5,7 +5,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.rcsb.geneprot.common.io.HomologyModelsProvider;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 
 import static org.apache.spark.sql.functions.not;
 
@@ -73,7 +73,7 @@ public class DRunHomologyModelsMapping {
 
         for (String chr : chromosomes) {
 
-            Dataset<Row> mapToUniprot = SaprkUtils.getSparkSession().read().parquet(uniprotmapping+"/"+chr);
+            Dataset<Row> mapToUniprot = SparkUtils.getSparkSession().read().parquet(uniprotmapping+"/"+chr);
 
             Dataset<Row> mapToHomology = mapToHomologyModels( mapToUniprot, models );
 
@@ -96,7 +96,7 @@ public class DRunHomologyModelsMapping {
 
         String coordinates = "https://swissmodel.expasy.org/repository/uniprot/Q9P2J2.pdb?range=27-505&template=5k6w.1.B&provider=swissmodel";
 
-        Dataset<Row> models = SaprkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanHomologyModelsLocation());
+        Dataset<Row> models = SparkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanHomologyModelsLocation());
 
         models.filter(models.col("coordinates").equalTo(coordinates)).show();
 

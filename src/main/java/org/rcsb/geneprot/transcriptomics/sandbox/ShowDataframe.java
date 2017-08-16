@@ -3,7 +3,7 @@ package org.rcsb.geneprot.transcriptomics.sandbox;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 
 /**
  * Created by yana on 4/19/17.
@@ -12,11 +12,11 @@ public class ShowDataframe {
 
     public static void main(String[] args) {
 
-        Dataset<Row> d2 = SaprkUtils.getSparkSession().read()
+        Dataset<Row> d2 = SparkUtils.getSparkSession().read()
                 .parquet(DataLocationProvider.getHgMappingLocation()+"/chr21");
         d2.show();
 
-        SaprkUtils.stopSparkSession();
+        SparkUtils.stopSparkSession();
     }
 
 }

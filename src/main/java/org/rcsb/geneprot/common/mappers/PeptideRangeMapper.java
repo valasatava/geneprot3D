@@ -3,7 +3,7 @@ package org.rcsb.geneprot.common.mappers;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.common.datastructures.PeptideRange;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.common.tools.PeptideRangeTool;
 import org.rcsb.geneprot.transcriptomics.analysis.NGLScriptsGeneration;
 import org.rcsb.geneprot.transcriptomics.utils.RowUtils;
@@ -12,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +25,7 @@ public class PeptideRangeMapper {
     private static final Logger logger = LoggerFactory.getLogger(PeptideRangeMapper.class);
 
     private static final String DEFAULT_MAPPING_LOCATION = DataLocationProvider.getGencodeStructuralMappingLocation();
-    
+
     private String MAPPING_LOCATION;
     private static UniprotToModelCoordinatesMapper mapper;
 
@@ -55,7 +53,7 @@ public class PeptideRangeMapper {
      *         genetic coordinates
      */
     public List<PeptideRange> mapGeneticCoordinatesToPeptideRange(String chr, int start, int end) throws Exception {
-        Dataset<Row> chromosome = SaprkUtils.getSparkSession()
+        Dataset<Row> chromosome = SparkUtils.getSparkSession()
                 .read().parquet(MAPPING_LOCATION + "/" + chr).cache();
         return mapGeneticCoordinatesToPeptideRange(chromosome, start, end);
     }

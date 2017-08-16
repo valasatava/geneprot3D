@@ -2,7 +2,7 @@ package org.rcsb.geneprot.transcriptomics.pipeline;
 
 import org.rcsb.geneprot.genes.datastructures.ExonSerializable;
 import org.rcsb.geneprot.common.io.MappingDataProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.transcriptomics.utils.ExonsUtils;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -19,7 +19,7 @@ public class ARunGeneBankMapping {
 
     public static void mapToGeneBank(List<ExonSerializable> exons, String path) throws IOException {
 
-        Dataset<Row> exonsData = SaprkUtils.getSparkSession().createDataFrame(exons, ExonSerializable.class);
+        Dataset<Row> exonsData = SparkUtils.getSparkSession().createDataFrame(exons, ExonSerializable.class);
 
         Dataset<Row> geneBankToEnsembleMapping = MappingDataProvider.getGeneBankToEnsembleMapping();
 

@@ -4,7 +4,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.transcriptomics.functions.GetDistances;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 
 import java.io.FileWriter;
 import java.util.List;
@@ -26,7 +26,7 @@ public class RunProteinStructuralCalc {
 
             System.out.println("Prosessing "+chr);
 
-            Dataset<Row> mapping = SaprkUtils.getSparkSession().read().parquet(path + "/" + chr);
+            Dataset<Row> mapping = SparkUtils.getSparkSession().read().parquet(path + "/" + chr);
             List<String> results = GetDistances.run(mapping);
 
             String filename = DataLocationProvider.getExonsProjectResults()+"distances/"+chr+"_gencode.v24.CDS.protein_coding.exons_distances.csv";

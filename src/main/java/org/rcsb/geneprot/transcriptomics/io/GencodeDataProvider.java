@@ -9,7 +9,7 @@ import org.rcsb.geneprot.genes.datastructures.Exon;
 import org.rcsb.geneprot.genes.datastructures.Gene;
 import org.rcsb.geneprot.genes.datastructures.Transcript;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 
 import java.util.*;
 
@@ -24,7 +24,7 @@ public class GencodeDataProvider {
     private Dataset<Row> annotation;
 
     public void getAnnotation() {
-        annotation = SaprkUtils.getSparkSession().read().csv(DEFAULT_MAPPING);
+        annotation = SparkUtils.getSparkSession().read().csv(DEFAULT_MAPPING);
         annotation.persist(StorageLevel.MEMORY_AND_DISK());
     }
 

@@ -11,7 +11,7 @@ import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.mappers.PeptideRangeMapper;
 import org.rcsb.geneprot.common.tools.PeptideRangeTool;
 import org.rcsb.geneprot.common.tools.TemplatesGenerationTool;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.transcriptomics.datastructures.ExonBoundariesPair;
 import org.rcsb.geneprot.transcriptomics.io.CustomDataProvider;
 import org.rcsb.uniprot.auto.Uniprot;
@@ -37,7 +37,7 @@ public class NGLScriptsGeneration {
     public static void createForBoundariesPair(String chr , String exon1, String exon2) {
 
         /* Get the mapping */
-        Dataset<Row> chromosome = SaprkUtils.getSparkSession().read()
+        Dataset<Row> chromosome = SparkUtils.getSparkSession().read()
                 .parquet(DataLocationProvider.getGencodeStructuralMappingLocation() + "/" + chr)
                 .distinct().cache();
 
@@ -128,6 +128,6 @@ public class NGLScriptsGeneration {
 
     public static void main(String[] args) {
         run();
-        SaprkUtils.getSparkSession().stop();
+        SparkUtils.getSparkSession().stop();
     }
 }

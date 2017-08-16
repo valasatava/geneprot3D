@@ -5,7 +5,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.rcsb.geneprot.genes.datastructures.ExonSerializable;
-import org.rcsb.geneprot.common.utils.SaprkUtils;
+import org.rcsb.geneprot.common.utils.SparkUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,16 +22,16 @@ public class RemoveRedundancy {
 
 		String path = "/Users/yana/ishaan/EXONS_DATA/";
 		String datapath = "coordinated_exons.gencod.v24.csv";
-		Dataset<Row> data = SaprkUtils.getSparkSession().read().csv(path+datapath);
+		Dataset<Row> data = SparkUtils.getSparkSession().read().csv(path+datapath);
 		data.createOrReplaceTempView("data");
 		data.show();
 
 		String olddatapath = "FDR0.gene.CDS";
-		Dataset<Row> olddata = SaprkUtils.getSparkSession().read().csv(path+olddatapath);
+		Dataset<Row> olddata = SparkUtils.getSparkSession().read().csv(path+olddatapath);
 		olddata.createOrReplaceTempView("old");
 		olddata.show();
 
-		Dataset<Row> newexons = SaprkUtils.getSparkSession().sql("select data._c0, data._c1, data._c2, data._c3," +
+		Dataset<Row> newexons = SparkUtils.getSparkSession().sql("select data._c0, data._c1, data._c2, data._c3," +
 				"data._c4, data._c5, data._c6 from data left join old on (old._c0=data._c0 and old._c1=data._c1 and old._c2=data._c2) where old._c0 is null");
 		newexons.repartition(1).write().mode(SaveMode.Overwrite).csv(path+"FDR0.gene.CDS.new");
 
@@ -85,7 +85,7 @@ public class RemoveRedundancy {
 		List<String> annotation = FileUtils.readLines(new File(path+annotationpath), "utf-8");
 
 		String olddatapath = "FDR0.gene.CDS";
-		Dataset<Row> olddata = SaprkUtils.getSparkSession().read().csv(path+olddatapath);
+		Dataset<Row> olddata = SparkUtils.getSparkSession().read().csv(path+olddatapath);
 		olddata.createOrReplaceTempView("old");
 
 		String newdatapath = "coordinated_exons.txt";
@@ -131,10 +131,10 @@ public class RemoveRedundancy {
 			}
 		}
 
-		Dataset<Row> exonsdata = SaprkUtils.getSparkSession().createDataFrame(exons, ExonSerializable.class);
+		Dataset<Row> exonsdata = SparkUtils.getSparkSession().createDataFrame(exons, ExonSerializable.class);
 		exonsdata.createOrReplaceTempView("new");
 
-		Dataset<Row> newexons = SaprkUtils.getSparkSession().sql("select * from new where not exist (select _c0, _c1, _c2 from old where old._c0=new.chromosome and old._c1=new.start and old._c2=new.end)");
+		Dataset<Row> newexons = SparkUtils.getSparkSession().sql("select * from new where not exist (select _c0, _c1, _c2 from old where old._c0=new.chromosome and old._c1=new.start and old._c2=new.end)");
 		newexons.show();
 	}
 
