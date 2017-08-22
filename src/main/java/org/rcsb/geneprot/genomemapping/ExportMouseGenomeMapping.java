@@ -3,10 +3,10 @@ package org.rcsb.geneprot.genomemapping;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
+import org.apache.spark.storage.StorageLevel;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePositionParser;
 import org.rcsb.geneprot.common.utils.SparkUtils;
@@ -20,13 +20,10 @@ import org.rcsb.util.Parameters;
 import org.rcsb.util.UniprotGeneMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -83,19 +80,10 @@ public class ExportMouseGenomeMapping implements Serializable {
         JavaPairRDD<String, SparkGeneChromosomePosition> genesPerChromosome = chromoRDD.filter(cnFilter);
 
         GetUniprotGeneMapping getUniprotGeneMapping = new GetUniprotGeneMapping();
-        JavaPairRDD<String, UniprotGeneMapping> uniprotGeneMappingJavaRDD = genesPerChromosome.flatMapToPair(getUniprotGeneMapping).cache();
+        JavaPairRDD<String, UniprotGeneMapping> uniprotGeneMappingJavaRDD = genesPerChromosome.flatMapToPair(getUniprotGeneMapping).repartition(500);
 
-        JavaRDD<UniprotGeneMapping> rdds = uniprotGeneMappingJavaRDD.flatMap(new FlatMapFunction<Tuple2<String, UniprotGeneMapping>, UniprotGeneMapping>(){
-
-            @Override
-            public Iterator<UniprotGeneMapping> call(Tuple2<String, UniprotGeneMapping> s) throws Exception {
-                List<UniprotGeneMapping> data  = new ArrayList<UniprotGeneMapping>();
-                data.add(s._2());
-                return data.iterator();
-            }
-        }).repartition(500);
-
-        writeAsParquetFile( rdds, chromosomeName );
+        JavaRDD<UniprotGeneMapping> rdds = uniprotGeneMappingJavaRDD.map(t -> t._2);
+        writeAsParquetFile(rdds, chromosomeName);
     }
 
     private void writeAsParquetFile(JavaRDD<UniprotGeneMapping> rdds, String chromosomeName)
@@ -107,12 +95,13 @@ public class ExportMouseGenomeMapping implements Serializable {
         long timeS = System.currentTimeMillis();
 
         Dataset<Row> dframe = SparkUtils.getSparkSession().createDataFrame(rdds, UniprotGeneMapping.class)
-                .withColumnRenamed("MRNAPos", "mRNAPos").cache();
+                .withColumnRenamed("MRNAPos", "mRNAPos").persist(StorageLevel.MEMORY_AND_DISK());
 
-        System.out.println(dframe.count());
+        //System.out.println(dframe.count());
 
         logger.info("Writing results to " + path);
         dframe.write().mode(SaveMode.Overwrite).parquet(path);
+        dframe.unpersist();
 
         long timeE = System.currentTimeMillis();
         logger.info("time to writeAsParquetFile: " + DurationFormatUtils.formatPeriod(timeS, timeE, "HH:mm:ss"));

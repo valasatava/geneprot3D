@@ -66,7 +66,7 @@ public class DRunHomologyModelsMapping {
 
     public static void mapToHomologyModels(String uniprotmapping, String mapping ) {
 
-        Dataset<Row> models = HomologyModelsProvider.getAsDataFrame30pc(DataLocationProvider.getHumanHomologyModelsLocation());
+        Dataset<Row> models = HomologyModelsProvider.getAsDataFrame30pc(DataLocationProvider.getHomologyModelsLocation());
 
 		String[] chromosomes = {"chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11",
 				"chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chr19",  "chr20", "chr21", "chr22", "chrX", "chrY"};
@@ -96,7 +96,7 @@ public class DRunHomologyModelsMapping {
 
         String coordinates = "https://swissmodel.expasy.org/repository/uniprot/Q9P2J2.pdb?range=27-505&template=5k6w.1.B&provider=swissmodel";
 
-        Dataset<Row> models = SparkUtils.getSparkSession().read().parquet(DataLocationProvider.getHumanHomologyModelsLocation());
+        Dataset<Row> models = SparkUtils.getSparkSession().read().parquet(DataLocationProvider.getHomologyModelsLocation());
 
         models.filter(models.col("coordinates").equalTo(coordinates)).show();
 

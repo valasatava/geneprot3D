@@ -38,9 +38,10 @@ public class GTF2RefFlat {
                 Feature feature;
                 try {
                     feature = parser.parseLine(line);
-                    if ( ! feature.getAttribute("gene_type").equals("protein_coding") ) {
+                    if ( (! feature.getAttributes().keySet().contains("transcript_type")) || (! feature.getAttribute("transcript_type").equals("protein_coding")) ) {
                         continue;
                     }
+
 
                 } catch (GTFParseException e) {
                     logger.fatal("Invalid GTF format. Could not parse line: "+e.getMessage());

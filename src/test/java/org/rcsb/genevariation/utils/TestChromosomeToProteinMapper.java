@@ -45,7 +45,7 @@ public class TestChromosomeToProteinMapper {
 		
 		ChromosomeMappingTools mapper = new ChromosomeMappingTools();
 
-		File f = new File(DataLocationProvider.getHumanGenomeLocation());
+		File f = new File(DataLocationProvider.getGenomeLocation());
 		TwoBitFacade twoBitFacade = new TwoBitFacade(f);
 		
 		Character orientation='+';
@@ -96,7 +96,7 @@ public class TestChromosomeToProteinMapper {
 		
 		ChromosomeMappingTools mapper = new ChromosomeMappingTools();
 		
-		File f = new File(DataLocationProvider.getHumanGenomeLocation());
+		File f = new File(DataLocationProvider.getGenomeLocation());
 		TwoBitFacade twoBitFacade = new TwoBitFacade(f);
 		
 		Character orientation='+';

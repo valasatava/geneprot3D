@@ -100,7 +100,7 @@ public class HomologyModelsProvider {
         return uniprotIds;
     }
 
-    public static List<SwissHomology> getModelsFromSMR(List<String> uniProtIds, String whereToDowloadCoordinates) throws Exception {
+    public static List<SwissHomology> getModelsFromSMR(List<String> uniProtIds, String whereToDowloadCoordinates) {
 
         logger.info( "Requesting data for a total number of UniProt sequences: " + uniProtIds.size() );
         List<SwissHomology> models = new ArrayList<>();
@@ -119,6 +119,10 @@ public class HomologyModelsProvider {
                 logger.error("IOException for "+uniProtId+" UniProt entry");
                 continue; }
 
+            catch ( Exception e ) {
+                logger.error("Exception for "+uniProtId+" UniProt entry");
+                continue; }
+
             if (homologyArray.length() <= 0) {
                 logger.info(uniProtId + " has no homology models");
                 continue;
@@ -127,7 +131,12 @@ public class HomologyModelsProvider {
             List<SwissHomology> modelsFromJSON = parseJSONArrayToSwissHomology(homologyArray);
             for (SwissHomology model : modelsFromJSON) {
                 model.setUniProtId(uniProtId);
-                HomologyModelsProvider.downloadCoordinates(model, whereToDowloadCoordinates);
+                try {
+                    HomologyModelsProvider.downloadCoordinates(model, whereToDowloadCoordinates);
+                } catch (IOException e) {
+                    logger.error("Cannot download coordinates for " + uniProtId);
+                    continue;
+                }
                 models.add(model);
             }
 

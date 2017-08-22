@@ -11,35 +11,39 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.List;
 
-/** Read homology models of all human proteins from SwissModel into a DataFrame
+/** Read homology models of all mouse proteins from SwissModel into a DataFrame
  *  then write it into a parquet file using SwissHomology class.
  *
  * Created by Yana Valasatava on 5/23/17.
  */
-public class CreateHumanHomologuesParquetFile {
+public class CreateMouseHomologuesParquetFile {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateHumanHomologuesParquetFile.class);
+    private static final Logger logger = LoggerFactory.getLogger(CreateMouseHomologuesParquetFile.class);
 
     public static void run() throws Exception {
 
         logger.info("Getting the UniProt accessory codes for human proteins...");
 
-        String referenceProteome = "9606";
+        // Mus musculus
+        String taxonomyId = "10090";
+        DataLocationProvider.setGenome("mouse");
+        logger.info("Processing genome: " + DataLocationProvider.getGenome());
+
         File file = new File(DataLocationProvider.getHomologyModelsJSONFileLocation());
 
-        HomologyModelsProvider.downloadJSONFileForReferenceProteome(referenceProteome, file);
+        HomologyModelsProvider.downloadJSONFileForReferenceProteome(taxonomyId, file);
         List<String> uniprotIds = HomologyModelsProvider.getUniprotIdsFromJSONFile(file);
 
         logger.info("...done.");
 
-        logger.info("Retriving the homolody models from SWISS-MODEL repository...");
+        logger.info("Retriving the homolody models from SWISS-MODEL repository to: " + DataLocationProvider.getHomologyModelsCoordinatesLocation());
         List<SwissHomology> models = HomologyModelsProvider.getModelsFromSMR(uniprotIds,
                 DataLocationProvider.getHomologyModelsCoordinatesLocation());
         logger.info("...done.");
 
-        logger.info("Creating the parquet file...");
+        logger.info("Creating the parquet file: " + DataLocationProvider.getHomologyModelsLocation());
         HomologyModelsProvider.createParquetFile(models, DataLocationProvider.getHomologyModelsLocation());
-        logger.info("...parquet file with homology models is created.");
+        logger.info("Parquet file with homology models is created.");
     }
 
     public static void main(String args[]) throws Exception {

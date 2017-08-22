@@ -27,7 +27,7 @@ public class GenomeDataProvider {
 	
 	static TwoBitParser parser;
 	
-	private final static String DEFAULT_GENOME_URI = DataLocationProvider.getHumanGenomeLocation();
+	private final static String DEFAULT_GENOME_URI = DataLocationProvider.getGenomeLocation();
 	private static final String DEFAULT_MAPPING_URL = DataLocationProvider.getGenesPredictionURL();
 	
 	public static void readTwoBitFile(String path) throws Exception {

@@ -9,7 +9,15 @@ import java.nio.file.Paths;
  *
  */
 public class DataLocationProvider {
-	
+
+	private static String genome = "human";
+	public static void setGenome(String genomeName){
+		genome = genomeName;
+	}
+	public static String getGenome(){
+		return genome;
+	}
+
 	private final static String userHome = System.getProperty("user.home");
 	private final static String dataHome = getUserHome()+"/data/";
 	private final static String sparkHome = getUserHome() + "/spark/";
@@ -20,17 +28,12 @@ public class DataLocationProvider {
 	private final static String exonsProjectData = getExonsProject()+"EXONS_DATA/";
 	private final static String exonsProjectResults = getExonsProject()+"RESULTS/";
 
-	// Human genes
-	private final static String humanGenomeLocation = getUserHome()+"/spark/parquet/humangenome/20170413/hg38.2bit";
-	private static final String genesPredictionURL = "http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refFlat.txt.gz";
+	// Human genome
+	private final static String humanGenomeLocation = getUserHome()+"/spark/2bit/human/hg38.2bit";
+	// Mouse genome
+	private final static String mouseGenomeLocation = getUserHome()+"/spark/2bit/mouse/mm10.2bit";
 
-	// Homology models data
-	private final static String humanHomologyModelsLocation = getDataHome()
-			+"parquet/human-homology-models";
-	private final static String humanHomologyCoordinatesLocation = getDataHome()
-			+"structures/human-homology-models/";
-	private final static String humanModelsJSONFileLocation = getDataHome()
-			+"external/swissmodel/human_models.json";
+	private static final String genesPredictionURL = "http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refFlat.txt.gz";
 
 	// Metal-binding data
 	private final static String metalPDBdataLocation = getDataHome()
@@ -103,9 +106,16 @@ public class DataLocationProvider {
 	 *
 	 * @return path to locally stored .2bit file as String
 	 */
-	public static String getHumanGenomeLocation() {
-		return humanGenomeLocation;
+	public static String getGenomeLocation() {
+		if ( getGenome().equals("human")) {
+			return humanGenomeLocation;
+		}
+		else if ( getGenome().equals("mouse")) {
+			return mouseGenomeLocation;
+		}
+		else { return null;}
 	}
+
 	public static String getGenesPredictionURL() {
 		return genesPredictionURL;
 	}
@@ -114,15 +124,14 @@ public class DataLocationProvider {
 		return Paths.get(getDataHome()+"/parquet/hg38/");
 	}
 
-	public static String getHumanHomologyModelsLocation() {
-		return humanHomologyModelsLocation;
+	public static String getHomologyModelsLocation() {
+		return getDataHome() +"parquet/"+getGenome()+"-homology-models";
 	}
-	public static String getHumanHomologyCoordinatesLocation() {
-		return humanHomologyCoordinatesLocation;
+	public static String getHomologyModelsCoordinatesLocation() {
+		return getDataHome()+"structures/"+getGenome()+"-homology-models/";
 	}
-
-	public static String getHumanModelsJSONFileLocation() {
-		return humanModelsJSONFileLocation;
+	public static String getHomologyModelsJSONFileLocation() {
+		return getDataHome()+"external/swissmodel/"+getGenome()+"_models.json";
 	}
 
 	public static  String getMetalPDBdataLocation() {

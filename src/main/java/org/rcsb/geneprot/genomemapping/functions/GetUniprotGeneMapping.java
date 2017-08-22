@@ -91,7 +91,7 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
         if(uniProt == null)
             return data.iterator();
 
-        PdbLogger.info("Processing chromosome/gene name/uniProtId: " + chromosome + "/" + chromosomePosition.getGeneName() + "/" + uniProtId);
+        PdbLogger.info("Processing "+ chromosome.toUpperCase() + ": gene: " + chromosomePosition.getGeneName() + "; " + " UniProt Id: " + uniProtId);
 
         data = getGeneMappingForChromosomePosition(uniProtId, geneSymbol, uniProt, chromosomePosition);
 
@@ -108,10 +108,6 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
         try {
             ChromosomeMappingTools.setCoordinateSystem(0);
             int dnaLength = ChromosomeMappingTools.getCDSLength(chromosomePosition.getOrig());
-
-            PdbLogger.info("### " + chromosomePosition.getChromosome() + " " + ChromosomeUtils.format(chromosomePosition.getTranscriptionStart()) +
-                    " - " + ChromosomeUtils.format(chromosomePosition.getTranscriptionEnd()) + " " + uniProtId + " " + dnaLength);
-
             ChromosomeUtils cu = new ChromosomeUtils();
             if (dnaLength > ChromosomeUtils.MAX_DNA_LENGTH) {
                 // to prevent out of memory for the Isoform mapping, we skip too long genes
@@ -147,7 +143,6 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
             }
 
             int isoformNr = -1;
-            PdbLogger.info("### nr of isoforms " + isoforms.length + " ");
 
             if (SequenceTools.equalLengthSequences(isoforms)) {
 

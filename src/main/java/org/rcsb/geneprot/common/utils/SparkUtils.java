@@ -21,12 +21,18 @@ public class SparkUtils {
 			conf = new SparkConf()
 					.setMaster("local[" + cores + "]")
 					.setAppName("")
+					.set("spark.driver.maxResultSize", "40g")
+					.set("spark.executor.memory","40g")
+					.set("spark.driver.memory","2g")
+					.set("dfs.blocksize", blockSize.toString())
 					.set("parquet.block.size", blockSize.toString() )
 					.set("parquet.dictionary.page.size", blockSize.toString())
 					.set("parquet.page.size", blockSize.toString())
-					.set("spark.executor.memory","8g")
-					.set("spark.driver.memory","4g")
-					.set("spark.driver.maxResultSize", "8g");
+					.set("spark.ui.showConsoleProgress", "true")
+					.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+					.set("spark.kryoserializer.buffer.max", "2047mb")
+					.set("spark.network.timeout", "1000000")
+					.set("spark.storage.memoryFraction","0.3");
 			sContext = new JavaSparkContext(conf);
 			sContext.setCheckpointDir(DataLocationProvider.getDataHome());
 		}

@@ -38,7 +38,7 @@ public class CustomDataProvider {
 
         List<String> done = Files.readAllLines(Paths.get(DataLocationProvider.getExonsProjectResults()+"done"));
 
-        File twoBitFileLocalLocation = new File(DataLocationProvider.getHumanGenomeLocation());
+        File twoBitFileLocalLocation = new File(DataLocationProvider.getGenomeLocation());
         SimpleTwoBitFileProvider.downloadIfNoTwoBitFileExists(twoBitFileLocalLocation, "hg38");
         TwoBitFacade twoBitFacade = new TwoBitFacade(twoBitFileLocalLocation);
         

@@ -71,7 +71,7 @@ public class RNApolymerase implements Serializable  {
 	public DNASequence getCodingSequence(String chromosome, List<Integer> exonStarts, List<Integer> exonEnds,
 									int codingStart, int codingEnd, char orientation) throws Exception {
 
-		File twoBitFileLocalLocation = new File(DataLocationProvider.getHumanGenomeLocation());
+		File twoBitFileLocalLocation = new File(DataLocationProvider.getGenomeLocation());
 		SimpleTwoBitFileProvider.downloadIfNoTwoBitFileExists(twoBitFileLocalLocation, "hg38");
 		TwoBitFacade twoBitFacade = new TwoBitFacade(twoBitFileLocalLocation);
 

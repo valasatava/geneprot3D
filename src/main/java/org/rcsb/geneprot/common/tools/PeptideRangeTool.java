@@ -13,12 +13,10 @@ import org.rcsb.geneprot.common.mappers.UniprotToModelCoordinatesMapper;
 import org.rcsb.uniprot.auto.Entry;
 import org.rcsb.uniprot.auto.FeatureType;
 import org.rcsb.uniprot.auto.Uniprot;
-import org.rcsb.uniprot.config.RCSBUniProtMirror;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
-import javax.xml.bind.JAXBException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
@@ -186,7 +184,7 @@ public class PeptideRangeTool {
         Map model = new HashMap();
 
         if (pair._1.isExperimental()) { model.put("source", "rcsb://"+pair._1.getPdbId()+".mmtf"); }
-        else { model.put("source", DataLocationProvider.getHumanHomologyCoordinatesLocation()
+        else { model.put("source", DataLocationProvider.getHomologyModelsCoordinatesLocation()
                 +pair._1.getStructureId()+".pdb"); }
 
         model.put("chain", pair._1.getChainId());

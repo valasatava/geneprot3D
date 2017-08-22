@@ -43,7 +43,7 @@ public class UniprotToModelCoordinatesMapper {
     }
 
     public void setTemplate(String template) {
-        coordinates = DataLocationProvider.getHumanHomologyCoordinatesLocation()
+        coordinates = DataLocationProvider.getHomologyModelsCoordinatesLocation()
                 +template+"_"+String.valueOf(from)+"_"+String.valueOf(to)+".pdb";
     }
 
