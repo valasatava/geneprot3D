@@ -129,7 +129,19 @@ public class HomologyModelsProvider {
             }
 
             List<SwissHomology> modelsFromJSON = parseJSONArrayToSwissHomology(homologyArray);
+
             for (SwissHomology model : modelsFromJSON) {
+
+                try {
+                    int code = CommonUtils.getResponseCode(model.getCoordinates());
+                    if (code != 200) {
+                        logger.info("Coordinates link does not exist for " + uniProtId + ": " + model.getCoordinates());
+                        continue;
+                    }
+                } catch (IOException e) {
+                    logger.error("Cannot get coordinates from URL for " + uniProtId + ": " + model.getCoordinates());
+                }
+
                 model.setUniProtId(uniProtId);
                 try {
                     HomologyModelsProvider.downloadCoordinates(model, whereToDowloadCoordinates);
@@ -197,13 +209,14 @@ public class HomologyModelsProvider {
     public static void downloadCoordinates(SwissHomology model, String path) throws IOException {
 
         URL url = new URL(model.getCoordinates());
-        File file = new File(path + model.getTemplate() + "_" +
-                model.getFromPos() + "_" +
-                model.getToPos()+".pdb");
+        File file = new File(path + model.getTemplate() + "_" + model.getFromPos() + "_" + model.getToPos()+".pdb");
 
         //Download the structure if file doesn't exist
         if (!file.exists()) {
             FileUtils.copyURLToFile(url, file);
+            logger.info("Coordinates file is downloaded to: "+file.getPath());
+        } else {
+            logger.info("Coordinates file is found here: "+file.getPath());
         }
     }
 

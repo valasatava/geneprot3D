@@ -30,15 +30,13 @@ public class CreateMouseHomologuesParquetFile {
         logger.info("Processing genome: " + DataLocationProvider.getGenome());
 
         File file = new File(DataLocationProvider.getHomologyModelsJSONFileLocation());
-
-        HomologyModelsProvider.downloadJSONFileForReferenceProteome(taxonomyId, file);
+        if (! file.exists())
+            HomologyModelsProvider.downloadJSONFileForReferenceProteome(taxonomyId, file);
         List<String> uniprotIds = HomologyModelsProvider.getUniprotIdsFromJSONFile(file);
-
         logger.info("...done.");
 
-        logger.info("Retriving the homolody models from SWISS-MODEL repository to: " + DataLocationProvider.getHomologyModelsCoordinatesLocation());
-        List<SwissHomology> models = HomologyModelsProvider.getModelsFromSMR(uniprotIds,
-                DataLocationProvider.getHomologyModelsCoordinatesLocation());
+        logger.info("Retrieving the homology models from SWISS-MODEL repository to: " + DataLocationProvider.getHomologyModelsCoordinatesLocation());
+        List<SwissHomology> models = HomologyModelsProvider.getModelsFromSMR(uniprotIds, DataLocationProvider.getHomologyModelsCoordinatesLocation());
         logger.info("...done.");
 
         logger.info("Creating the parquet file: " + DataLocationProvider.getHomologyModelsLocation());
