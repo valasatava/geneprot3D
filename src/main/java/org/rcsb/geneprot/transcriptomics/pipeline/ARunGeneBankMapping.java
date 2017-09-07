@@ -33,19 +33,28 @@ public class ARunGeneBankMapping {
         mapping.write().mode(SaveMode.Overwrite).parquet(path);
     }
 
-    public static void mapToGeneBank(String datapath, String mappingpath) throws Exception {
-
+    public static void mapToGeneBank(String datapath, String mappingpath) throws Exception
+    {
         List<ExonSerializable> exons = ExonsUtils.getSerializableExons(datapath);
         mapToGeneBank(exons, mappingpath);
-    }
-
-    public static void runGencodeV24() throws Exception {
-        mapToGeneBank(DataLocationProvider.getGencodeProteinCodingDataLocation(),
-                DataLocationProvider.getGencodeGeneBankLocation());
     }
 
     public static void runCorrelatedExons() throws Exception {
         mapToGeneBank(DataLocationProvider.getExonsProteinCodingDataLocation(),
                 DataLocationProvider.getExonsGeneBankLocation());
+    }
+
+    public static void runGencode(String genomeName) throws Exception {
+        DataLocationProvider.setGenome(genomeName);
+        mapToGeneBank(DataLocationProvider.getGencodeProteinCodingDataLocation(),
+                DataLocationProvider.getGencodeGeneBankLocation());
+    }
+
+    public static void main(String[] args)
+    {
+        DataLocationProvider.setGenome("mouse");
+        List<ExonSerializable> exons = ExonsUtils.getSerializableExons(DataLocationProvider.getGencodeProteinCodingDataLocation());
+        Dataset<Row> exonsData = SparkUtils.getSparkSession().createDataFrame(exons, ExonSerializable.class);
+        exonsData.show();
     }
 }

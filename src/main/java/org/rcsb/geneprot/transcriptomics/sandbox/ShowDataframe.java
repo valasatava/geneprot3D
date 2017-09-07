@@ -12,8 +12,11 @@ public class ShowDataframe {
 
     public static void main(String[] args) {
 
+        String path = "/Users/yana/spark/parquet/mousegenome/20170905";
+
+        DataLocationProvider.setGenome("mouse");
         Dataset<Row> d2 = SparkUtils.getSparkSession().read()
-                .parquet(DataLocationProvider.getHgMappingLocation()+"/chr21");
+                .parquet(DataLocationProvider.getGencodeStructuralMappingLocation()+"/chr1").cache();
         d2.show();
 
         SparkUtils.stopSparkSession();

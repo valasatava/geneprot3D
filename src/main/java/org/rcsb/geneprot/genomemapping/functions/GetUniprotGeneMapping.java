@@ -8,8 +8,10 @@ import org.biojava.nbio.core.util.SequenceTools;
 import org.biojava.nbio.genome.parsers.twobit.TwoBitFacade;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
 import org.biojava.nbio.genome.util.ProteinMappingTools;
+import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.utils.CommonUtils;
 import org.rcsb.geneprot.gencode.dao.MetadataDAO;
+import org.rcsb.geneprot.genomemapping.ChromosomeUtils;
 import org.rcsb.humangenome.function.SparkGeneChromosomePosition;
 import org.rcsb.uniprot.auto.Uniprot;
 import org.rcsb.uniprot.auto.dao.UniprotDAO;
@@ -17,7 +19,6 @@ import org.rcsb.uniprot.auto.dao.UniprotDAOImpl;
 import org.rcsb.uniprot.auto.tools.JpaUtilsUniProt;
 import org.rcsb.uniprot.isoform.IsoformMapper;
 import org.rcsb.uniprot.isoform.IsoformTools;
-import org.rcsb.util.ChromosomeUtils;
 import org.rcsb.util.Parameters;
 import org.rcsb.util.UniprotGeneMapping;
 import org.slf4j.Logger;
@@ -150,7 +151,8 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
                 if ( ! Files.exists(twoBitFolderPath)) {
                     Files.createDirectories(twoBitFolderPath);
                 }
-                File twoBitFileLocalLocation = new File("/Users/yana/spark/2bit/mm10.2bit");
+                DataLocationProvider.setGenome("mouse");
+                File twoBitFileLocalLocation = new File(DataLocationProvider.getGenomeLocation());
 
                 TwoBitFacade twoBitFacade = new TwoBitFacade(twoBitFileLocalLocation);
 

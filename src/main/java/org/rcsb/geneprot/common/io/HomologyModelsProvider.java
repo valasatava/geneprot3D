@@ -107,6 +107,11 @@ public class HomologyModelsProvider {
 
         for (String uniProtId : uniProtIds) {
 
+            if (uniProtId.contains("-")) {
+                // skip isoforms (?)
+                continue;
+            }
+
             JSONArray homologyArray = null;
             try { homologyArray = CommonUtils.readJsonArrayFromUrl("https://swissmodel.expasy.org/repository/uniprot/"
                         + uniProtId + ".json?provider=swissmodel"); }
@@ -131,16 +136,6 @@ public class HomologyModelsProvider {
             List<SwissHomology> modelsFromJSON = parseJSONArrayToSwissHomology(homologyArray);
 
             for (SwissHomology model : modelsFromJSON) {
-
-                try {
-                    int code = CommonUtils.getResponseCode(model.getCoordinates());
-                    if (code != 200) {
-                        logger.info("Coordinates link does not exist for " + uniProtId + ": " + model.getCoordinates());
-                        continue;
-                    }
-                } catch (IOException e) {
-                    logger.error("Cannot get coordinates from URL for " + uniProtId + ": " + model.getCoordinates());
-                }
 
                 model.setUniProtId(uniProtId);
                 try {
@@ -212,11 +207,23 @@ public class HomologyModelsProvider {
         File file = new File(path + model.getTemplate() + "_" + model.getFromPos() + "_" + model.getToPos()+".pdb");
 
         //Download the structure if file doesn't exist
-        if (!file.exists()) {
+        if ( !file.exists() )
+        {
+            try {
+                int code = CommonUtils.getResponseCode(model.getCoordinates());
+                if (code != 200) {
+                    logger.info("Coordinates link does not exist for " + model.getUniProtId() + ": " + model.getCoordinates());
+                    return;
+                }
+            } catch (IOException e) {
+                logger.error("Cannot get coordinates from URL for " + model.getUniProtId() + ": " + model.getCoordinates());
+            }
+
             FileUtils.copyURLToFile(url, file);
-            logger.info("Coordinates file is downloaded to: "+file.getPath());
+            logger.info("Coordinates file for "+model.getUniProtId()+" is downloaded to: "+file.getPath());
+
         } else {
-            logger.info("Coordinates file is found here: "+file.getPath());
+            logger.info("Coordinates file for "+model.getUniProtId()+" is found here: "+file.getPath());
         }
     }
 

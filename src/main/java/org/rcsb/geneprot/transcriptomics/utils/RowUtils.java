@@ -3,6 +3,7 @@ package org.rcsb.geneprot.transcriptomics.utils;
 import com.google.common.collect.Range;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.types.StructType;
 import org.rcsb.geneprot.common.mappers.UniprotToModelCoordinatesMapper;
 import org.rcsb.uniprot.auto.FeatureType;
 
@@ -427,16 +428,18 @@ public class RowUtils {
 
     public static List<Integer> getIsoStartEndForRow(Row row) {
 
+
+        StructType schema = row.schema();
         int isoformStart;
         int isoformEnd;
 
-        String orientation = row.getString(5);
+        String orientation = row.getString(schema.fieldIndex("orientation"));
         if (orientation.equals("+")) {
-            isoformStart = row.getInt(0);
-            isoformEnd = row.getInt(11);
+            isoformStart = row.getInt(schema.fieldIndex("isoformPosStart"));
+            isoformEnd = row.getInt(schema.fieldIndex("isoformPosEnd"));
         } else {
-            isoformStart = row.getInt(11);
-            isoformEnd = row.getInt(0);
+            isoformStart = row.getInt(schema.fieldIndex("isoformPosEnd"));
+            isoformEnd = row.getInt(schema.fieldIndex("isoformPosStart"));
         }
         return Arrays.asList(isoformStart, isoformEnd);
     }

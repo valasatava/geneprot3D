@@ -1,5 +1,6 @@
 package org.rcsb.geneprot.transcriptomics.properties;
 
+import org.apache.spark.sql.types.StructType;
 import org.rcsb.geneprot.common.datastructures.ProteinFeatures;
 import org.rcsb.geneprot.transcriptomics.utils.IsoformsUtils;
 import org.apache.spark.api.java.function.MapFunction;
@@ -21,8 +22,10 @@ public class MapToProteinFeatures implements MapFunction<Row, ProteinFeatures> {
 	@Override
 	public ProteinFeatures call(Row row) throws Exception {
 
-		String uniprotIds = row.getString(10);
-		int isoformNum = row.getInt(9);
+		StructType schema = row.schema();
+
+		String uniprotIds = row.getString(8);
+		int isoformNum = row.getInt(11);
 
 		String uniprotId;
 		if (uniprotIds.contains(",")) {
@@ -36,10 +39,10 @@ public class MapToProteinFeatures implements MapFunction<Row, ProteinFeatures> {
 		ProteinFeatures feature = new ProteinFeatures();
 
 		try {
-			feature.setChromosome(row.getString(1));
-			feature.setEnsemblId(row.getString(3));
-			feature.setStart(row.getInt(7));
-			feature.setEnd(row.getInt(8));
+			feature.setChromosome(row.getString(schema.fieldIndex("chromosome")));
+			feature.setEnsemblId(row.getString(schema.fieldIndex("ensemblId")));
+			feature.setStart(row.getInt(schema.fieldIndex("start")));
+			feature.setEnd(row.getInt(schema.fieldIndex("end")));
 
 			String isoform = IsoformsUtils.getIsoform(uniprotId, isoformNum);
 			List<Integer> isosten = RowUtils.getIsoStartEndForRow(row);

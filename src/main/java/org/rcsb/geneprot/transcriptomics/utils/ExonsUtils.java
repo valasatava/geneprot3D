@@ -21,7 +21,10 @@ public class ExonsUtils {
 
     public static List<ExonSerializable> getSerializableExons(String dataPath) {
 
-        Dataset<Row> data = SparkUtils.getSparkSession().read().csv(dataPath);
+        Dataset<Row> data = SparkUtils.getSparkSession().read()
+                .format("com.databricks.spark.csv")
+                .option("mode", "DROPMALFORMED")
+                .load(dataPath);
 
         Encoder<ExonSerializable> encoder = Encoders.bean(ExonSerializable.class);
         List<ExonSerializable> exons = data

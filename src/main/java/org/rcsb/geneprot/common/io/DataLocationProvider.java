@@ -47,20 +47,8 @@ public class DataLocationProvider {
 	private final static String uniprotPdbMappinlLocation = getDataHome()
 			+ "/parquet/uniprot-pdb/20161104/";
 
-	//Gencode v.24 data
-	private final static String gencodeProteinCodingDataLocation = getExonsProject()
-			+"GENCODE_DATA/gencode.v24.CDS.gtf";
 
-	private final static String gencodeGeneBankLocation = getExonsProject()
-			+"MAPS/gencode.v24.CDS.gene_bank_mapping";
-	private final static String gencodeUniprotLocation = DataLocationProvider.getExonsProject()
-			+"MAPS/gencode.v24.CDS.uniprot_mapping";
-	private final static String gencodePDBLocation = DataLocationProvider.getExonsProject()
-			+"MAPS/gencode.v24.CDS.pdb_mapping";
-	private final static String gencodeHomologyMappingLocation = DataLocationProvider.getExonsProject()
-			+"MAPS/gencode.v24.CDS.homology_mapping";
-	private final static String gencodeStructuralMappingLocation = DataLocationProvider.getExonsProject()
-			+"MAPS/gencode.v24.CDS.structural_mapping";
+
 
 	// Correlated exons data
 	private final static String exonsProteinCodingDataLocation = getExonsProject()
@@ -99,7 +87,7 @@ public class DataLocationProvider {
 	}
 
 	public static String getExonsProjectResults() {
-		return exonsProjectResults;
+		return getExonsProject()+"RESULTS/"+getGenome();
 	}
 
 	/** Get a location of a human genes in .2bit format.
@@ -148,24 +136,28 @@ public class DataLocationProvider {
 		return uniprotPdbMappinlLocation;
 	}
 
+
+
 	public static String getGencodeProteinCodingDataLocation() {
-		return gencodeProteinCodingDataLocation;
+		return getExonsProject() +"GENCODE_DATA/"+getGenome()+"/gencode.annotation.gtf";
 	}
 	public static String getGencodeGeneBankLocation() {
-		return gencodeGeneBankLocation;
+		return getExonsProject() +"MAPS/"+getGenome()+"/gencode.gene_bank_mapping";
 	}
 	public static String getGencodeUniprotLocation() {
-		return gencodeUniprotLocation;
+		return getExonsProject() +"MAPS/"+getGenome()+"/gencode.uniprot_mapping";
 	}
 	public static String getGencodePDBLocation() {
-		return gencodePDBLocation;
+		return getExonsProject() +"MAPS/"+getGenome()+"/gencode.pdb_mapping";
 	}
 	public static String getGencodeHomologyMappingLocation() {
-		return gencodeHomologyMappingLocation;
+		return getExonsProject() +"MAPS/"+getGenome()+"/gencode.homology_mapping";
 	}
 	public static String getGencodeStructuralMappingLocation() {
-		return gencodeStructuralMappingLocation;
+		return getExonsProject() +"MAPS/"+getGenome()+"/gencode.structural_mapping";
 	}
+
+
 
 	public static String getExonsProteinCodingDataLocation() {
 		return exonsProteinCodingDataLocation;

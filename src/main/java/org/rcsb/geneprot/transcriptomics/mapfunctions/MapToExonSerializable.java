@@ -25,10 +25,10 @@ public class MapToExonSerializable implements FlatMapFunction<Row, ExonSerializa
 
 		String orientation = row.getString(3);
 
-		String geneName = row.getString(4);
+		String geneName = row.getString(6);
 
 		String ensemblIds = row.getString(5);
-		String offsets = row.getString(6);
+		String offsets = row.getString(4);
 
 		ExonSerializable exon;
 		String ensemblId;
@@ -54,7 +54,7 @@ public class MapToExonSerializable implements FlatMapFunction<Row, ExonSerializa
 		else {
 
 			ensemblId = row.getString(5).split(Pattern.quote("."))[0];
-			offset = row.getString(6);
+			offset = row.getString(4);
 
 			exon = new ExonSerializable(chromosome, geneName, start, end, orientation);
 			exon.setEnsemblId(ensemblId);
