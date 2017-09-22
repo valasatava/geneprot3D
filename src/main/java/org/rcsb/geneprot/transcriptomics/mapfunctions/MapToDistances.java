@@ -35,7 +35,7 @@ public class MapToDistances implements Function<List<Row>, List<String>> {
 
         if (RowUtils.isPDBStructure(row)) {
             structureId = RowUtils.getPdbId(transcript.get(0))+"_"+RowUtils.getChainId(row);
-            groups = StructureUtils.getGroupsFromPDBStructure(RowUtils.getPdbId(row), RowUtils.getPdbId(row));
+            groups = StructureUtils.getGroupsFromPDBStructure(RowUtils.getPdbId(row), RowUtils.getChainId(row));
         }
 
         else {
@@ -62,10 +62,6 @@ public class MapToDistances implements Function<List<Row>, List<String>> {
 
                 if (RowUtils.getExon(exon1).equals(RowUtils.getExon(exon2)))
                     continue;
-
-                if (RowUtils.getExon(exon1).equals("204954829_204954951_2") && RowUtils.getExon(exon2).equals("204962108_204962158_2")) {
-                    System.out.println();
-                }
 
                 int uniStart1 = RowUtils.getUniProtStart(exon1);
                 int uniEnd1 = RowUtils.getUniProtEnd(exon1);

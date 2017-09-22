@@ -58,8 +58,8 @@ public class RowUtils {
 
     public static float getResolution(Row row) {
 
-        if (row.get(17) != null) {
-            return row.getFloat(17);
+        if (row.get(18) != null) {
+            return row.getFloat(18);
         } else {
             return 999.9f;
         }
@@ -389,7 +389,12 @@ public class RowUtils {
 
                     if ( pdbIdb.equals(pdbIdRow) && chainId.equals(chainIdRow) && start==startRow && end==endRow ) {
 
-                        float resolution = getResolution(row);
+                        float resolution = 0;
+                        try {
+                            resolution = getResolution(row);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
 
                         if (resolution < bestRes) {
 

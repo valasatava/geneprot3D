@@ -2,9 +2,9 @@ package org.rcsb.geneprot.transcriptomics.analysis;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.rcsb.geneprot.transcriptomics.functions.GetDistances;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.utils.SparkUtils;
+import org.rcsb.geneprot.transcriptomics.functions.GetDistances;
 
 import java.io.FileWriter;
 import java.util.List;

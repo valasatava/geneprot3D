@@ -4,12 +4,13 @@ import org.biojava.nbio.core.sequence.ProteinSequence;
 import org.biojava.nbio.structure.Chain;
 import org.biojava.nbio.structure.Group;
 import org.biojava.nbio.structure.Structure;
-import org.rcsb.geneprot.common.utils.StructureUtils;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
+import org.rcsb.geneprot.common.utils.StructureUtils;
 import org.rcsb.uniprot.isoform.IsoformMapper;
 import org.spark_project.guava.primitives.Ints;
 
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 /**
@@ -58,7 +59,16 @@ public class UniprotToModelCoordinatesMapper {
         Chain chain = structure.getChainByIndex(0);
         List<Group> groups = chain.getAtomGroups();
 
-        String uniSeq = alignment.split("\n")[1].replaceAll("-", "");
+        String uniSeq = null;
+        try {
+            String[] arr = alignment.split(Pattern.quote("\\n"));
+            if (arr.length < 2)
+                return;
+            uniSeq = arr[1].replaceAll("-", "");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         ProteinSequence uniprotSequence = new ProteinSequence(uniSeq);
 
         String modSeq = chain.getAtomSequence();

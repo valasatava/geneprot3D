@@ -40,7 +40,8 @@ public class MapToUniprotFeature implements Function<Row, Row> {
 
         Row mapped = null;
         Uniprot up = RCSBUniProtMirror.getUniProtFromFile(uniProtId);
-
+        if (up == null)
+            return null;
         for (Entry e : up.getEntry()) {
             for (FeatureType ft : e.getFeature()) {
 

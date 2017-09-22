@@ -3,6 +3,7 @@ package org.rcsb.geneprot.transcriptomics.functions;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.types.StructType;
 import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.transcriptomics.mapfunctions.MapToBestStructure;
 import org.rcsb.geneprot.transcriptomics.mapfunctions.MapToDistances;
@@ -21,6 +22,8 @@ import java.util.List;
 public class GetDistances {
 
     public static List<String> run(Dataset<Row> mapping) {
+
+        StructType schema = mapping.schema();
 
         JavaRDD<List<String>> data = mapping.toJavaRDD()
                 .filter( t -> ( t.getInt(9) != -1 && t.getInt(10) != -1 ))

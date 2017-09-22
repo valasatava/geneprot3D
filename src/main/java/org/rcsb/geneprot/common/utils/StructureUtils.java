@@ -169,7 +169,12 @@ public class StructureUtils {
     public static List<Group> getGroupsFromPDBStructure(String pdbId, String chainId) throws Exception {
         Structure structure = getBioJavaStructure(pdbId);
         Chain chain = structure.getPolyChainByPDB(chainId);
-        List<Group> groups = chain.getAtomGroups();
+        List<Group> groups = null;
+        try {
+            groups = chain.getAtomGroups();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return groups;
     }
 

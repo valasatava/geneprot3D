@@ -87,7 +87,7 @@ public class DataLocationProvider {
 	}
 
 	public static String getExonsProjectResults() {
-		return getExonsProject()+"RESULTS/"+getGenome();
+		return getExonsProject()+"RESULTS/"+getGenome()+"/";
 	}
 
 	/** Get a location of a human genes in .2bit format.
