@@ -1,6 +1,6 @@
 package org.rcsb.geneprot.gencode.dao;
 
-import org.rcsb.geneprot.gencode.resources.ResourceManager;
+import org.rcsb.geneprot.common.resources.ResourceManager;
 
 import java.io.*;
 import java.util.HashMap;

@@ -1,5 +1,7 @@
 package org.rcsb.geneprot.common.io;
 
+import org.rcsb.geneprot.common.utils.CommonConstants;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -28,12 +30,43 @@ public class DataLocationProvider {
 	private final static String exonsProjectData = getExonsProject()+"EXONS_DATA/";
 	private final static String exonsProjectResults = getExonsProject()+"RESULTS/";
 
-	// Human genome
-	private final static String humanGenomeLocation = getUserHome()+"/spark/2bit/human/hg38.2bit";
-	// Mouse genome
-	private final static String mouseGenomeLocation = getUserHome()+"/spark/2bit/mouse/mm10.2bit";
 
-	private static final String genesPredictionURL = "http://hgdownload.cse.ucsc.edu/goldenPath/hg38/database/refFlat.txt.gz";
+	// =-=-= GENOME SEQUENCES =-=-=
+
+	// Human genome sequence in the 2bit file format
+	private final static String humanGenomeSequenceLocation = getUserHome()+"/spark/2bit/human/"+CommonConstants.HUMAN_GENOME_ASSEMBLY_GRCH38+".2bit";
+	// Mouse genome sequence in the 2bit file format
+	private final static String mouseGenomeSequenceLocation = getUserHome()+"/spark/2bit/mouse/"+ CommonConstants.MOUSE_GENOME_ASSEMBLY_GRCH38+".2bit";
+
+	/** Get a location of a human genes in .2bit format.
+	 *
+	 * @return path to locally stored .2bit file as String
+	 */
+	public static String getGenomeLocation() {
+		if ( getGenome().equals("human")) {
+			return humanGenomeSequenceLocation;
+		}
+		else if ( getGenome().equals("mouse")) {
+			return mouseGenomeSequenceLocation;
+		}
+		else { return null;}
+	}
+
+	// =-=-=-=-=-=-=-=-=-=-=-=-=
+
+	// =-=-= GENOME ANNOTATION =-=-=
+
+	private static final String humanGenomeAnnotationResource = "http://hgdownload.cse.ucsc.edu/goldenPath/"+CommonConstants.HUMAN_GENOME_ASSEMBLY_GRCH38+"/database/refFlat.txt.gz";
+	public static String getHumanGenomeAnnotationResource() {
+		return humanGenomeAnnotationResource;
+	}
+
+	private static final String mouseGenomeAnnotationResource = "http://hgdownload.cse.ucsc.edu/goldenPath/"+CommonConstants.MOUSE_GENOME_ASSEMBLY_GRCH38+"/database/refFlat.txt.gz";
+	public static String getMouseGenomeAnnotationResource() {
+		return mouseGenomeAnnotationResource;
+	}
+
+// =-=-=-=-=-=-=-=-=-=-=-=-=
 
 	// Metal-binding data
 	private final static String metalPDBdataLocation = getDataHome()
@@ -46,9 +79,6 @@ public class DataLocationProvider {
 			+ "parquet/humangenome/20170413/hg38";
 	private final static String uniprotPdbMappinlLocation = getDataHome()
 			+ "/parquet/uniprot-pdb/20161104/";
-
-
-
 
 	// Correlated exons data
 	private final static String exonsProteinCodingDataLocation = getExonsProject()
@@ -90,23 +120,6 @@ public class DataLocationProvider {
 		return getExonsProject()+"RESULTS/"+getGenome()+"/";
 	}
 
-	/** Get a location of a human genes in .2bit format.
-	 *
-	 * @return path to locally stored .2bit file as String
-	 */
-	public static String getGenomeLocation() {
-		if ( getGenome().equals("human")) {
-			return humanGenomeLocation;
-		}
-		else if ( getGenome().equals("mouse")) {
-			return mouseGenomeLocation;
-		}
-		else { return null;}
-	}
-
-	public static String getGenesPredictionURL() {
-		return genesPredictionURL;
-	}
 
 	public static Path getHumanGenomeMappingPath() {
 		return Paths.get(getDataHome()+"/parquet/hg38/");

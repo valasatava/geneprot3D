@@ -1,9 +1,10 @@
-package org.rcsb.geneprot.gencode.resources;
+package org.rcsb.geneprot.common.resources;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -19,8 +20,10 @@ import java.util.Map;
  */
 public class ResourceManager {
 
-    private static String TMP_RESOURCE_DIRECTORY = "/Users/yana/spark/tmp/";
     private static final Logger logger = LoggerFactory.getLogger(ResourceManager.class);
+
+    private final static String userHome = System.getProperty("user.home");
+    private static String TMP_RESOURCE_DIRECTORY = userHome+"/spark/tmp/";
 
     private Map<String, String> resources;
     List<File> answer = new ArrayList();
@@ -82,5 +85,12 @@ public class ResourceManager {
             }
         }
        return true;
+    }
+
+    public String getLocalResourcePath(String resourceName) throws FileNotFoundException {
+        if (resources.keySet().contains(resourceName))
+            return TMP_RESOURCE_DIRECTORY + resourceName;
+        else
+            throw new FileNotFoundException("The resource is not found locally. Set the Resource Manager and download the file: " + resourceName);
     }
 }

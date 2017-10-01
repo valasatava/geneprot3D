@@ -21,6 +21,14 @@
 	
 	<dependencies>
 
+		<!-- Redwood dependency -->
+		<dependency>
+			<groupId>org.rcsb</groupId>
+			<artifactId>rcsb-redwood</artifactId>
+			<version>3.0.1-SNAPSHOT</version>
+		</dependency>
+		<!-- - - -  -->
+
 		<!-- Spark datamining dependency -->
 		<dependency>
 			<groupId>org.rcsb</groupId>
@@ -35,6 +43,11 @@
 		</dependency>
 
 		<!-- BioJava dependency -->
+		<dependency>
+			<groupId>org.biojava</groupId>
+			<artifactId>biojava-core</artifactId>
+			<version>5.0.0-SNAPSHOT</version>
+		</dependency>
 		<dependency>
 			<groupId>org.biojava</groupId>
 			<artifactId>biojava-genome</artifactId>

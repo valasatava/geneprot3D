@@ -1,0 +1,73 @@
+package org.rcsb.geneprot.common.utils;
+
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
+
+import java.util.regex.Pattern;
+
+/**
+ * Created by Yana Valasatava on 9/29/17.
+ */
+public class CommonConstants {
+
+    public static final String HUMAN_GENOME_ASSEMBLY_GRCH38 = "hg38";
+    public static final String MOUSE_GENOME_ASSEMBLY_GRCH38 = "mm10";
+
+    public static final String HUMAN_GENOME_ASSEMBLY_GRCH37 = "hg19";
+
+    public static final String GENE_NAME = "geneName";
+
+    public static final String NCBI_RNA_SEQUENCE_ACCESSION = "rnaSeqAccn";
+    public static final String NCBI_PROTEIN_SEQUENCE_ACCESSION = "protSeqAccn";
+
+    public static final String CHROMOSOME = "chromosome";
+    public static final String ORIENTATION = "orientation";
+    public static final String TX_START = "transcriptionStart";
+    public static final String TX_END = "transcriptionEnd";
+    public static final String CDS_START = "cdsStart";
+    public static final String CDS_END = "cdsEnd";
+    public static final String EXONS_COUNT = "exonsCount";
+    public static final String EXONS_START = "exonsStart";
+    public static final String EXONS_END = "exonsEnd";
+
+    public static final String TRANSCRIPT = "transcript";
+    public static final String TRANSCRIPTS = "transcripts";
+
+    public static final String UNIPROT_ID = "uniProtId";
+    public static final String MOLECULES = "molecules";
+    public static final String MOLECULE_ID = "moleculeId";
+    public static final String ISOFORM_ID = "isoformId";
+
+    public static final String DASH = Pattern.quote("-");
+    public static final String DOT = Pattern.quote(".");
+    public static final String FIELD_SEPARATOR = Pattern.quote("\t");
+    public static final String EXONS_FIELD_SEPARATOR = Pattern.quote(",");
+
+    public static final StructType GENOME_ANNOTATION_SCHEMA = DataTypes
+            .createStructType(new StructField[] {
+                      DataTypes.createStructField(GENE_NAME, DataTypes.StringType, false)
+                    , DataTypes.createStructField(NCBI_RNA_SEQUENCE_ACCESSION, DataTypes.StringType, false)
+                    , DataTypes.createStructField(CHROMOSOME, DataTypes.StringType, false)
+                    , DataTypes.createStructField(ORIENTATION, DataTypes.StringType, false)
+                    , DataTypes.createStructField(TX_START, DataTypes.IntegerType, false)
+                    , DataTypes.createStructField(TX_END, DataTypes.IntegerType, false)
+                    , DataTypes.createStructField(CDS_START, DataTypes.IntegerType, false)
+                    , DataTypes.createStructField(CDS_END, DataTypes.IntegerType, false)
+                    , DataTypes.createStructField(EXONS_COUNT, DataTypes.IntegerType, false)
+                    , DataTypes.createStructField(EXONS_START, DataTypes.createArrayType(DataTypes.IntegerType), false)
+                    , DataTypes.createStructField(EXONS_END, DataTypes.createArrayType(DataTypes.IntegerType), false)
+            });
+
+    public static final StructType NCBI_RNA_TO_PROTEIN_ACCESSION_SCHEMA = DataTypes
+            .createStructType(new StructField[]{
+                    DataTypes.createStructField(NCBI_RNA_SEQUENCE_ACCESSION, DataTypes.StringType, true)
+                    , DataTypes.createStructField(NCBI_PROTEIN_SEQUENCE_ACCESSION, DataTypes.StringType, true)
+            });
+
+    public static final StructType NCBI_PROTEIN_TO_UNIPROT_ACCESSION_SCHEMA = DataTypes
+            .createStructType(new StructField[]{
+                      DataTypes.createStructField(NCBI_PROTEIN_SEQUENCE_ACCESSION, DataTypes.StringType, true)
+                    , DataTypes.createStructField(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION, DataTypes.StringType, true)
+            });
+}
