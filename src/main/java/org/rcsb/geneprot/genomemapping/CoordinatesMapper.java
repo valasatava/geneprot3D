@@ -1,8 +1,9 @@
 package org.rcsb.geneprot.genomemapping;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.*;
 import org.apache.spark.SparkFiles;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -12,9 +13,9 @@ import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 import org.rcsb.geneprot.common.utils.SparkUtils;
-import scala.Tuple2;
+import org.rcsb.geneprot.genomemapping.functions.MapGenomeToUniProt;
+import org.rcsb.geneprot.genomemapping.model.GenomeToUniProtMapping;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -95,14 +96,24 @@ public class CoordinatesMapper {
     public static Dataset<Row> getAlternativeProducts()
     {
         Dataset<Row> transcripts = getGenomeAnnotation(DataLocationProvider.getHumanGenomeAnnotationResource());
-        transcripts = annotateWithUniProtAccession(transcripts);
+        transcripts = annotateWithUniProtAccession(transcripts).cache();
+
+        long assigned = transcripts
+                .filter(col(CommonConstants.MOLECULE_ID).isNotNull()).count();
+        System.out.println("assigned: "+assigned);
+
+        long notassigned = transcripts
+                .filter(col(CommonConstants.MOLECULE_ID).isNull()).count();
+        System.out.println("not assigned: "+notassigned);
+
+        transcripts
+                .filter(col(CommonConstants.MOLECULE_ID).isNull()).show(100);
 
         transcripts = transcripts
                 .filter(col(CommonConstants.MOLECULE_ID).isNotNull()) // CHECK ISSUES WITH DB
                 .groupBy(col(CommonConstants.CHROMOSOME), col(CommonConstants.GENE_NAME), col(CommonConstants.ORIENTATION), col(CommonConstants.UNIPROT_ID))
                 .agg(collect_list(
-                        struct(
-                                  col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)
+                        struct(   col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)
                                 , col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION)
                                 , col(CommonConstants.MOLECULE_ID)
                                 , col(CommonConstants.ISOFORM_ID)
@@ -118,84 +129,61 @@ public class CoordinatesMapper {
         return transcripts;
     }
 
-    public static List<Tuple2<Integer, Integer>> getCDSRegions(List<Integer> origExonStarts, List<Integer> origExonEnds, int cdsStart, int cdsEnd)
+    public static void writeListToMongo(List<GenomeToUniProtMapping> list) throws Exception
     {
-        List<Integer> exonStarts = new ArrayList(origExonStarts);
-        List<Integer> exonEnds = new ArrayList(origExonEnds);
-        int j = 0;
+        int bulkSize = 10000;
+        int count = 0;
 
-        int nExons;
-        for(nExons = 0; nExons < origExonStarts.size(); ++nExons) {
-            if(((Integer)origExonEnds.get(nExons)).intValue() >= cdsStart && ((Integer)origExonStarts.get(nExons)).intValue() <= cdsEnd) {
-                ++j;
-            } else {
-                exonStarts.remove(j);
-                exonEnds.remove(j);
+        MongoClient mongoClient = new MongoClient("132.249.213.154");
+        DB db = mongoClient.getDB("dw_v1");
+        DBCollection collection = db.getCollection("humanGenomeMapping");
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        BulkWriteOperation bulkOperation;
+        try {
+            bulkOperation = collection.initializeUnorderedBulkOperation();
+
+            for (GenomeToUniProtMapping object : list) {
+
+                DBObject dbo = mapper.convertValue(object, BasicDBObject.class);
+
+                bulkOperation.insert(dbo);
+                count++;
+
+                if (count >= bulkSize) {
+                    //time to perform the bulk insert
+                    bulkOperation.execute();
+                    count = 0;
+                    bulkOperation = collection.initializeUnorderedBulkOperation();
+                }
+
             }
+            //finish up the last few
+            if (count > 0) {
+                bulkOperation.execute();
+            }
+
+        } catch (RuntimeException e) {
+            throw e;
         }
-
-        nExons = exonStarts.size();
-        exonStarts.remove(0);
-        exonStarts.add(0, Integer.valueOf(cdsStart));
-        exonEnds.remove(nExons - 1);
-        exonEnds.add(Integer.valueOf(cdsEnd));
-
-        List<Tuple2<Integer, Integer>> cdsRegion = new ArrayList();
-
-        for(int i = 0; i < nExons; ++i) {
-            Tuple2<Integer, Integer> r = new Tuple2(exonStarts.get(i), exonEnds.get(i));
-            cdsRegion.add(r);
-        }
-
-        return cdsRegion;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         Dataset<Row> transcripts = getAlternativeProducts();
-        //transcripts.show();
+        transcripts = transcripts.filter(col(CommonConstants.GENE_NAME).equalTo("MAGI3"));
 
-        JavaRDD<Object> rdd = transcripts
+        JavaRDD<GenomeToUniProtMapping> rdd = transcripts
                 .toJavaRDD()
-                .map(new Function<Row, Object>() {
+                .map(new MapGenomeToUniProt());
 
-                    @Override
-                    public Object call(Row row) throws Exception {
+        List<GenomeToUniProtMapping> list = rdd.collect();
+        writeListToMongo(list);
 
-                        List<Row> annotations = row.getList(row.fieldIndex(CommonConstants.TRANSCRIPTS));
-                        for (Row transcript : annotations) {
-
-                            int cdsStart = transcript.getInt(transcript.fieldIndex(CommonConstants.CDS_START));
-                            int cdsEnd = transcript.getInt(transcript.fieldIndex(CommonConstants.CDS_END));
-
-                            List<Integer> exonsStart = transcript.getList(transcript.fieldIndex(CommonConstants.EXONS_START));
-                            List<Integer> exonsEnd = transcript.getList(transcript.fieldIndex(CommonConstants.EXONS_END));
-
-                            int mRNAPosStart = 1;
-                            int mRNAPosEnd = 0;
-
-                            List<Tuple2<Integer, Integer>> mRNAPositions = new ArrayList<>();
-                            List<Tuple2<Integer, Integer>> isoformPositions = new ArrayList<>();
-                            List<Tuple2<Integer, Integer>> cdsRegions = getCDSRegions(exonsStart, exonsEnd, cdsStart, cdsEnd);
-
-                            for (Tuple2<Integer, Integer> cds : cdsRegions)
-                            {
-                                mRNAPosEnd = mRNAPosStart + cds._2-cds._1;
-
-                                mRNAPositions.add(new Tuple2<>(mRNAPosStart, mRNAPosEnd));
-                                isoformPositions.add(new Tuple2<>(mRNAPosStart/3 + 1, mRNAPosEnd/3));
-
-                                mRNAPosStart = mRNAPosEnd+1;
-
-                            }
-                            System.out.println();
-                        }
-
-                        return null;
-                    }
-                });
-
-        rdd.collect();
-
+//        Dataset<Row> dataset = sparkSession.createDataset(rdd, CommonConstants.GENOME_MAPPING_SCHEMA);
+//        dataset.persist(StorageLevel.MEMORY_AND_DISK());
+//        dataset.printSchema();
+//        DerivedDataLoadUtils.writeToMongo(dataset, "humanGenomeMapping", SaveMode.Overwrite);
     }
 }
