@@ -35,7 +35,7 @@ public class CoordinatesMapper {
      */
     public static Dataset<Row> getNCBIToUniProtKBAccessionDataset()
     {
-        Dataset<Row> df = ExternalDBUtils.getNCBIAccessionstoIsofomMap();
+        Dataset<Row> df = ExternalDBUtils.getNCBIAccessionsToIsofomsMap();
         df = df
                 .withColumn(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION
                         , split(col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))

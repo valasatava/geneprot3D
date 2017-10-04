@@ -31,7 +31,7 @@ public class ExternalDBUtils {
         return DBUtils.executeSQLsourceUniprot("("+sb.toString()+") as tbl");
     }
 
-    public static Dataset<Row> getNCBIAccessionstoIsofomMap()
+    public static Dataset<Row> getNCBIAccessionsToIsofomsMap()
     {
         StringBuffer sb = new StringBuffer();
         sb.append("select ea.hjvalue as "+ org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION + ", ");
@@ -51,7 +51,7 @@ public class ExternalDBUtils {
 
     public static void main(String[] args)
     {
-        Dataset<Row> df = getNCBIAccessionstoIsofomMap();
+        Dataset<Row> df = getNCBIAccessionsToIsofomsMap();
         df.filter(col("UniProtId").equalTo("P01023")).show();
 
         df = df
