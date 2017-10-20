@@ -21,6 +21,14 @@
 	
 	<dependencies>
 
+		<!-- Mojave dependency -->
+		<dependency>
+			<groupId>org.rcsb</groupId>
+			<artifactId>rcsb-mojave</artifactId>
+			<version>3.0.1-SNAPSHOT</version>
+		</dependency>
+		<!-- - - -  -->
+
 		<!-- Redwood dependency -->
 		<dependency>
 			<groupId>org.rcsb</groupId>
