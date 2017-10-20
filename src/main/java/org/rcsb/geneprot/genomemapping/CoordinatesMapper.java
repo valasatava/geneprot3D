@@ -33,7 +33,7 @@ public class CoordinatesMapper {
     /* Get mapping between NCBI RNA nucleotide accession, NCBI Reference Sequence protein accessions
      *  and UniProtKB protein accessions from UniProt database
      */
-    public static Dataset<Row> getNCBIToUniProtKBAccessionDataset()
+    public static Dataset<Row> getNCBIToMoleculeIdAccessionDataset()
     {
         Dataset<Row> df = ExternalDBUtils.getNCBIAccessionsToIsofomsMap();
         df = df
@@ -44,6 +44,18 @@ public class CoordinatesMapper {
                 .withColumn(CommonConstants.ISOFORM_ID
                         , split(col(CommonConstants.MOLECULE_ID), CommonConstants.DASH).getItem(1));
         return df;
+    }
+
+    public static Dataset<Row> getNCBIToUniProtAccessionDataset()
+    {
+        Dataset<Row> df = ExternalDBUtils.getNCBItoUniProtAccessionsMap();
+        df = df
+                .withColumn(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION
+                        , split(col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
+                .withColumn(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION
+                        , split(col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0));
+        return df;
+
     }
 
     public static Dataset<Row> getGenomeAnnotation(String filePath)
@@ -84,7 +96,10 @@ public class CoordinatesMapper {
 
     public static Dataset<Row> annotateWithUniProtAccession(Dataset<Row> annotation)
     {
-        Dataset<Row> accessions = getNCBIToUniProtKBAccessionDataset();
+        //Dataset<Row> accessions = getNCBIToUniProtKBAccessionDataset();
+        Dataset<Row> accessions = getNCBIToUniProtAccessionDataset();
+        annotation.show();
+        accessions.show();
         annotation = annotation
                 .join(accessions
                         , annotation.col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION).equalTo(accessions.col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
@@ -99,15 +114,15 @@ public class CoordinatesMapper {
         transcripts = annotateWithUniProtAccession(transcripts).cache();
 
         long assigned = transcripts
-                .filter(col(CommonConstants.MOLECULE_ID).isNotNull()).count();
+                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull()).count();
         System.out.println("assigned: "+assigned);
 
         long notassigned = transcripts
-                .filter(col(CommonConstants.MOLECULE_ID).isNull()).count();
+                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNull()).count();
         System.out.println("not assigned: "+notassigned);
 
         transcripts
-                .filter(col(CommonConstants.MOLECULE_ID).isNull()).show(100);
+                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNull()).show(100);
 
         transcripts = transcripts
                 .filter(col(CommonConstants.MOLECULE_ID).isNotNull()) // CHECK ISSUES WITH DB
@@ -172,7 +187,7 @@ public class CoordinatesMapper {
     public static void main(String[] args) throws Exception {
 
         Dataset<Row> transcripts = getAlternativeProducts();
-        transcripts = transcripts.filter(col(CommonConstants.GENE_NAME).equalTo("MAGI3"));
+        //transcripts = transcripts.filter(col(CommonConstants.GENE_NAME).equalTo("MAGI3"));
 
         JavaRDD<GenomeToUniProtMapping> rdd = transcripts
                 .toJavaRDD()

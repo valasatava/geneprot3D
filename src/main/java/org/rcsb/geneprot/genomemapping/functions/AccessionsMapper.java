@@ -5,6 +5,8 @@ package org.rcsb.geneprot.genomemapping.functions;
  */
 public class AccessionsMapper {
 
-    public static void main(String[] args) {
-    }
+//    public static Dataset<Row> getRnaToProteinIdentifierNCBI(String filePath)
+//    {
+//
+//    }
 }

@@ -31,6 +31,35 @@ public class ExternalDBUtils {
         return DBUtils.executeSQLsourceUniprot("("+sb.toString()+") as tbl");
     }
 
+    public static Dataset<Row> getGeneNameToUniProtAccessionsMap()
+    {
+        StringBuffer sb = new StringBuffer();
+        sb.append("select ea.hjvalue as "+ org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION + ", ");
+        sb.append("pt.VALUE_ as " + org.rcsb.mojave.util.CommonConstants.COL_GENE_NAME + " ");
+        sb.append("from entry_accession as ea " +
+                "JOIN gene_type as gt on ( ea.HJID=gt.GENE_ENTRY_HJID ) " +
+                "JOIN gene_name_type as gnt on ( gt.HJID=gnt.NAME__GENE_TYPE_HJID ) ");
+        sb.append("where ( gnt.TYPE_='primary') ");
+
+        return DBUtils.executeSQLsourceUniprot("("+sb.toString()+") as tbl");
+    }
+
+    public static Dataset<Row> getNCBItoUniProtAccessionsMap()
+    {
+        StringBuffer sb = new StringBuffer();
+        sb.append("select ea.hjvalue as "+ org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION + ", ");
+        sb.append("pt.VALUE_ as " + CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION + ", ");
+        sb.append("dbr.ID as " + CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION + " ");
+        sb.append("from entry_accession as ea " +
+                "LEFT JOIN db_reference_type as dbr on ( ea.HJID=dbr.DB_REFERENCE_ENTRY_HJID ) " +
+                "LEFT JOIN property_type as pt on ( dbr.HJID=pt.PROPERTY_DB_REFERENCE_TYPE_H_0 ) ");
+        sb.append("where ( dbr.TYPE_='RefSeq') ");
+        sb.append("and ( pt.TYPE_='nucleotide sequence ID') ");
+        sb.append("and ( ea.HJINDEX=0) ");
+
+        return DBUtils.executeSQLsourceUniprot("("+sb.toString()+") as tbl");
+    }
+
     public static Dataset<Row> getNCBIAccessionsToIsofomsMap()
     {
         StringBuffer sb = new StringBuffer();
