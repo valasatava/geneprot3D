@@ -1,8 +1,7 @@
 package org.rcsb.geneprot.genomemapping;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.*;
 import org.apache.spark.SparkFiles;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -13,8 +12,14 @@ import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 import org.rcsb.geneprot.common.utils.SparkUtils;
+import org.rcsb.geneprot.genomemapping.functions.BuildAlternativeTranscripts;
 import org.rcsb.geneprot.genomemapping.functions.MapGenomeToUniProt;
+import org.rcsb.geneprot.genomemapping.functions.MapToGenomeSequence;
+import org.rcsb.geneprot.genomemapping.functions.MapTranscriptToIsoform;
 import org.rcsb.geneprot.genomemapping.model.GenomeToUniProtMapping;
+import org.rcsb.geneprot.genomemapping.utils.MapperUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,39 +31,21 @@ import static org.apache.spark.sql.functions.*;
 /**
  * Created by Yana Valasatava on 9/29/17.
  */
-public class CoordinatesMapper {
+public class GenomicsCoordinatesMapper {
 
+    private static final Logger logger = LoggerFactory.getLogger(GenomicsCoordinatesMapper.class);
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
 
-    /* Get mapping between NCBI RNA nucleotide accession, NCBI Reference Sequence protein accessions
-     *  and UniProtKB protein accessions from UniProt database
-     */
-    public static Dataset<Row> getNCBIToMoleculeIdAccessionDataset()
-    {
-        Dataset<Row> df = ExternalDBUtils.getNCBIAccessionsToIsofomsMap();
-        df = df
-                .withColumn(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION
-                        , split(col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
-                .withColumn(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION
-                        , split(col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
-                .withColumn(CommonConstants.ISOFORM_ID
-                        , split(col(CommonConstants.MOLECULE_ID), CommonConstants.DASH).getItem(1));
-        return df;
+    private static String organism;
+
+    public static String getOrganism() {
+        return organism;
+    }
+    public static void setOrganism(String organism) {
+        GenomicsCoordinatesMapper.organism = organism;
     }
 
-    public static Dataset<Row> getNCBIToUniProtAccessionDataset()
-    {
-        Dataset<Row> df = ExternalDBUtils.getNCBItoUniProtAccessionsMap();
-        df = df
-                .withColumn(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION
-                        , split(col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
-                .withColumn(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION
-                        , split(col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0));
-        return df;
-
-    }
-
-    public static Dataset<Row> getGenomeAnnotation(String filePath)
+    public static Dataset<Row> getTranscriptsAnnotation(String filePath)
     {
         sparkSession.sparkContext().addFile(filePath);
         int n = filePath.split("/").length;
@@ -94,37 +81,49 @@ public class CoordinatesMapper {
         return df;
     }
 
-    public static Dataset<Row> annotateWithUniProtAccession(Dataset<Row> annotation)
+    public static Dataset<Row> annotateMissingIsoforms(Dataset<Row> transcripts) throws Exception
     {
-        //Dataset<Row> accessions = getNCBIToUniProtKBAccessionDataset();
-        Dataset<Row> accessions = getNCBIToUniProtAccessionDataset();
-        annotation.show();
-        accessions.show();
-        annotation = annotation
-                .join(accessions
-                        , annotation.col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION).equalTo(accessions.col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
-                        , "left_outer")
-                .drop(accessions.col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION));
-        return annotation;
+        JavaPairRDD<Row, String> rdd = transcripts
+                .toJavaRDD()
+                .mapToPair(new BuildAlternativeTranscripts())
+                .mapValues(new MapToGenomeSequence(getOrganism()))
+                .mapToPair(new MapTranscriptToIsoform());
+        rdd.collect();
+        return null;
     }
 
-    public static Dataset<Row> getAlternativeProducts()
+    public static Dataset<Row> annotateMissingProteins(Dataset<Row> transcripts)
     {
-        Dataset<Row> transcripts = getGenomeAnnotation(DataLocationProvider.getHumanGenomeAnnotationResource());
-        transcripts = annotateWithUniProtAccession(transcripts).cache();
+        return null;
+    }
 
-        long assigned = transcripts
-                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull()).count();
-        System.out.println("assigned: "+assigned);
+    public static Dataset<Row> getAlternativeProducts() throws Exception
+    {
+        logger.info("Getting alternative transcripts...");
 
-        long notassigned = transcripts
-                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNull()).count();
-        System.out.println("not assigned: "+notassigned);
+        Dataset<Row> transcripts = getTranscriptsAnnotation(DataLocationProvider.getHumanGenomeAnnotationResource());
+        transcripts = MapperUtils.mapTranscriptsToUniProtAccession(transcripts).cache();
 
-        transcripts
-                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNull()).show(100);
+        Dataset<Row> assigned = transcripts
+                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull()
+                        .and(col(CommonConstants.MOLECULE_ID).isNotNull()))
+                .cache();
 
-        transcripts = transcripts
+        Dataset<Row> missing = transcripts
+                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull()
+                        .and(col(CommonConstants.MOLECULE_ID).isNull()))
+                .cache();
+
+        Dataset<Row> notassigned = transcripts
+                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNull()
+                        .and(col(CommonConstants.MOLECULE_ID).isNull()))
+                .cache();
+
+        Dataset<Row> isoforms = assigned
+                .union(annotateMissingIsoforms(missing))
+                .union(annotateMissingProteins(notassigned));
+
+        isoforms = isoforms
                 .filter(col(CommonConstants.MOLECULE_ID).isNotNull()) // CHECK ISSUES WITH DB
                 .groupBy(col(CommonConstants.CHROMOSOME), col(CommonConstants.GENE_NAME), col(CommonConstants.ORIENTATION), col(CommonConstants.UNIPROT_ID))
                 .agg(collect_list(
@@ -141,51 +140,13 @@ public class CoordinatesMapper {
                                 , col(CommonConstants.EXONS_END)
                         )).as(CommonConstants.TRANSCRIPTS))
                 .sort(col(CommonConstants.CHROMOSOME), col(CommonConstants.GENE_NAME));
-        return transcripts;
-    }
 
-    public static void writeListToMongo(List<GenomeToUniProtMapping> list) throws Exception
-    {
-        int bulkSize = 10000;
-        int count = 0;
-
-        MongoClient mongoClient = new MongoClient("132.249.213.154");
-        DB db = mongoClient.getDB("dw_v1");
-        DBCollection collection = db.getCollection("humanGenomeMapping");
-
-        ObjectMapper mapper = new ObjectMapper();
-
-        BulkWriteOperation bulkOperation;
-        try {
-            bulkOperation = collection.initializeUnorderedBulkOperation();
-
-            for (GenomeToUniProtMapping object : list) {
-
-                DBObject dbo = mapper.convertValue(object, BasicDBObject.class);
-
-                bulkOperation.insert(dbo);
-                count++;
-
-                if (count >= bulkSize) {
-                    //time to perform the bulk insert
-                    bulkOperation.execute();
-                    count = 0;
-                    bulkOperation = collection.initializeUnorderedBulkOperation();
-                }
-
-            }
-            //finish up the last few
-            if (count > 0) {
-                bulkOperation.execute();
-            }
-
-        } catch (RuntimeException e) {
-            throw e;
-        }
+        return isoforms;
     }
 
     public static void main(String[] args) throws Exception {
 
+        setOrganism("human");
         Dataset<Row> transcripts = getAlternativeProducts();
         //transcripts = transcripts.filter(col(CommonConstants.GENE_NAME).equalTo("MAGI3"));
 
@@ -194,7 +155,7 @@ public class CoordinatesMapper {
                 .map(new MapGenomeToUniProt());
 
         List<GenomeToUniProtMapping> list = rdd.collect();
-        writeListToMongo(list);
+        ExternalDBUtils.writeListToMongo(list);
 
 //        Dataset<Row> dataset = sparkSession.createDataset(rdd, CommonConstants.GENOME_MAPPING_SCHEMA);
 //        dataset.persist(StorageLevel.MEMORY_AND_DISK());

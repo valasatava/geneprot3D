@@ -1,8 +1,13 @@
 package org.rcsb.geneprot.common.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.*;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.rcsb.geneprot.genomemapping.model.GenomeToUniProtMapping;
 import org.rcsb.redwood.util.DBUtils;
+
+import java.util.List;
 
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.split;
@@ -35,11 +40,12 @@ public class ExternalDBUtils {
     {
         StringBuffer sb = new StringBuffer();
         sb.append("select ea.hjvalue as "+ org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION + ", ");
-        sb.append("pt.VALUE_ as " + org.rcsb.mojave.util.CommonConstants.COL_GENE_NAME + " ");
+        sb.append("gnt.VALUE_ as " + org.rcsb.mojave.util.CommonConstants.COL_GENE_NAME + " ");
         sb.append("from entry_accession as ea " +
                 "JOIN gene_type as gt on ( ea.HJID=gt.GENE_ENTRY_HJID ) " +
                 "JOIN gene_name_type as gnt on ( gt.HJID=gnt.NAME__GENE_TYPE_HJID ) ");
         sb.append("where ( gnt.TYPE_='primary') ");
+        sb.append("and ( ea.HJINDEX=0) ");
 
         return DBUtils.executeSQLsourceUniprot("("+sb.toString()+") as tbl");
     }
@@ -78,6 +84,46 @@ public class ExternalDBUtils {
         return DBUtils.executeSQLsourceUniprot("("+sb.toString()+") as tbl");
     }
 
+    public static void writeListToMongo(List<GenomeToUniProtMapping> list) throws Exception
+    {
+        int bulkSize = 10000;
+        int count = 0;
+
+        MongoClient mongoClient = new MongoClient("132.249.213.154");
+        DB db = mongoClient.getDB("dw_v1");
+        DBCollection collection = db.getCollection("humanGenomeMapping");
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        BulkWriteOperation bulkOperation;
+        try {
+            bulkOperation = collection.initializeUnorderedBulkOperation();
+
+            for (GenomeToUniProtMapping object : list) {
+
+                DBObject dbo = mapper.convertValue(object, BasicDBObject.class);
+
+                bulkOperation.insert(dbo);
+                count++;
+
+                if (count >= bulkSize) {
+                    //time to perform the bulk insert
+                    bulkOperation.execute();
+                    count = 0;
+                    bulkOperation = collection.initializeUnorderedBulkOperation();
+                }
+
+            }
+            //finish up the last few
+            if (count > 0) {
+                bulkOperation.execute();
+            }
+
+        } catch (RuntimeException e) {
+            throw e;
+        }
+    }
+
     public static void main(String[] args)
     {
         Dataset<Row> df = getNCBIAccessionsToIsofomsMap();
@@ -90,7 +136,7 @@ public class ExternalDBUtils {
                         , split(col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
                 .withColumn(CommonConstants.ISOFORM_ID
                         , split(col(CommonConstants.MOLECULE_ID), CommonConstants.DASH).getItem(1))
-                ;
+        ;
         df.filter(col("UniProtId").equalTo("P01023")).show();
     }
 }

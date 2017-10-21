@@ -1,4 +1,4 @@
-package org.rcsb.geneprot.genomemapping;
+package org.rcsb.geneprot.genomemapping.utils;
 
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.slf4j.Logger;

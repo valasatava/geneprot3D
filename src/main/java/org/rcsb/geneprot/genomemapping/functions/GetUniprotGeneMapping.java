@@ -11,7 +11,7 @@ import org.biojava.nbio.genome.util.ProteinMappingTools;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.utils.CommonUtils;
 import org.rcsb.geneprot.gencode.dao.MetadataDAO;
-import org.rcsb.geneprot.genomemapping.ChromosomeUtils;
+import org.rcsb.geneprot.genomemapping.utils.ChromosomeUtils;
 import org.rcsb.humangenome.function.SparkGeneChromosomePosition;
 import org.rcsb.uniprot.auto.Uniprot;
 import org.rcsb.uniprot.auto.dao.UniprotDAO;
