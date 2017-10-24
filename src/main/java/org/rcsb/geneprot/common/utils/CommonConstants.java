@@ -44,6 +44,21 @@ public class CommonConstants {
     public static final String MRNA_MAPPING = "mRNAMapping";
     public static final String  PROTEIN_MAPPING = "proteinMapping";
 
+    public static final String COL_PROTEIN_SEQUENCE = "proteinSequence";
+    public static final String COL_SEQUENCE_TYPE = "sequenceType";
+    public static final String COL_FEATURE_ID = "featureId";
+    public static final String COL_FEATURE_TYPE = "featureType";
+
+    public static final String COL_ORIGINAL = "original";
+    public static final String COL_VARIATION = "variation";
+    public static final String COL_BEGIN = "begin";
+    public static final String COL_END = "end";
+
+    public static final String COL_SINGLE_AMINO_ACID = "singleAminoAcid";
+    public static final String COL_SINGLE_AMINO_ACID_VARIATION = "singleAminoAcidVariation";
+    public static final String COL_POSITION = "position";
+
+
     public static final String DASH = Pattern.quote("-");
     public static final String DOT = Pattern.quote(".");
     public static final String FIELD_SEPARATOR = Pattern.quote("\t");

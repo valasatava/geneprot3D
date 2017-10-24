@@ -59,8 +59,7 @@ public class MapperUtils {
     {
         Dataset<Row> accessions = getNCBIToMoleculeIdAccessionDataset();
 
-        annotation = annotation
-                .join(accessions
+        annotation = annotation.join(accessions
                         , annotation.col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)
                                 .equalTo(accessions.col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
                         , "left_outer")

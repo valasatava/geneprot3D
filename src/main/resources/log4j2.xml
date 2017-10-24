@@ -14,6 +14,10 @@
 			<appender-ref ref="console"/>
 		</root>
 
+		<Logger name="org.rcsb.redwood.util.DBUtils" level="error" additivity="false">
+			<appender-ref ref="console"/>
+		</Logger>
+
 		<!-- Spark -->
 		<Logger name="org.apache.spark" level="error" additivity="false">
 			<appender-ref ref="console"/>

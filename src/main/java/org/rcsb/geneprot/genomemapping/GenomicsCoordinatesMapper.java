@@ -1,8 +1,9 @@
 package org.rcsb.geneprot.genomemapping;
 
 import org.apache.spark.SparkFiles;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -12,17 +13,16 @@ import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 import org.rcsb.geneprot.common.utils.SparkUtils;
-import org.rcsb.geneprot.genomemapping.functions.BuildAlternativeTranscripts;
-import org.rcsb.geneprot.genomemapping.functions.MapGenomeToUniProt;
-import org.rcsb.geneprot.genomemapping.functions.MapToGenomeSequence;
-import org.rcsb.geneprot.genomemapping.functions.MapTranscriptToIsoform;
+import org.rcsb.geneprot.genomemapping.functions.*;
 import org.rcsb.geneprot.genomemapping.model.GenomeToUniProtMapping;
 import org.rcsb.geneprot.genomemapping.utils.MapperUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -38,10 +38,13 @@ public class GenomicsCoordinatesMapper {
 
     private static String organism;
 
-    public static String getOrganism() {
+    public static String getOrganism()
+    {
         return organism;
     }
-    public static void setOrganism(String organism) {
+
+    public static void setOrganism(String organism)
+    {
         GenomicsCoordinatesMapper.organism = organism;
     }
 
@@ -55,7 +58,7 @@ public class GenomicsCoordinatesMapper {
         schema.fieldIndex(CommonConstants.GENE_NAME);
 
         JavaRDD<Row> rdd =
-                sparkSession.sparkContext().textFile(filename, 100)
+                sparkSession.sparkContext().textFile(filename, 200)
                         .toJavaRDD()
                         .map(t -> t.split(CommonConstants.FIELD_SEPARATOR))
                         .map(t -> RowFactory.create(
@@ -81,20 +84,60 @@ public class GenomicsCoordinatesMapper {
         return df;
     }
 
-    public static Dataset<Row> annotateMissingIsoforms(Dataset<Row> transcripts) throws Exception
+    public static Dataset<Row> assignMissingProteins(Dataset<Row> transcripts)
     {
-        JavaPairRDD<Row, String> rdd = transcripts
+        Map<String, Iterable<String>> geneNamesMap = ExternalDBUtils.getGeneNameToUniProtAccessionsMap()
                 .toJavaRDD()
-                .mapToPair(new BuildAlternativeTranscripts())
-                .mapValues(new MapToGenomeSequence(getOrganism()))
-                .mapToPair(new MapTranscriptToIsoform());
-        rdd.collect();
-        return null;
+                .mapToPair(e -> new Tuple2<>( e.getString(e.schema().fieldIndex(org.rcsb.mojave.util.CommonConstants.COL_GENE_NAME))
+                                            , e.getString(e.schema().fieldIndex(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION))))
+                .groupByKey()
+                .collectAsMap();
+
+        Broadcast<Map<String, Iterable<String>>> bc = new JavaSparkContext(sparkSession.sparkContext()).broadcast(geneNamesMap);
+        JavaRDD<Row> rdd = transcripts
+                .toJavaRDD()
+                .flatMap(new MapTranscriptToUniProtId(bc))
+                .map(new UpdateRow());
+
+        return sparkSession.createDataFrame(rdd, transcripts.schema());
     }
 
-    public static Dataset<Row> annotateMissingProteins(Dataset<Row> transcripts)
+    public static Map<String, Row> getVariationsMap() {
+
+        Dataset<Row> df1 = ExternalDBUtils.getSequenceVariationsInRanges();
+        df1 = df1.withColumn(CommonConstants.COL_POSITION, lit(null))
+                .select(CommonConstants.COL_FEATURE_ID, CommonConstants.COL_VARIATION,
+                        CommonConstants.COL_ORIGINAL, CommonConstants.COL_POSITION,
+                        CommonConstants.COL_BEGIN, CommonConstants.COL_END);
+        Dataset<Row> df2 = ExternalDBUtils.getSinglePositionVariations();
+        df2 = df2.withColumn(CommonConstants.COL_BEGIN, lit(null))
+                .withColumn(CommonConstants.COL_END, lit(null))
+                .select(CommonConstants.COL_FEATURE_ID, CommonConstants.COL_VARIATION,
+                        CommonConstants.COL_ORIGINAL, CommonConstants.COL_POSITION,
+                        CommonConstants.COL_BEGIN, CommonConstants.COL_END);
+        Dataset<Row> df = df1.union(df2);
+
+        Map<String, Row> map = df
+                .toJavaRDD()
+                .mapToPair(e -> new Tuple2<>(e.getString(e.schema().fieldIndex(CommonConstants.COL_FEATURE_ID)), e))
+                .collectAsMap();
+        return map;
+    }
+
+    public static Dataset<Row> assignMissingIsoforms(Dataset<Row> transcripts) throws Exception
     {
-        return null;
+
+        Map<String, Row> map = getVariationsMap();
+        Broadcast<Map<String, Row>> bc = new JavaSparkContext(sparkSession.sparkContext()).broadcast(map);
+        JavaRDD<Row> rdd = transcripts
+                .toJavaRDD()
+                .mapToPair(new BuildAlternativeTranscripts())
+                .repartition(10)
+                .map(new MapTranscriptToIsoform(getOrganism(), bc)).map(new UpdateRow())
+                .repartition(200)
+                .map(new MapTranscriptToIsoformId()).map(new UpdateRow());
+
+        return sparkSession.createDataFrame(rdd, transcripts.schema());
     }
 
     public static Dataset<Row> getAlternativeProducts() throws Exception
@@ -104,24 +147,31 @@ public class GenomicsCoordinatesMapper {
         Dataset<Row> transcripts = getTranscriptsAnnotation(DataLocationProvider.getHumanGenomeAnnotationResource());
         transcripts = MapperUtils.mapTranscriptsToUniProtAccession(transcripts).cache();
 
+        // TRANSCRIPTS ASSIGNED TO ISOFORMS
         Dataset<Row> assigned = transcripts
                 .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull()
-                        .and(col(CommonConstants.MOLECULE_ID).isNotNull()))
-                .cache();
+                        .and(col(CommonConstants.MOLECULE_ID).isNotNull())).cache();
 
+        // ISOFORM ID ASSIGNMENT IS MISSING - MAP VIA BUILDING ISOFORM SEQUENCES
         Dataset<Row> missing = transcripts
                 .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull()
-                        .and(col(CommonConstants.MOLECULE_ID).isNull()))
-                .cache();
+                        .and(col(CommonConstants.MOLECULE_ID).isNull())).cache();
 
+        // UNIPROT ID ASSIGNMENT IS MISSING - MAP VIA GENE NAME
         Dataset<Row> notassigned = transcripts
                 .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNull()
-                        .and(col(CommonConstants.MOLECULE_ID).isNull()))
-                .cache();
+                        .and(col(CommonConstants.MOLECULE_ID).isNull())).cache();
 
+        // ASSIGNING UNIPROT ID
+        Dataset<Row> recovered = assignMissingProteins(notassigned)
+                        .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull());
+        missing = missing.union(recovered);
+
+        // ASSIGNING ISOFORM ID
         Dataset<Row> isoforms = assigned
-                .union(annotateMissingIsoforms(missing))
-                .union(annotateMissingProteins(notassigned));
+                .union(assignMissingIsoforms(missing))
+                .filter(col(CommonConstants.MOLECULE_ID).isNotNull());
+        isoforms.show();
 
         isoforms = isoforms
                 .filter(col(CommonConstants.MOLECULE_ID).isNotNull()) // CHECK ISSUES WITH DB
@@ -148,7 +198,6 @@ public class GenomicsCoordinatesMapper {
 
         setOrganism("human");
         Dataset<Row> transcripts = getAlternativeProducts();
-        //transcripts = transcripts.filter(col(CommonConstants.GENE_NAME).equalTo("MAGI3"));
 
         JavaRDD<GenomeToUniProtMapping> rdd = transcripts
                 .toJavaRDD()

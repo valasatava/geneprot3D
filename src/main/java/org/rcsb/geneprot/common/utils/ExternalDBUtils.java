@@ -9,9 +9,6 @@ import org.rcsb.redwood.util.DBUtils;
 
 import java.util.List;
 
-import static org.apache.spark.sql.functions.col;
-import static org.apache.spark.sql.functions.split;
-
 /**
  * Created by Yana Valasatava on 9/29/17.
  */
@@ -84,6 +81,124 @@ public class ExternalDBUtils {
         return DBUtils.executeSQLsourceUniprot("("+sb.toString()+") as tbl");
     }
 
+    public static Dataset<Row> getCanonicalUniProtSequence(String uniProtId)
+    {
+        StringBuffer sb = new StringBuffer();
+        sb.append("select st.VALUE_ as " + CommonConstants.COL_PROTEIN_SEQUENCE + " ");
+        sb.append("from entry_accession as ea JOIN sequence_type as st on ( ea.HJID=st.HJID ) ");
+        sb.append("where ( ea.hjvalue='"+uniProtId+"') ");
+
+        return DBUtils.executeSQLsourceUniprot("("+sb.toString()+") as tbl");
+    }
+
+    public static Dataset<Row> getSequenceComments(String uniProtId)
+    {
+        StringBuffer sb = new StringBuffer();
+        sb.append("select its.REF_ as "+ CommonConstants.COL_FEATURE_ID + ", ");
+        sb.append("its.TYPE_ as " + CommonConstants.COL_SEQUENCE_TYPE + ", ");
+        sb.append("iti.HJVALUE as " + CommonConstants.MOLECULE_ID + " ");
+        sb.append("from isoform_type_sequence AS its JOIN isoform_type AS it ON (its.HJID=it.SEQUENCE__ISOFORM_TYPE_HJID) ");
+        sb.append("JOIN isoform_type_id AS iti ON (iti.HJID=it.HJID) ");
+        sb.append("JOIN comment_type AS ct ON (ct.HJID=it.ISOFORM_COMMENT_TYPE_HJID) ");
+        sb.append("JOIN entry AS e ON (e.HJID=ct.COMMENT__ENTRY_HJID) ");
+        sb.append("JOIN entry_accession AS ea ON (ea.HJID=e.HJID) ");
+        sb.append("where ( ea.HJVALUE='"+uniProtId+"') ");
+
+        return DBUtils.executeSQLsourceUniprot("("+sb.toString()+") as tbl");
+    }
+
+    public static Dataset<Row> getSequenceVariationsInRanges()
+    {
+        StringBuffer sb1 = new StringBuffer();
+        sb1.append("select ft.ID as "+ CommonConstants.COL_FEATURE_ID + ", ");
+        sb1.append("ft.ORIGINAL as "+ CommonConstants.COL_ORIGINAL + ", ");
+        sb1.append("ftv.HJVALUE as "+ CommonConstants.COL_VARIATION + ", ");
+        sb1.append("CAST(pt.POSITION_ AS SIGNED) as " + CommonConstants.COL_BEGIN + " ");
+        sb1.append("from position_type AS pt JOIN location_type AS lt ON (pt.HJID=lt.BEGIN__LOCATION_TYPE_HJID) ");
+        sb1.append("JOIN feature_type AS ft ON (ft.LOCATION__FEATURE_TYPE_HJID=lt.HJID) ");
+        sb1.append("LEFT OUTER JOIN feature_type_variation AS ftv ON (ft.HJID=ftv.HJID) ");
+        sb1.append("where ( ft.TYPE_='splice variant') ");
+        Dataset<Row> df1 = DBUtils.executeSQLsourceUniprot("(" + sb1.toString() + ") as tbl");
+
+        StringBuffer sb2 = new StringBuffer();
+        sb2.append("select ft.ID as "+ CommonConstants.COL_FEATURE_ID + ", ");
+        sb2.append("CAST(pt.POSITION_ AS SIGNED) as " + CommonConstants.COL_END + " ");
+        sb2.append("from position_type AS pt JOIN location_type AS lt ON (pt.HJID=lt.END__LOCATION_TYPE_HJID) ");
+        sb2.append("JOIN feature_type AS ft ON (ft.LOCATION__FEATURE_TYPE_HJID=lt.HJID) ");
+        sb2.append("LEFT OUTER JOIN feature_type_variation AS ftv ON (ft.HJID=ftv.HJID) ");
+        sb2.append(" where ( ft.TYPE_='splice variant') ");
+        Dataset<Row> df2 = DBUtils.executeSQLsourceUniprot("(" + sb2.toString() + ") as tbl");
+
+        Dataset<Row> df = df1.join(df2, df1.col(CommonConstants.COL_FEATURE_ID).equalTo(df2.col(CommonConstants.COL_FEATURE_ID)), "inner")
+                .drop(df2.col(CommonConstants.COL_FEATURE_ID));
+
+        return df;
+    }
+
+    public static Dataset<Row> getSequenceVariationInRange(String featureId)
+    {
+        StringBuffer sb = new StringBuffer();
+
+        sb.append("select ");
+        sb.append(CommonConstants.COL_ORIGINAL + ", ");
+        sb.append(CommonConstants.COL_VARIATION + ", ");
+        sb.append(CommonConstants.COL_BEGIN + ", ");
+        sb.append(CommonConstants.COL_END + " ");
+        sb.append("from ");
+        sb.append("( select ftv.HJVALUE as "+ CommonConstants.COL_VARIATION + ", ");
+        sb.append("ft.ORIGINAL as "+ CommonConstants.COL_ORIGINAL + ", ");
+        sb.append("CAST(pt.POSITION_ AS SIGNED) as " + CommonConstants.COL_BEGIN + " ");
+        sb.append("from position_type AS pt JOIN location_type AS lt ON (pt.HJID=lt.BEGIN__LOCATION_TYPE_HJID) ");
+        sb.append("JOIN feature_type AS ft ON (ft.LOCATION__FEATURE_TYPE_HJID=lt.HJID) ");
+        sb.append("LEFT OUTER JOIN feature_type_variation AS ftv ON (ft.HJID=ftv.HJID) ");
+        sb.append("where ( ft.ID='"+featureId+"') ) AS tbl1 ");
+        sb.append("LEFT OUTER JOIN ");
+        sb.append("( select ftv.HJVALUE as "+ CommonConstants.COL_VARIATION + "2, ");
+        sb.append("CAST(pt.POSITION_ AS SIGNED) as " + CommonConstants.COL_END + " ");
+        sb.append("from position_type AS pt JOIN location_type AS lt ON (pt.HJID=lt.END__LOCATION_TYPE_HJID) ");
+        sb.append("JOIN feature_type AS ft ON (ft.LOCATION__FEATURE_TYPE_HJID=lt.HJID) ");
+        sb.append("LEFT OUTER JOIN feature_type_variation AS ftv ON (ft.HJID=ftv.HJID) ");
+        sb.append(" where ( ft.ID='"+featureId+"') ) AS tbl2 ");
+        sb.append(" ON tbl1."+CommonConstants.COL_VARIATION+" = tbl2."+CommonConstants.COL_VARIATION+"2 ");
+        sb.append("or tbl1."+CommonConstants.COL_VARIATION+" is NULL and tbl2."+CommonConstants.COL_VARIATION+"2 is NULL ");
+
+        Dataset<Row> df = DBUtils.executeSQLsourceUniprot("(" + sb.toString() + ") as tbl");
+        return df;
+    }
+
+    public static Dataset<Row> getSinglePositionVariations()
+    {
+        StringBuffer sb = new StringBuffer();
+        sb.append("select ft.ID as "+ CommonConstants.COL_FEATURE_ID + ", ");
+        sb.append("ftv.HJVALUE as "+ CommonConstants.COL_VARIATION + ", ");
+        sb.append("ft.ORIGINAL as "+ CommonConstants.COL_ORIGINAL + ", ");
+        sb.append("CAST(pt.POSITION_ AS SIGNED) as " + CommonConstants.COL_POSITION + " ");
+        sb.append("from position_type AS pt JOIN location_type AS lt ON (pt.HJID=lt.POSITION__LOCATION_TYPE_HJID) ");
+        sb.append("JOIN feature_type AS ft ON (ft.LOCATION__FEATURE_TYPE_HJID=lt.HJID) ");
+        sb.append("LEFT OUTER JOIN feature_type_variation AS ftv ON (ft.HJID=ftv.HJID) ");
+        sb.append(" where ( ft.TYPE_='splice variant') ");
+
+        Dataset<Row> df = DBUtils.executeSQLsourceUniprot("(" + sb.toString() + ") as tbl");
+        return df;
+    }
+
+    public static Dataset<Row> getSequenceVariationAtPosition(String featureId)
+    {
+        StringBuffer sb = new StringBuffer();
+
+        sb.append("select ftv.HJVALUE as "+ CommonConstants.COL_VARIATION + ", ");
+        sb.append("ft.ORIGINAL as "+ CommonConstants.COL_ORIGINAL + ", ");
+        sb.append("CAST(pt.POSITION_ AS SIGNED) as " + CommonConstants.COL_POSITION + " ");
+        sb.append("from position_type AS pt JOIN location_type AS lt ON (pt.HJID=lt.POSITION__LOCATION_TYPE_HJID) ");
+        sb.append("JOIN feature_type AS ft ON (ft.LOCATION__FEATURE_TYPE_HJID=lt.HJID) ");
+        sb.append("LEFT OUTER JOIN feature_type_variation AS ftv ON (ft.HJID=ftv.HJID) ");
+        sb.append(" where ( ft.ID='"+featureId+"') ");
+
+
+        Dataset<Row> df = DBUtils.executeSQLsourceUniprot("(" + sb.toString() + ") as tbl");
+        return df;
+    }
+
     public static void writeListToMongo(List<GenomeToUniProtMapping> list) throws Exception
     {
         int bulkSize = 10000;
@@ -126,17 +241,8 @@ public class ExternalDBUtils {
 
     public static void main(String[] args)
     {
-        Dataset<Row> df = getNCBIAccessionsToIsofomsMap();
-        df.filter(col("UniProtId").equalTo("P01023")).show();
-
-        df = df
-                .withColumn(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION
-                        , split(col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
-                .withColumn(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION
-                        , split(col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
-                .withColumn(CommonConstants.ISOFORM_ID
-                        , split(col(CommonConstants.MOLECULE_ID), CommonConstants.DASH).getItem(1))
-        ;
-        df.filter(col("UniProtId").equalTo("P01023")).show();
+        String var = "VSP_057275";
+        Dataset<Row> df = getSequenceVariationsInRanges();
+        df.show();
     }
 }

@@ -19,7 +19,7 @@ public class SparkUtils {
 		Integer blockSize = 1024 * 1024 * 1024;
 		if (sContext==null) {
 			conf = new SparkConf()
-					.setMaster("local[" + 2 + "]")
+					.setMaster("local[" + cores + "]")
 					.setAppName("")
 					.set("spark.driver.maxResultSize", "40g")
 					.set("spark.executor.memory","40g")
@@ -44,7 +44,7 @@ public class SparkUtils {
 		if (sparkSession==null) {
 			sparkSession = SparkSession
 					.builder()
-					.master("local[" + 2 + "]")
+					.master("local[" + cores + "]")
 					.appName("app")
 					.config("spark.driver.maxResultSize", "4g")
 					.config("spark.executor.memory", "4g")
