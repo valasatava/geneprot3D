@@ -4,6 +4,8 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.common.utils.ExternalDBUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +15,8 @@ import java.util.Map;
  * Created by Yana Valasatava on 10/23/17.
  */
 public class IsoformUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(IsoformUtils.class);
 
     public static String insert(String isoform, String variation, int pos, IndexOffset offset) {
 
@@ -117,7 +121,12 @@ public class IsoformUtils {
                 }
             }
             else { // this feature modifies a single amino acid
-                Row v = ExternalDBUtils.getSequenceVariationAtPosition(featureId).first();
+                Row v = null;
+                try {
+                    v = ExternalDBUtils.getSequenceVariationAtPosition(featureId).first();
+                } catch (Exception e) {
+                    logger.error("Cannot retrieve variation for {}", featureId);
+                }
                 String original = v.getString(v.schema().fieldIndex(CommonConstants.COL_ORIGINAL));
 
                 int pos = new Long(v.getLong(v.schema().fieldIndex(CommonConstants.COL_POSITION))).intValue();
@@ -146,12 +155,26 @@ public class IsoformUtils {
         if ( comments.size() == 0 )
             return null; // no alternative splicing events happen
 
+        List<Row> seqQuery = ExternalDBUtils.getCanonicalUniProtSequence(uniProtId)
+                .collectAsList();
+        if ( seqQuery.size() == 0 ) {
+            logger.error("Could not retrieve canonical sequence for {}", uniProtId);
+            return null;
+        }
+
+        String canonical = seqQuery.get(0).getString(0);
+
         Map<String, String> isoforms = new HashMap<>();
-        String canonical = ExternalDBUtils.getCanonicalUniProtSequence(uniProtId)
-                .collectAsList().get(0).getString(0);
+
         for (Row c : comments)
         {
-            String features = c.getString(c.schema().fieldIndex(CommonConstants.COL_FEATURE_ID));
+            String features;
+            try {
+                features = c.getString(c.schema().fieldIndex(CommonConstants.COL_FEATURE_ID));
+            } catch (Exception e) {
+                logger.error("Could not retrieve features for {}", uniProtId);
+                return null;
+            }
 
             if (features == null) {
                 String moleculeId = c.getString(c.schema().fieldIndex(CommonConstants.MOLECULE_ID));

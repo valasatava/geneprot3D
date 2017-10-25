@@ -1,7 +1,6 @@
 package org.rcsb.geneprot.genomemapping.functions;
 
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Row;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
@@ -60,10 +59,9 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
     }
 
     private static String organism;
-    private static Map<String, Row> map;
-    public MapTranscriptToIsoform(String organism, Broadcast<Map<String, Row>> bc) throws Exception {
+
+    public MapTranscriptToIsoform(String organism) throws Exception {
         this.organism = organism;
-        this.map = bc.value();
     }
 
     @Override
@@ -71,7 +69,14 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
 
         Row transcript = t._1;
         String uniProtId = transcript.getString(transcript.schema().fieldIndex(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION));
-        Map<String, String> isoforms = IsoformUtils.buildIsoforms(uniProtId);
+
+        Map<String, String> isoforms;
+        try {
+            isoforms = IsoformUtils.buildIsoforms(uniProtId);
+        } catch (Exception e) {
+            logger.error("Cannot build isoforms for {}", uniProtId);
+            return null;
+        }
 
         if (isoforms == null) {
             logger.info("The sequence of transcript {} is mapped to isoform sequence {}"
@@ -82,6 +87,12 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
 
         GeneChromosomePosition gcp = t._2;
         int transcriptLength = ChromosomeMappingTools.getCDSLength(gcp);
+        if (transcriptLength < 6) {
+            logger.error("Chromosome positions for {} cannot be translated to protein sequence because of short transcript length"
+                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)));
+            return null;
+        }
+
         int proteinLength = transcriptLength / 3;
 
         Map<Integer, List<String>> map = mapToLength(isoforms);
@@ -94,8 +105,15 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
 
         if(duplicatesIn(map)) {
 
-            GenomeUtils.setGenome(organism);
-            String sequence = GenomeUtils.getProteinSequence(gcp);
+            String sequence;
+            try {
+                GenomeUtils.setGenome(organism);
+                sequence = GenomeUtils.getProteinSequence(gcp);
+            } catch (Exception e) {
+                logger.error("Chromosome positions for {} cannot be translated to protein sequence"
+                        , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)));
+                return null;
+            }
 
             // Try check equal
             List<String> moleculeIds = map.get(proteinLength);
@@ -112,7 +130,13 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
             // Try identity threshold
             for (String moleculeId : moleculeIds) {
                 String isoform = isoforms.get(moleculeId);
-                int count = difference(sequence, isoform);
+                int count = 0;
+                try {
+                    count = difference(sequence, isoform);
+                } catch (Exception e) {
+                    logger.error("Error occurred at {}: gettitng the difference between sequence of length {} and isoform of length {}"
+                            , uniProtId, sequence.length(), isoform.length());
+                }
                 float identity =(float) (sequence.length() - count) / sequence.length();
                 if ( identity > 0.99f) {
                     logger.info("The sequence of transcript {} is mapped to isoform sequence {}"

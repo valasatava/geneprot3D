@@ -102,8 +102,8 @@ public class GenomicsCoordinatesMapper {
         return sparkSession.createDataFrame(rdd, transcripts.schema());
     }
 
-    public static Map<String, Row> getVariationsMap() {
-
+    public static Map<String, Row> getVariationsMap()
+    {
         Dataset<Row> df1 = ExternalDBUtils.getSequenceVariationsInRanges();
         df1 = df1.withColumn(CommonConstants.COL_POSITION, lit(null))
                 .select(CommonConstants.COL_FEATURE_ID, CommonConstants.COL_VARIATION,
@@ -129,13 +129,17 @@ public class GenomicsCoordinatesMapper {
 
         Map<String, Row> map = getVariationsMap();
         Broadcast<Map<String, Row>> bc = new JavaSparkContext(sparkSession.sparkContext()).broadcast(map);
+
         JavaRDD<Row> rdd = transcripts
                 .toJavaRDD()
                 .mapToPair(new BuildAlternativeTranscripts())
                 .repartition(10)
-                .map(new MapTranscriptToIsoform(getOrganism(), bc)).map(new UpdateRow())
+                .map(new MapTranscriptToIsoform(getOrganism()))
+                .filter(e -> e != null)
+                .map(new UpdateRow())
                 .repartition(200)
-                .map(new MapTranscriptToIsoformId()).map(new UpdateRow());
+                .map(new MapTranscriptToIsoformId())
+                .map(new UpdateRow());
 
         return sparkSession.createDataFrame(rdd, transcripts.schema());
     }
@@ -145,7 +149,7 @@ public class GenomicsCoordinatesMapper {
         logger.info("Getting alternative transcripts...");
 
         Dataset<Row> transcripts = getTranscriptsAnnotation(DataLocationProvider.getHumanGenomeAnnotationResource());
-        transcripts = MapperUtils.mapTranscriptsToUniProtAccession(transcripts).cache();
+        transcripts = MapperUtils.mapTranscriptsToUniProtAccession(transcripts);
 
         // TRANSCRIPTS ASSIGNED TO ISOFORMS
         Dataset<Row> assigned = transcripts
@@ -155,26 +159,25 @@ public class GenomicsCoordinatesMapper {
         // ISOFORM ID ASSIGNMENT IS MISSING - MAP VIA BUILDING ISOFORM SEQUENCES
         Dataset<Row> missing = transcripts
                 .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull()
-                        .and(col(CommonConstants.MOLECULE_ID).isNull())).cache();
+                        .and(col(CommonConstants.MOLECULE_ID).isNull()));
 
         // UNIPROT ID ASSIGNMENT IS MISSING - MAP VIA GENE NAME
         Dataset<Row> notassigned = transcripts
                 .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNull()
-                        .and(col(CommonConstants.MOLECULE_ID).isNull())).cache();
+                        .and(col(CommonConstants.MOLECULE_ID).isNull()));
 
         // ASSIGNING UNIPROT ID
         Dataset<Row> recovered = assignMissingProteins(notassigned)
                         .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull());
-        missing = missing.union(recovered);
+        missing = missing.union(recovered).cache();
 
         // ASSIGNING ISOFORM ID
         Dataset<Row> isoforms = assigned
                 .union(assignMissingIsoforms(missing))
                 .filter(col(CommonConstants.MOLECULE_ID).isNotNull());
-        isoforms.show();
 
         isoforms = isoforms
-                .filter(col(CommonConstants.MOLECULE_ID).isNotNull()) // CHECK ISSUES WITH DB
+                .filter(col(CommonConstants.MOLECULE_ID).isNotNull())
                 .groupBy(col(CommonConstants.CHROMOSOME), col(CommonConstants.GENE_NAME), col(CommonConstants.ORIENTATION), col(CommonConstants.UNIPROT_ID))
                 .agg(collect_list(
                         struct(   col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)
@@ -205,10 +208,5 @@ public class GenomicsCoordinatesMapper {
 
         List<GenomeToUniProtMapping> list = rdd.collect();
         ExternalDBUtils.writeListToMongo(list);
-
-//        Dataset<Row> dataset = sparkSession.createDataset(rdd, CommonConstants.GENOME_MAPPING_SCHEMA);
-//        dataset.persist(StorageLevel.MEMORY_AND_DISK());
-//        dataset.printSchema();
-//        DerivedDataLoadUtils.writeToMongo(dataset, "humanGenomeMapping", SaveMode.Overwrite);
     }
 }
