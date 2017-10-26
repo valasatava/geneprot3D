@@ -1,6 +1,7 @@
 package org.rcsb.geneprot.genomemapping.functions;
 
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Row;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Yana Valasatava on 10/20/17.
@@ -23,6 +25,10 @@ import java.util.Map;
 public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromosomePosition>, Tuple3<Row, String, String>> {
 
     private static final Logger logger = LoggerFactory.getLogger(MapTranscriptToIsoform.class);
+
+    private static String organism;
+    private static Map<String, Row> seqMap;
+    private static Map<String, Row> varMap;
 
     private Map<Integer, List<String>> mapToLength(Map<String, String> isoforms)
     {
@@ -58,31 +64,36 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
         return count;
     }
 
-    private static String organism;
-
-    public MapTranscriptToIsoform(String organism) throws Exception {
-        this.organism = organism;
+    public MapTranscriptToIsoform(String organismName, Broadcast<Map<String, Row>> bcSeq, Broadcast<Map<String, Row>> bcVar) throws Exception
+    {
+        organism = organismName;
+        seqMap = bcSeq.value();
+        varMap = bcVar.value();
     }
 
     @Override
-    public Tuple3<Row, String, String> call(Tuple2<Row, GeneChromosomePosition> t) throws Exception {
-
+    public Tuple3<Row, String, String> call(Tuple2<Row, GeneChromosomePosition> t) throws Exception
+    {
         Row transcript = t._1;
-        String uniProtId = transcript.getString(transcript.schema().fieldIndex(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION));
+        String uniProtId = transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION));
+        logger.info("Map transcript {} to isoform sequence of {}"
+                , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)), uniProtId);
 
-        Map<String, String> isoforms;
-        try {
-            isoforms = IsoformUtils.buildIsoforms(uniProtId);
-        } catch (Exception e) {
-            logger.error("Cannot build isoforms for {}", uniProtId);
+        if ( !seqMap.keySet().contains(uniProtId) ) {
+            logger.error("No isoforms assigned to {}", uniProtId);
             return null;
         }
 
-        if (isoforms == null) {
-            logger.info("The sequence of transcript {} is mapped to isoform sequence {}"
-                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
-                    , uniProtId+"-1");
-            return new Tuple3<>(transcript, CommonConstants.MOLECULE_ID, uniProtId+"-1");
+        Row row = seqMap.get(uniProtId);
+        List<Row> sequenceFeatures = row.getList(row.schema().fieldIndex(CommonConstants.COL_FEATURES))
+                .stream().map(e->(Row)e).collect(Collectors.toList());
+
+        Map<String, String> isoforms;
+        try {
+            isoforms = IsoformUtils.buildIsoforms(sequenceFeatures, varMap);
+        } catch (Exception e) {
+            logger.error("Cannot build isoforms for {}", uniProtId);
+            return null;
         }
 
         GeneChromosomePosition gcp = t._2;
@@ -97,7 +108,7 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
 
         Map<Integer, List<String>> map = mapToLength(isoforms);
         if (! map.keySet().contains(proteinLength)) {
-            logger.info("The sequence of transcript {} doesn't match any isoform sequence length for {} entry"
+            logger.error("The sequence of transcript {} doesn't match any isoform sequence length for {} entry"
                     , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
                     , uniProtId);
             return null;
@@ -146,7 +157,7 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
                 }
             }
 
-            logger.info("The sequence of transcript {} doesn't match any isoform sequence length for {} entry"
+            logger.error("The sequence of transcript {} doesn't match any isoform sequence length for {} entry"
                     , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
                     , uniProtId);
             return null;

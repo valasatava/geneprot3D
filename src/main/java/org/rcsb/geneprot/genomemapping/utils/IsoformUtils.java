@@ -7,6 +7,7 @@ import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +19,8 @@ public class IsoformUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(IsoformUtils.class);
 
-    public static String insert(String isoform, String variation, int pos, IndexOffset offset) {
-
+    public static String insert(String isoform, String variation, int pos, IndexOffset offset)
+    {
         short insertionLength = (short) variation.length();
         int offsetPos = offset.getOffset(pos - 1);
 
@@ -36,8 +37,8 @@ public class IsoformUtils {
         return modified;
     }
 
-    public static String replace(String isoform, int begin, int end, String variation, IndexOffset offset) {
-
+    public static String replace(String isoform, int begin, int end, String variation, IndexOffset offset)
+    {
         int beginOffset = offset.getOffset(begin - 1);
         int endOffset = offset.getOffset(end - 1);
 
@@ -71,8 +72,8 @@ public class IsoformUtils {
         return modifiedSequence;
     }
 
-    public static String delete(String isoform, int begin, int end, IndexOffset offset) {
-
+    public static String delete(String isoform, int begin, int end, IndexOffset offset)
+    {
         int beginOffset = offset.getOffset(begin - 1);
         int endOffset = offset.getOffset(end - 1);
 
@@ -96,8 +97,8 @@ public class IsoformUtils {
         return modifiedSequence;
     }
 
-    public static String buildIsoform(String canonical, String features) {
-
+    public static String buildIsoform(String canonical, String features)
+    {
         IndexOffset offset = new IndexOffset(canonical.length());
 
         String isoform = canonical;
@@ -148,10 +149,9 @@ public class IsoformUtils {
         return isoform;
     }
 
-    public static Map<String, String> buildIsoforms(String uniProtId) {
-
+    public static Map<String, String> buildIsoforms(String uniProtId)
+    {
         List<Row> comments = ExternalDBUtils.getSequenceComments(uniProtId).collectAsList();
-
         if ( comments.size() == 0 )
             return null; // no alternative splicing events happen
 
@@ -189,9 +189,81 @@ public class IsoformUtils {
         return isoforms;
     }
 
+    public static String buildIsoform(String canonical, List<Row> variations)
+    {
+        String isoform = canonical;
+        IndexOffset offset = new IndexOffset(canonical.length());
+        for (Row v : variations)
+        {
+            if (v.get(v.schema().fieldIndex(CommonConstants.COL_POSITION)) == null) {
+
+                int begin = new Long(v.getLong(v.schema().fieldIndex(CommonConstants.COL_BEGIN))).intValue();
+                int end = new Long(v.getLong(v.schema().fieldIndex(CommonConstants.COL_END))).intValue();
+
+                // replacement
+                if (v.get(v.schema().fieldIndex(CommonConstants.COL_VARIATION)) != null) {
+                    String variation = v.getString(v.schema().fieldIndex(CommonConstants.COL_VARIATION));
+                    isoform = IsoformUtils.replace(isoform, begin, end, variation, offset);
+                }
+                else { // deletion
+                    isoform = IsoformUtils.delete(isoform, begin, end, offset);
+                }
+            }
+            else { // this feature modifies a single amino acid
+                int pos = new Long(v.getLong(v.schema().fieldIndex(CommonConstants.COL_POSITION))).intValue();
+                String original = v.getString(v.schema().fieldIndex(CommonConstants.COL_ORIGINAL));
+
+                if ((original == null || original.length() == 0)
+                        && v.get(v.schema().fieldIndex(CommonConstants.COL_VARIATION)) != null) {
+                    String variation = v.getString(v.schema().fieldIndex(CommonConstants.COL_VARIATION));
+                    isoform = insert(isoform, variation, pos, offset);
+                }
+                else if (v.get(v.schema().fieldIndex(CommonConstants.COL_VARIATION)) != null) {
+                    String variation = v.getString(v.schema().fieldIndex(CommonConstants.COL_VARIATION));
+                    isoform = replace(isoform, pos, pos, variation, offset);
+                } else {
+                    // delete a point mutation
+                    isoform = delete(isoform, pos, pos, offset);
+                }
+            }
+        }
+        return isoform;
+    }
+
+    public static Map<String, String> buildIsoforms(List<Row> sequenceFeatures, Map<String, Row> variationsMap)
+    {
+        Map<String, String> isoforms = new HashMap<>();
+        for (Row row : sequenceFeatures)
+        {
+            String features = row.getString(row.schema().fieldIndex(CommonConstants.COL_FEATURE_ID));
+            String type = row.getString(row.schema().fieldIndex(CommonConstants.COL_SEQUENCE_TYPE));
+            String sequence = row.getString(row.schema().fieldIndex(CommonConstants.COL_PROTEIN_SEQUENCE));
+            String moleculeId = row.getString(row.schema().fieldIndex(CommonConstants.MOLECULE_ID));
+
+            if ( features==null && type.equals("displayed")) {
+                isoforms.put(moleculeId, sequence);
+                logger.debug("The sequence of isoform {} is mapped as canonical sequence", moleculeId);
+            } else {
+                List<Row> variations = new ArrayList<>();
+                for (String feature : features.split(" ")) {
+                    if ( ! variationsMap.containsKey(feature) ) {
+                        logger.info("Could not retrieve variation {} for {}", feature, moleculeId);
+                        break;
+                    }
+                    variations.add(variationsMap.get(feature));
+                }
+                if (variations.size()==features.split(" ").length) {
+                    String isoform = buildIsoform(sequence, variations);
+                    isoforms.put(moleculeId, isoform);
+                }
+            }
+        }
+        return isoforms;
+    }
+
     public static void main(String[] args) {
 
-        Map<String, String> isoforms = buildIsoforms("Q8NA29");
+        Map<String, String> isoforms = buildIsoforms("Q8IYS5");
         System.out.println();
     }
 }

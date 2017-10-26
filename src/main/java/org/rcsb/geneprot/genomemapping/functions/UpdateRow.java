@@ -2,7 +2,7 @@ package org.rcsb.geneprot.genomemapping.functions;
 
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import scala.Option;
 import scala.Tuple3;
 import scala.collection.JavaConversions;
@@ -34,6 +34,6 @@ public class UpdateRow implements Function<Tuple3<Row, String, String>, Row>, Se
                 objArray[i]=val.get();
             }
         }
-        return RowFactory.create(objArray);
+        return new GenericRowWithSchema(objArray, row.schema());
     }
 }

@@ -6,6 +6,8 @@ import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.genomemapping.model.CoordinatesRange;
 import org.rcsb.geneprot.genomemapping.model.GenomeToUniProtMapping;
 import org.rcsb.geneprot.genomemapping.model.Transcript;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import java.util.ArrayList;
@@ -17,6 +19,8 @@ import java.util.List;
  */
 public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping> {
 
+    private static final Logger logger = LoggerFactory.getLogger(MapGenomeToUniProt.class);
+
     private static List<Tuple2<Integer, Integer>> getCDSRegions(List<Integer> origExonStarts, List<Integer> origExonEnds, int cdsStart, int cdsEnd)
     {
         List<Integer> exonStarts = new ArrayList(origExonStarts);
@@ -25,7 +29,7 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
 
         int nExons;
         for(nExons = 0; nExons < origExonStarts.size(); ++nExons) {
-            if(((Integer)origExonEnds.get(nExons)).intValue() >= cdsStart && ((Integer)origExonStarts.get(nExons)).intValue() <= cdsEnd) {
+            if((origExonEnds.get(nExons)).intValue() >= cdsStart && (origExonStarts.get(nExons)).intValue() <= cdsEnd) {
                 ++j;
             } else {
                 exonStarts.remove(j);
@@ -57,9 +61,10 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
         m.setChromosome(row.getString(row.fieldIndex(CommonConstants.CHROMOSOME)));
         m.setGeneName(row.getString(row.fieldIndex(CommonConstants.GENE_NAME)));
         m.setOrientation(row.getString(row.fieldIndex(CommonConstants.ORIENTATION)));
-        m.setUniProtId(row.getString(row.fieldIndex(CommonConstants.UNIPROT_ID)));
+        m.setUniProtId(row.getString(row.fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)));
 
         List<Row> annotations = row.getList(row.fieldIndex(CommonConstants.TRANSCRIPTS));
+        logger.info("Mapping {} products to protein coordinates", m.getGeneName());
 
         for (Row annotation : annotations)
         {

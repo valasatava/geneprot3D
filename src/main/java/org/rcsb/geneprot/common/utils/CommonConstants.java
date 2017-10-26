@@ -35,7 +35,7 @@ public class CommonConstants {
     public static final String TRANSCRIPT = "transcript";
     public static final String TRANSCRIPTS = "transcripts";
 
-    public static final String UNIPROT_ID = "uniProtId";
+    public static final String COL_UNIPROT_ACCESSION = "uniProtId";
     public static final String MOLECULES = "molecules";
     public static final String MOLECULE_ID = "moleculeId";
     public static final String ISOFORM_ID = "isoformId";
@@ -48,6 +48,7 @@ public class CommonConstants {
     public static final String COL_SEQUENCE_TYPE = "sequenceType";
     public static final String COL_FEATURE_ID = "featureId";
     public static final String COL_FEATURE_TYPE = "featureType";
+    public static final String COL_FEATURES="features";
 
     public static final String COL_ORIGINAL = "original";
     public static final String COL_VARIATION = "variation";
@@ -123,7 +124,7 @@ public class CommonConstants {
                   DataTypes.createStructField(CHROMOSOME, DataTypes.StringType, false, Metadata.empty())
                 , DataTypes.createStructField(GENE_NAME, DataTypes.StringType, false, Metadata.empty())
                 , DataTypes.createStructField(ORIENTATION, DataTypes.StringType, false, Metadata.empty())
-                , DataTypes.createStructField(UNIPROT_ID, DataTypes.StringType, false, Metadata.empty())
+                , DataTypes.createStructField(COL_UNIPROT_ACCESSION, DataTypes.StringType, false, Metadata.empty())
                 //, DataTypes.createStructField(TRANSCRIPTS, TRANSCRIPTS_SCHEMA, false, Metadata.empty())
                 , DataTypes.createStructField(MAPPING, MAPPING_SCHEMA, false, Metadata.empty())
     });
