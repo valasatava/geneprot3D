@@ -9,6 +9,8 @@ import org.rcsb.redwood.util.DBUtils;
 
 import java.util.List;
 
+import static org.apache.spark.sql.functions.col;
+
 /**
  * Created by Yana Valasatava on 9/29/17.
  */
@@ -149,13 +151,13 @@ public class ExternalDBUtils {
         sb.append("st.VALUE_ as " + CommonConstants.COL_PROTEIN_SEQUENCE + " ");
         sb.append("from entry_accession AS ea ");
         sb.append("JOIN sequence_type as st on ( ea.HJID=st.HJID ) ");
-        sb.append("JOIN comment_type AS ct ON (ea.HJID=ct.COMMENT__ENTRY_HJID) ");
+        sb.append("LEFT OUTER JOIN comment_type AS ct ON (ea.HJID=ct.COMMENT__ENTRY_HJID) ");
         sb.append("LEFT OUTER JOIN isoform_type AS it ON (ct.HJID=it.ISOFORM_COMMENT_TYPE_HJID) ");
-        sb.append("where (ea.HJINDEX=0) ");
-        sb.append("and (ISOFORM_COMMENT_TYPE_HJID is NULL) ");
+        sb.append("where ( (ea.HJINDEX=0 ");
+        sb.append("and ISOFORM_COMMENT_TYPE_HJID is NULL) ");
+        sb.append("or COMMENT__ENTRY_HJID is NULL) ");
 
         return DBUtils.executeSQLsourceUniprot("(" + sb.toString() + ") as tbl");
-
     }
 
     public static Dataset<Row> getIsoformSequenceFeatures()
@@ -313,9 +315,7 @@ public class ExternalDBUtils {
     public static void main(String[] args)
     {
         String var = "VSP_057275";
-        Dataset<Row> df = getIsoformSequenceFeatures();
-        df
-                //.filter(col(CommonConstants.COL_UNIPROT_ACCESSION).equalTo("P21579"))
-                .show();
+        Dataset<Row> df = getCanonicalSequenceFeatures();
+        df.filter(col(CommonConstants.COL_UNIPROT_ACCESSION).equalTo("Q13243")).show();
     }
 }

@@ -76,11 +76,9 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
     {
         Row transcript = t._1;
         String uniProtId = transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION));
-        logger.info("Map transcript {} to isoform sequence of {}"
-                , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)), uniProtId);
 
-        if ( !seqMap.keySet().contains(uniProtId) ) {
-            logger.error("No isoforms assigned to {}", uniProtId);
+        if ( ! seqMap.keySet().contains(uniProtId) ) {
+            logger.error("Could not retrieve sequence features for {}", uniProtId);
             return null;
         }
 

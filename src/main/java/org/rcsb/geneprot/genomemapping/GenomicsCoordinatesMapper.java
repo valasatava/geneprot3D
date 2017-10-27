@@ -36,7 +36,9 @@ import static org.apache.spark.sql.functions.*;
 public class GenomicsCoordinatesMapper {
 
     private static final Logger logger = LoggerFactory.getLogger(GenomicsCoordinatesMapper.class);
+
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
+    private static JavaSparkContext jsc = new JavaSparkContext(sparkSession.sparkContext());
 
     private static int taxonomyId;
     private static String organism;
@@ -52,44 +54,11 @@ public class GenomicsCoordinatesMapper {
         organism = organismName;
         if (organismName.equals("human"))
             taxonomyId = 9606;
-
         organismIds = ExternalDBUtils.getAccessionsForOrganism(taxonomyId).cache();
     }
 
-    public static Dataset<Row> getTranscriptsAnnotation(String filePath)
-    {
-        sparkSession.sparkContext().addFile(filePath);
-        int n = filePath.split("/").length;
-        String filename = SparkFiles.get(filePath.split("/")[n - 1]);
-
-        StructType schema = CommonConstants.GENOME_ANNOTATION_SCHEMA;
-        schema.fieldIndex(CommonConstants.GENE_NAME);
-
-        JavaRDD<Row> rdd =
-                sparkSession.sparkContext().textFile(filename, 200)
-                        .toJavaRDD()
-                        .map(t -> t.split(CommonConstants.FIELD_SEPARATOR))
-                        .map(t -> RowFactory.create(
-                                t[schema.fieldIndex(CommonConstants.GENE_NAME)]
-                                , t[schema.fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)]
-                                , t[schema.fieldIndex(CommonConstants.CHROMOSOME)]
-                                , t[schema.fieldIndex(CommonConstants.ORIENTATION)]
-                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.TX_START)])
-                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.TX_END)])
-                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.CDS_START)])
-                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.CDS_END)])
-                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.EXONS_COUNT)])
-                                , Arrays.stream(t[schema.fieldIndex(CommonConstants.EXONS_START)]
-                                        .split(CommonConstants.EXONS_FIELD_SEPARATOR))
-                                        .map(e -> Integer.valueOf(e)).collect(Collectors.toList()).toArray()
-                                , Arrays.stream(t[schema.fieldIndex(CommonConstants.EXONS_END)]
-                                        .split(Pattern.quote(",")))
-                                        .map(e -> Integer.valueOf(e)).collect(Collectors.toList()).toArray()
-                                )
-                        );
-
-        Dataset<Row> df = sparkSession.createDataFrame(rdd, CommonConstants.GENOME_ANNOTATION_SCHEMA);
-        return df;
+    public static Dataset<Row> getOrganismIds() {
+        return organismIds;
     }
 
     public static Map<String, Row> getVariationsMap()
@@ -140,6 +109,42 @@ public class GenomicsCoordinatesMapper {
         return map;
     }
 
+    public static Dataset<Row> getTranscriptsAnnotation(String filePath)
+    {
+        sparkSession.sparkContext().addFile(filePath);
+        int n = filePath.split("/").length;
+        String filename = SparkFiles.get(filePath.split("/")[n - 1]);
+
+        StructType schema = CommonConstants.GENOME_ANNOTATION_SCHEMA;
+        schema.fieldIndex(CommonConstants.GENE_NAME);
+
+        JavaRDD<Row> rdd =
+                sparkSession.sparkContext().textFile(filename, 200)
+                        .toJavaRDD()
+                        .map(t -> t.split(CommonConstants.FIELD_SEPARATOR))
+                        .map(t -> RowFactory.create(
+                                t[schema.fieldIndex(CommonConstants.GENE_NAME)]
+                                , t[schema.fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)]
+                                , t[schema.fieldIndex(CommonConstants.CHROMOSOME)]
+                                , t[schema.fieldIndex(CommonConstants.ORIENTATION)]
+                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.TX_START)])
+                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.TX_END)])
+                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.CDS_START)])
+                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.CDS_END)])
+                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.EXONS_COUNT)])
+                                , Arrays.stream(t[schema.fieldIndex(CommonConstants.EXONS_START)]
+                                        .split(CommonConstants.EXONS_FIELD_SEPARATOR))
+                                        .map(e -> Integer.valueOf(e)).collect(Collectors.toList()).toArray()
+                                , Arrays.stream(t[schema.fieldIndex(CommonConstants.EXONS_END)]
+                                        .split(Pattern.quote(",")))
+                                        .map(e -> Integer.valueOf(e)).collect(Collectors.toList()).toArray()
+                                )
+                        );
+
+        Dataset<Row> df = sparkSession.createDataFrame(rdd, CommonConstants.GENOME_ANNOTATION_SCHEMA);
+        return df;
+    }
+
     public static Dataset<Row> assignMissingProteins(Dataset<Row> transcripts)
     {
         Map<String, Iterable<String>> geneNamesMap = ExternalDBUtils.getGeneNameToUniProtAccessionsMap(taxonomyId)
@@ -149,12 +154,11 @@ public class GenomicsCoordinatesMapper {
                 .groupByKey()
                 .collectAsMap();
 
-        Broadcast<Map<String, Iterable<String>>> bc = new JavaSparkContext(sparkSession.sparkContext()).broadcast(geneNamesMap);
+        Broadcast<Map<String, Iterable<String>>> bc = jsc.broadcast(geneNamesMap);
         JavaRDD<Row> rdd = transcripts
-                .toJavaRDD()
-                .flatMap(new MapTranscriptToUniProtId(bc))
-                .map(new UpdateRow());
-
+                    .toJavaRDD()
+                    .flatMap(new MapTranscriptToUniProtId(bc))
+                    .map(new UpdateRow());
         return sparkSession.createDataFrame(rdd, transcripts.schema());
     }
 
@@ -163,20 +167,19 @@ public class GenomicsCoordinatesMapper {
         Map<String, Row> varMap = getVariationsMap();
         Map<String, Row> seqMap = getSequenceFeaturesMap();
 
-        JavaSparkContext jsc = new JavaSparkContext(sparkSession.sparkContext());
         Broadcast<Map<String, Row>> bcVar = jsc.broadcast(varMap);
         Broadcast<Map<String, Row>> bcSeq = jsc.broadcast(seqMap);
 
         JavaRDD<Row> rdd = transcripts
-                .toJavaRDD()
-                .mapToPair(new BuildAlternativeTranscripts())
-                .repartition(1)
-                .map(new MapTranscriptToIsoform(getOrganism(), bcSeq, bcVar))
-                .filter(e -> e != null)
-                .map(new UpdateRow())
-                .repartition(100)
-                .map(new MapTranscriptToIsoformId())
-                .map(new UpdateRow());
+                    .toJavaRDD()
+                    .mapToPair(new BuildAlternativeTranscripts())
+                    .repartition(1)
+                    .map(new MapTranscriptToIsoform(getOrganism(), bcSeq, bcVar))
+                    .filter(e -> e != null)
+                    .map(new UpdateRow())
+                    .repartition(100)
+                    .map(new MapTranscriptToIsoformId())
+                    .map(new UpdateRow());
 
         return sparkSession.createDataFrame(rdd, transcripts.schema());
     }
@@ -188,27 +191,27 @@ public class GenomicsCoordinatesMapper {
         Dataset<Row> transcripts = getTranscriptsAnnotation(DataLocationProvider.getHumanGenomeAnnotationResource());
         transcripts = MapperUtils.mapTranscriptsToUniProtAccession(transcripts);
 
-        transcripts = transcripts.filter(col(CommonConstants.COL_UNIPROT_ACCESSION).equalTo("P21926"));
+        transcripts = transcripts.filter(col(CommonConstants.GENE_NAME).equalTo("STXBP6"));
         transcripts.show();
 
         // TRANSCRIPTS ASSIGNED TO ISOFORMS
         Dataset<Row> assigned = transcripts
-                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull()
+                .filter(col(CommonConstants.COL_UNIPROT_ACCESSION).isNotNull()
                         .and(col(CommonConstants.MOLECULE_ID).isNotNull()));
 
         // ISOFORM ID ASSIGNMENT IS MISSING - MAP VIA BUILDING ISOFORM SEQUENCES
         Dataset<Row> missing = transcripts
-                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull()
+                .filter(col(CommonConstants.COL_UNIPROT_ACCESSION).isNotNull()
                         .and(col(CommonConstants.MOLECULE_ID).isNull()));
 
         // UNIPROT ID ASSIGNMENT IS MISSING - MAP VIA GENE NAME
         Dataset<Row> notassigned = transcripts
-                .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNull()
+                .filter(col(CommonConstants.COL_UNIPROT_ACCESSION).isNull()
                         .and(col(CommonConstants.MOLECULE_ID).isNull()));
 
         // ASSIGNING UNIPROT ID
         Dataset<Row> recovered = assignMissingProteins(notassigned)
-                        .filter(col(org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION).isNotNull());
+                        .filter(col(CommonConstants.COL_UNIPROT_ACCESSION).isNotNull());
         missing = missing.union(recovered);
 
         // ASSIGNING ISOFORM ID
@@ -241,24 +244,32 @@ public class GenomicsCoordinatesMapper {
         return isoforms;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         logger.info("Genome mapping is started");
         long timeS = System.currentTimeMillis();
 
         setOrganism("human");
-        Dataset<Row> transcripts = getAlternativeProducts();
-        transcripts = assembleTranscriptsAsGenes(transcripts.cache());
-        transcripts.collectAsList();
+        try {
+            Dataset<Row> transcripts = getAlternativeProducts();
+            transcripts = assembleTranscriptsAsGenes(transcripts.cache());
+            transcripts.collectAsList();
 
-        JavaRDD<GenomeToUniProtMapping> rdd = transcripts
-                .toJavaRDD()
-                .map(new MapGenomeToUniProt());
-        List<GenomeToUniProtMapping> list = rdd.collect();
+            JavaRDD<GenomeToUniProtMapping> rdd = transcripts
+                    .toJavaRDD()
+                    .map(new MapGenomeToUniProt());
+            List<GenomeToUniProtMapping> list = rdd.collect();
 
-        logger.info("Writing mapping to a database");
-        ExternalDBUtils.writeListToMongo(list);
+            logger.info("Writing mapping to a database");
+            ExternalDBUtils.writeListToMongo(list);
 
+        } catch (Exception e) {
+            logger.error("Exiting: fatal error has occurred");
+        }
+        finally {
+            jsc.stop();
+            sparkSession.stop();
+        }
         long timeE = System.currentTimeMillis();
         logger.info("Completed. Time taken: " + DurationFormatUtils.formatPeriod(timeS, timeE, "HH:mm:ss:SS"));
     }

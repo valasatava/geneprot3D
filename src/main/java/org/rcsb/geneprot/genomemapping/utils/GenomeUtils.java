@@ -1,7 +1,10 @@
 package org.rcsb.geneprot.genomemapping.utils;
 
 import com.google.common.collect.Range;
+import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.ProteinSequence;
+import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
+import org.biojava.nbio.core.sequence.template.SequenceView;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.biojava.nbio.genome.parsers.twobit.TwoBitFacade;
 import org.biojava.nbio.genome.util.ChromosomeMappingTools;
@@ -40,6 +43,14 @@ public class GenomeUtils {
     public static String getProteinSequence(GeneChromosomePosition gcp) throws Exception {
 
         String transcriptSequence = getTranscriptSequence(gcp);
+
+        if (gcp.getOrientation().equals('-')) {
+            transcriptSequence = (new StringBuilder(transcriptSequence)).reverse().toString();
+            DNASequence dna = new DNASequence(transcriptSequence);
+            SequenceView<NucleotideCompound> compliment = dna.getComplement();
+            transcriptSequence = compliment.getSequenceAsString();
+        }
+
         ProteinSequence sequence = ProteinMappingTools.convertDNAtoProteinSequence(transcriptSequence);
         return sequence.getSequenceAsString();
     }

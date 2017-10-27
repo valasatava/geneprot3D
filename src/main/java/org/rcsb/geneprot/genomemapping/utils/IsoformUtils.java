@@ -242,12 +242,11 @@ public class IsoformUtils {
 
             if ( features==null && type.equals("displayed")) {
                 isoforms.put(moleculeId, sequence);
-                logger.debug("The sequence of isoform {} is mapped as canonical sequence", moleculeId);
-            } else {
+            } else if (type.equals("described")) {
                 List<Row> variations = new ArrayList<>();
                 for (String feature : features.split(" ")) {
                     if ( ! variationsMap.containsKey(feature) ) {
-                        logger.info("Could not retrieve variation {} for {}", feature, moleculeId);
+                        logger.error("Could not retrieve variation {} for {}", feature, moleculeId);
                         break;
                     }
                     variations.add(variationsMap.get(feature));
