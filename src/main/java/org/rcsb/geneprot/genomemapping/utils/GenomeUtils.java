@@ -19,16 +19,15 @@ import java.util.List;
  */
 public class GenomeUtils {
 
-    private static TwoBitFacade twoBitFacade;
-
     public static void setGenome(String organism) throws Exception {
         DataLocationProvider.setGenome(organism);
-        File f = new File(DataLocationProvider.getGenomeLocation());
-        twoBitFacade = new TwoBitFacade(f);
     }
 
     public static String getTranscriptSequence(GeneChromosomePosition gcp) throws Exception
     {
+        File f = new File(DataLocationProvider.getGenomeLocation());
+        TwoBitFacade twoBitFacade = new TwoBitFacade(f);
+
         List<Range<Integer>> cdsRegion = ChromosomeMappingTools
                 .getCDSRegions(gcp.getExonStarts(), gcp.getExonEnds(), gcp.getCdsStart(), gcp.getCdsEnd());
 

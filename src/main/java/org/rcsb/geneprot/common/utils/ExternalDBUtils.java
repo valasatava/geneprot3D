@@ -106,7 +106,7 @@ public class ExternalDBUtils {
         sb.append("select ea.hjvalue as "+ org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION + ", ");
         sb.append("pt.VALUE_ as " + CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION + ", ");
         sb.append("dbr.ID as " + CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION + ", ");
-        sb.append("mt.ID as "+CommonConstants.MOLECULE_ID+" ");
+        sb.append("mt.ID as "+CommonConstants.COL_MOLECULE_ID +" ");
         sb.append("from entry_accession as ea " +
                 "LEFT JOIN db_reference_type as dbr on ( ea.HJID=dbr.DB_REFERENCE_ENTRY_HJID ) " +
                 "LEFT JOIN property_type as pt on ( dbr.HJID=pt.PROPERTY_DB_REFERENCE_TYPE_H_0 ) " +
@@ -133,7 +133,7 @@ public class ExternalDBUtils {
         StringBuffer sb = new StringBuffer();
         sb.append("select its.REF_ as "+ CommonConstants.COL_FEATURE_ID + ", ");
         sb.append("its.TYPE_ as " + CommonConstants.COL_SEQUENCE_TYPE + ", ");
-        sb.append("iti.HJVALUE as " + CommonConstants.MOLECULE_ID + " ");
+        sb.append("iti.HJVALUE as " + CommonConstants.COL_MOLECULE_ID + " ");
         sb.append("from isoform_type_sequence AS its JOIN isoform_type AS it ON (its.HJID=it.SEQUENCE__ISOFORM_TYPE_HJID) ");
         sb.append("JOIN isoform_type_id AS iti ON (iti.HJID=it.HJID) ");
         sb.append("JOIN comment_type AS ct ON (ct.HJID=it.ISOFORM_COMMENT_TYPE_HJID) ");
@@ -150,7 +150,8 @@ public class ExternalDBUtils {
         sb.append("select distinct ea.hjvalue as "+ CommonConstants.COL_UNIPROT_ACCESSION + ", ");
         sb.append("st.VALUE_ as " + CommonConstants.COL_PROTEIN_SEQUENCE + " ");
         sb.append("from entry_accession AS ea ");
-        sb.append("JOIN sequence_type as st on ( ea.HJID=st.HJID ) ");
+        sb.append("JOIN entry as e on (ea.HJID=e.HJID)");
+        sb.append("JOIN sequence_type as st on ( e.SEQUENCE__ENTRY_HJID=st.HJID ) ");
         sb.append("LEFT OUTER JOIN comment_type AS ct ON (ea.HJID=ct.COMMENT__ENTRY_HJID) ");
         sb.append("LEFT OUTER JOIN isoform_type AS it ON (ct.HJID=it.ISOFORM_COMMENT_TYPE_HJID) ");
         sb.append("where ( (ea.HJINDEX=0 ");
@@ -167,7 +168,7 @@ public class ExternalDBUtils {
         sb.append("st.VALUE_ as " + CommonConstants.COL_PROTEIN_SEQUENCE + ", ");
         sb.append("its.TYPE_ as " + CommonConstants.COL_SEQUENCE_TYPE + ", ");
         sb.append("its.REF_ as "+ CommonConstants.COL_FEATURE_ID + ", ");
-        sb.append("iti.HJVALUE as " + CommonConstants.MOLECULE_ID + " ");
+        sb.append("iti.HJVALUE as " + CommonConstants.COL_MOLECULE_ID + " ");
         sb.append("from entry_accession AS ea ");
         sb.append("JOIN sequence_type as st on ( ea.HJID=st.HJID ) ");
         sb.append("JOIN comment_type AS ct ON (ea.HJID=ct.COMMENT__ENTRY_HJID) ");
@@ -315,7 +316,10 @@ public class ExternalDBUtils {
     public static void main(String[] args)
     {
         String var = "VSP_057275";
-        Dataset<Row> df = getCanonicalSequenceFeatures();
-        df.filter(col(CommonConstants.COL_UNIPROT_ACCESSION).equalTo("Q13243")).show();
+        Dataset<Row> df = getGeneNameToUniProtAccessionsMap(9606);
+        df.filter(col(CommonConstants.GENE_NAME).equalTo("ACAN")).show();
+
+        //df.filter(col(CommonConstants.COL_UNIPROT_ACCESSION).equalTo("Q8NA29")).show();
+
     }
 }

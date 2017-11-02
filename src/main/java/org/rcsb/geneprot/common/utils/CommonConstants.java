@@ -36,13 +36,17 @@ public class CommonConstants {
     public static final String TRANSCRIPTS = "transcripts";
 
     public static final String COL_UNIPROT_ACCESSION = "uniProtId";
-    public static final String MOLECULES = "molecules";
-    public static final String MOLECULE_ID = "moleculeId";
-    public static final String ISOFORM_ID = "isoformId";
+    public static final String COL_MOLECULES = "molecules";
+    public static final String COL_MOLECULE_ID = "moleculeId";
+    public static final String COL_ISOFORM_ID = "isoformId";
 
-    public static final String MAPPING = "mapping";
+    public static final String COL_MATCH = "match";
+    public static final String COL_MAPPING = "mapping";
     public static final String MRNA_MAPPING = "mRNAMapping";
-    public static final String  PROTEIN_MAPPING = "proteinMapping";
+    public static final String PROTEIN_MAPPING = "proteinMapping";
+
+    public static final String COL_ALTERNATIVE_EXONS = "alternativeExons";
+    public static final String COL_HAS_ALTERNATIVE_EXONS = "hasAlternativeExons";
 
     public static final String COL_PROTEIN_SEQUENCE = "proteinSequence";
     public static final String COL_SEQUENCE_TYPE = "sequenceType";
@@ -99,8 +103,8 @@ public class CommonConstants {
                                     .createStructType(new StructField[]{
                                               DataTypes.createStructField(NCBI_RNA_SEQUENCE_ACCESSION, DataTypes.StringType, false)
                                             , DataTypes.createStructField(NCBI_PROTEIN_SEQUENCE_ACCESSION, DataTypes.StringType, false)
-                                            , DataTypes.createStructField(MOLECULE_ID, DataTypes.StringType, false)
-                                            , DataTypes.createStructField(ISOFORM_ID, DataTypes.StringType, false)
+                                            , DataTypes.createStructField(COL_MOLECULE_ID, DataTypes.StringType, false)
+                                            , DataTypes.createStructField(COL_ISOFORM_ID, DataTypes.StringType, false)
                                             , DataTypes.createStructField(TX_START, DataTypes.IntegerType, false, Metadata.empty())
                                             , DataTypes.createStructField(TX_END, DataTypes.IntegerType, false, Metadata.empty())
                                             , DataTypes.createStructField(CDS_START, DataTypes.IntegerType, false, Metadata.empty())
@@ -114,7 +118,7 @@ public class CommonConstants {
 
     public static final StructType MAPPING_SCHEMA = DataTypes
             .createStructType(new StructField[] {
-                      DataTypes.createStructField(MOLECULE_ID, DataTypes.StringType, true, Metadata.empty())
+                      DataTypes.createStructField(COL_MOLECULE_ID, DataTypes.StringType, true, Metadata.empty())
                     , DataTypes.createStructField(MRNA_MAPPING, DataTypes.createArrayType(DataTypes.createArrayType(DataTypes.IntegerType)), true, Metadata.empty())
                     , DataTypes.createStructField(PROTEIN_MAPPING, DataTypes.createArrayType(DataTypes.createArrayType(DataTypes.IntegerType)), true, Metadata.empty())
             });
@@ -126,6 +130,6 @@ public class CommonConstants {
                 , DataTypes.createStructField(ORIENTATION, DataTypes.StringType, false, Metadata.empty())
                 , DataTypes.createStructField(COL_UNIPROT_ACCESSION, DataTypes.StringType, false, Metadata.empty())
                 //, DataTypes.createStructField(TRANSCRIPTS, TRANSCRIPTS_SCHEMA, false, Metadata.empty())
-                , DataTypes.createStructField(MAPPING, MAPPING_SCHEMA, false, Metadata.empty())
+                , DataTypes.createStructField(COL_MAPPING, MAPPING_SCHEMA, false, Metadata.empty())
     });
 }

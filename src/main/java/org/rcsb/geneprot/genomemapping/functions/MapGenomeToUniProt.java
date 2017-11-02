@@ -63,8 +63,8 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
         m.setOrientation(row.getString(row.fieldIndex(CommonConstants.ORIENTATION)));
         m.setUniProtId(row.getString(row.fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)));
 
+        logger.info("Mapping {} to UniProt {}", m.getGeneName(), m.getUniProtId());
         List<Row> annotations = row.getList(row.fieldIndex(CommonConstants.TRANSCRIPTS));
-        logger.info("Mapping {} products to protein coordinates", m.getGeneName());
 
         for (Row annotation : annotations)
         {
@@ -72,8 +72,8 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
 
             t.setRnaSequenceIdentifier(annotation.getString(annotation.fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)));
             t.setProteinSequenceIdentifier(annotation.getString(annotation.fieldIndex(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION)));
-            t.setMoleculeId(annotation.getString(annotation.fieldIndex(CommonConstants.MOLECULE_ID)));
-            t.setIsoformId(annotation.getString(annotation.fieldIndex(CommonConstants.ISOFORM_ID)));
+            t.setMoleculeId(annotation.getString(annotation.fieldIndex(CommonConstants.COL_MOLECULE_ID)));
+            t.setIsoformId(annotation.getString(annotation.fieldIndex(CommonConstants.COL_ISOFORM_ID)));
 
             t.setTranscriptionStart(annotation.getInt(annotation.fieldIndex(CommonConstants.TX_START)));
             t.setTranscriptionEnd(annotation.getInt(annotation.fieldIndex(CommonConstants.TX_END)));
@@ -109,6 +109,10 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
 
                 mRNAPosStart = mRNAPosEnd;
             }
+            t.setMatch(annotation.getBoolean(annotation.fieldIndex(CommonConstants.COL_MATCH)));
+            t.setHasAlternativeExons(annotation.getBoolean(annotation.fieldIndex(CommonConstants.COL_HAS_ALTERNATIVE_EXONS)));
+            t.setAlternativeExons(annotation.getList(annotation.fieldIndex(CommonConstants.COL_ALTERNATIVE_EXONS)));
+
             m.getTranscripts().add(t);
         }
         return m;

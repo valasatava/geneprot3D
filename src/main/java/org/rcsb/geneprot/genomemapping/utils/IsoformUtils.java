@@ -2,6 +2,7 @@ package org.rcsb.geneprot.genomemapping.utils;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Yana Valasatava on 10/23/17.
@@ -177,12 +179,12 @@ public class IsoformUtils {
             }
 
             if (features == null) {
-                String moleculeId = c.getString(c.schema().fieldIndex(CommonConstants.MOLECULE_ID));
+                String moleculeId = c.getString(c.schema().fieldIndex(CommonConstants.COL_MOLECULE_ID));
                 isoforms.put(moleculeId, canonical);
             }
             else {
                 String isoform = buildIsoform(canonical, features);
-                String moleculeId = c.getString(c.schema().fieldIndex(CommonConstants.MOLECULE_ID));
+                String moleculeId = c.getString(c.schema().fieldIndex(CommonConstants.COL_MOLECULE_ID));
                 isoforms.put(moleculeId, isoform);
             }
         }
@@ -238,7 +240,7 @@ public class IsoformUtils {
             String features = row.getString(row.schema().fieldIndex(CommonConstants.COL_FEATURE_ID));
             String type = row.getString(row.schema().fieldIndex(CommonConstants.COL_SEQUENCE_TYPE));
             String sequence = row.getString(row.schema().fieldIndex(CommonConstants.COL_PROTEIN_SEQUENCE));
-            String moleculeId = row.getString(row.schema().fieldIndex(CommonConstants.MOLECULE_ID));
+            String moleculeId = row.getString(row.schema().fieldIndex(CommonConstants.COL_MOLECULE_ID));
 
             if ( features==null && type.equals("displayed")) {
                 isoforms.put(moleculeId, sequence);
@@ -264,5 +266,65 @@ public class IsoformUtils {
 
         Map<String, String> isoforms = buildIsoforms("Q8IYS5");
         System.out.println();
+    }
+
+    public static Map<Integer, List<String>> mapToLength(Map<String, String> isoforms)
+    {
+        Map<Integer, List<String>> lengthMap = new HashMap<>();
+        for (String moleculeId : isoforms.keySet())
+        {
+            int sequenceLenght = isoforms.get(moleculeId).length();
+            if (! lengthMap.keySet().contains(sequenceLenght))
+                lengthMap.put(sequenceLenght, new ArrayList<>());
+            lengthMap.get(sequenceLenght).add(moleculeId);
+        }
+        return lengthMap;
+    }
+
+    public static boolean duplicatesIn(Map<Integer, List<String>> lengthMap)
+    {
+        for (List<String> values : lengthMap.values()){
+            if (values.size()>1)
+                return true;
+        }
+        return false;
+    }
+
+    public static int difference(String one, String two)
+    {
+        char[] first  = one.toCharArray();
+        char[] second = two.toCharArray();
+        int count=0;
+        for (int i = 0; i < first.length; i++) {
+            if(first[i] != second[i])
+                count++;
+        }
+        return count;
+    }
+
+    public static GeneChromosomePosition buildChromosomePosition(Row row)
+    {
+        GeneChromosomePosition chromosomePosition = new GeneChromosomePosition();
+        chromosomePosition
+                .setChromosome(row.getString(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.CHROMOSOME)));
+        chromosomePosition
+                .setOrientation(row.getString(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.ORIENTATION))
+                        .charAt(0));
+        chromosomePosition
+                .setTranscriptionStart(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.TX_START)));
+        chromosomePosition
+                .setTranscriptionEnd(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.TX_END)));
+        chromosomePosition
+                .setCdsStart(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.CDS_START)));
+        chromosomePosition
+                .setCdsEnd(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.CDS_END)));
+        chromosomePosition
+                .setExonStarts(row.getList(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.EXONS_START))
+                        .stream().map(e->(Integer)e).collect(Collectors.toList()));
+        chromosomePosition
+                .setExonEnds(row.getList(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.EXONS_END))
+                        .stream().map(e->(Integer)e).collect(Collectors.toList()));
+
+        return chromosomePosition;
     }
 }

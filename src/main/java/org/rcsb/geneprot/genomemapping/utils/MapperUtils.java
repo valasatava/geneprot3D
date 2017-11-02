@@ -14,9 +14,6 @@ import static org.apache.spark.sql.functions.split;
  */
 public class MapperUtils {
 
-    public static void main(String[] args) {
-    }
-
     /* Get mapping between NCBI RNA nucleotide accession, NCBI Reference Sequence protein accessions
          *  and UniProtKB protein accessions from UniProt database
          */
@@ -28,8 +25,8 @@ public class MapperUtils {
                         , split(col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
                 .withColumn(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION
                         , split(col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
-                .withColumn(CommonConstants.ISOFORM_ID
-                        , split(col(CommonConstants.MOLECULE_ID), CommonConstants.DASH).getItem(1));
+                .withColumn(CommonConstants.COL_ISOFORM_ID
+                        , split(col(CommonConstants.COL_MOLECULE_ID), CommonConstants.DASH).getItem(1));
         return df;
     }
 
@@ -76,5 +73,9 @@ public class MapperUtils {
                         , "left_outer")
                 .drop(accessions.col(org.rcsb.mojave.util.CommonConstants.COL_GENE_NAME));
         return annotation;
+    }
+
+    public static void main(String[] args) {
+        getNCBIToMoleculeIdAccessionDataset();
     }
 }

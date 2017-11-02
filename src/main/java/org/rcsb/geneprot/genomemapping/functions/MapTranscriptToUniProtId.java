@@ -3,8 +3,8 @@ package org.rcsb.geneprot.genomemapping.functions;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Row;
+import org.rcsb.geneprot.genomemapping.utils.RowUpdater;
 import org.rcsb.mojave.util.CommonConstants;
-import scala.Tuple3;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * Created by Yana Valasatava on 10/24/17.
  */
-public class MapTranscriptToUniProtId implements FlatMapFunction<Row, Tuple3<Row, String, String>>, Serializable {
+public class MapTranscriptToUniProtId implements FlatMapFunction<Row, Row>, Serializable {
 
     private Map<String, Iterable<String>> map;
     public MapTranscriptToUniProtId(Broadcast<Map<String, Iterable<String>>> bc) {
@@ -24,18 +24,20 @@ public class MapTranscriptToUniProtId implements FlatMapFunction<Row, Tuple3<Row
     }
     
     @Override
-    public Iterator<Tuple3<Row, String, String>> call(Row row) throws Exception {
+    public Iterator<Row> call(Row row) throws Exception {
 
-        List<Tuple3<Row, String, String>> list = new ArrayList<>();
-
-        String geneName = row.getString(row.schema().fieldIndex(CommonConstants.COL_GENE_NAME));
-        if (map.keySet().contains(geneName))
-        {
-            Iterator<String> it = map.get(geneName).iterator();
-            while (it.hasNext()) {
-                String uniProtId = it.next();
-                list.add(new Tuple3<>(row, org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION, uniProtId));
+        List<Row> list = new ArrayList<>();
+        if (row.get(row.schema().fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)) == null) {
+            String geneName = row.getString(row.schema().fieldIndex(CommonConstants.COL_GENE_NAME));
+            if (map.keySet().contains(geneName)) {
+                Iterator<String> it = map.get(geneName).iterator();
+                while (it.hasNext()) {
+                    String uniProtId = it.next();
+                    list.add(RowUpdater.updateField(row, CommonConstants.COL_UNIPROT_ACCESSION, uniProtId));
+                }
             }
+        } else {
+            list.add(row);
         }
         return list.iterator();
     }

@@ -22,6 +22,10 @@ public class Transcript implements Serializable {
 	private List<CoordinatesRange> mRNACoordinates = new ArrayList<>();
 	private List<CoordinatesRange> proteinCoordinates = new ArrayList<>();
 
+	private boolean match;
+	private boolean hasAlternativeExons;
+	private List<Boolean> alternativeExons;
+
 	public String getRnaSequenceIdentifier() {
 		return rnaSequenceIdentifier;
 	}
@@ -116,6 +120,30 @@ public class Transcript implements Serializable {
 
 	public void setProteinCoordinates(List<CoordinatesRange> proteinCoordinates) {
 		this.proteinCoordinates = proteinCoordinates;
+	}
+
+	public boolean isMatch() {
+		return match;
+	}
+
+	public void setMatch(boolean match) {
+		this.match = match;
+	}
+
+	public boolean isHasAlternativeExons() {
+		return hasAlternativeExons;
+	}
+
+	public void setHasAlternativeExons(boolean hasAlternativeExons) {
+		this.hasAlternativeExons = hasAlternativeExons;
+	}
+
+	public List<Boolean> getAlternativeExons() {
+		return alternativeExons;
+	}
+
+	public void setAlternativeExons(List<Boolean> alternativeExons) {
+		this.alternativeExons = alternativeExons;
 	}
 }
 
