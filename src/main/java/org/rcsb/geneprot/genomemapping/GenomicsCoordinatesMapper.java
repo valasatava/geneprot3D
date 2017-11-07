@@ -162,12 +162,12 @@ public class GenomicsCoordinatesMapper {
         transcripts = transcripts.withColumn(CommonConstants.COL_MATCH, lit(true));
 
 //        transcripts = transcripts
-//                .filter(col(CommonConstants.GENE_NAME).equalTo("BRCA1")
+//                .filter(col(CommonConstants.GENE_NAME).equalTo("AMY1A")
 //                //.and(col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION).equalTo("NM_001286828"))
 //        );
 //        transcripts.show();
 
-        return transcripts;
+        return transcripts.cache();
     }
 
     public static Dataset<Row> processTranscripts(Dataset<Row> transcripts) throws Exception {
@@ -180,7 +180,8 @@ public class GenomicsCoordinatesMapper {
                 .toJavaRDD()
                 .flatMap(new MapTranscriptToUniProtId(bcGen))
                 .mapToPair(e -> new Tuple2<>(e.getString(e.fieldIndex(CommonConstants.CHROMOSOME))+
-                                "_"+e.getString(e.fieldIndex(CommonConstants.GENE_NAME)), e))
+                                        "_"+e.getString(e.fieldIndex(CommonConstants.GENE_NAME))+
+                                        "_"+e.getString(e.fieldIndex(CommonConstants.ORIENTATION)), e))
                 .groupByKey(10).map(e -> e._2)
                 .map(new AnnotateAlternativeEvents())
                 .flatMap(new MapTranscriptsToIsoforms(getOrganism(), bcSeq, bcVar));
@@ -192,26 +193,30 @@ public class GenomicsCoordinatesMapper {
 
     public static Dataset<Row> assembleTranscriptsAsGenes(Dataset<Row> isoforms) {
 
-        isoforms = isoforms
-                .filter(col(CommonConstants.COL_MOLECULE_ID).isNotNull())
-                .groupBy(col(CommonConstants.CHROMOSOME), col(CommonConstants.GENE_NAME), col(CommonConstants.ORIENTATION), col(CommonConstants.COL_UNIPROT_ACCESSION))
-                .agg(collect_list(
-                        struct(   col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)
-                                , col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION)
-                                , col(CommonConstants.COL_MOLECULE_ID)
-                                , col(CommonConstants.COL_ISOFORM_ID)
-                                , col(CommonConstants.COL_MATCH)
-                                , col(CommonConstants.TX_START)
-                                , col(CommonConstants.TX_END)
-                                , col(CommonConstants.CDS_START)
-                                , col(CommonConstants.CDS_END)
-                                , col(CommonConstants.EXONS_COUNT)
-                                , col(CommonConstants.EXONS_START)
-                                , col(CommonConstants.EXONS_END)
-                                , col(CommonConstants.COL_HAS_ALTERNATIVE_EXONS)
-                                , col(CommonConstants.COL_ALTERNATIVE_EXONS)
-                        )).as(CommonConstants.TRANSCRIPTS))
-                .sort(col(CommonConstants.CHROMOSOME), col(CommonConstants.GENE_NAME));
+        try {
+            isoforms = isoforms
+                    .filter(col(CommonConstants.COL_MOLECULE_ID).isNotNull())
+                    .groupBy(col(CommonConstants.CHROMOSOME), col(CommonConstants.GENE_NAME), col(CommonConstants.ORIENTATION), col(CommonConstants.COL_UNIPROT_ACCESSION))
+                    .agg(collect_list(
+                            struct(   col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)
+                                    , col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION)
+                                    , col(CommonConstants.COL_MOLECULE_ID)
+                                    , col(CommonConstants.COL_ISOFORM_ID)
+                                    , col(CommonConstants.COL_MATCH)
+                                    , col(CommonConstants.TX_START)
+                                    , col(CommonConstants.TX_END)
+                                    , col(CommonConstants.CDS_START)
+                                    , col(CommonConstants.CDS_END)
+                                    , col(CommonConstants.EXONS_COUNT)
+                                    , col(CommonConstants.EXONS_START)
+                                    , col(CommonConstants.EXONS_END)
+                                    , col(CommonConstants.COL_HAS_ALTERNATIVE_EXONS)
+                                    , col(CommonConstants.COL_ALTERNATIVE_EXONS)
+                            )).as(CommonConstants.TRANSCRIPTS))
+                    .sort(col(CommonConstants.CHROMOSOME), col(CommonConstants.GENE_NAME));
+        } catch (Exception e) {
+            logger.error("Error has occurred while assembling transcripts as genes {} : {}", e.getCause(), e.getMessage());
+        }
         return isoforms;
     }
 
@@ -221,20 +226,27 @@ public class GenomicsCoordinatesMapper {
         long timeS = System.currentTimeMillis();
 
         setOrganism("human");
+        Dataset<Row> transcripts=null;
         try {
-            Dataset<Row> transcripts = processTranscripts(buildTranscripts());
-            transcripts = assembleTranscriptsAsGenes(transcripts.cache());
+            transcripts = processTranscripts(buildTranscripts());
+            transcripts = assembleTranscriptsAsGenes(transcripts);
+        } catch (Exception e) {
+            logger.error("Exiting: fatal error has occurred while building the transcripts {} : {}", e.getCause(), e.getMessage());
+        }
 
-            JavaRDD<GenomeToUniProtMapping> rdd = transcripts
-                    .toJavaRDD()
-                    .map(new MapGenomeToUniProt());
-            List<GenomeToUniProtMapping> list = rdd.collect();
+        try {
+            if (transcripts != null) {
+                JavaRDD<GenomeToUniProtMapping> rdd = transcripts
+                        .toJavaRDD()
+                        .map(new MapGenomeToUniProt());
+                List<GenomeToUniProtMapping> list = rdd.collect();
 
-            logger.info("Writing mapping to a database");
-            ExternalDBUtils.writeListToMongo(list);
+                logger.info("Writing mapping to a database");
+                ExternalDBUtils.writeListToMongo(list);
+            }
 
         } catch (Exception e) {
-            logger.error("Exiting: fatal error has occurred");
+            logger.error("Exiting: fatal error has occurred while mapping to uniprot {} : {}", e.getCause(), e.getMessage());
         }
         finally {
             jsc.stop();

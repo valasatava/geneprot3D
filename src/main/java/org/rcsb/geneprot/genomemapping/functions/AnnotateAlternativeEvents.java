@@ -6,6 +6,8 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataTypes;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.genomemapping.utils.RowUpdater;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import java.util.*;
@@ -15,6 +17,8 @@ import java.util.stream.Collectors;
  * Created by Yana Valasatava on 11/1/17.
  */
 public class AnnotateAlternativeEvents implements Function<Iterable<Row>, Iterable<Row>> {
+
+    private static final Logger logger = LoggerFactory.getLogger(AnnotateAlternativeEvents.class);
 
     private static List<Range<Integer>> range(Row transcript) {
 
@@ -80,37 +84,42 @@ public class AnnotateAlternativeEvents implements Function<Iterable<Row>, Iterab
         it.iterator().forEachRemaining(e -> list.add(e));
 
         List<Row> updated = new ArrayList<>();
+        logger.info("Calculate alternative events for {}", list.get(0).getString(list.get(0).fieldIndex(CommonConstants.GENE_NAME)));
+        try {
+            if (list.size() == 1) {
+                Row row = list.get(0);
+                updated.add(RowUpdater.addField(row, CommonConstants.COL_HAS_ALTERNATIVE_EXONS, false, DataTypes.BooleanType));
 
-        if (list.size() == 1) {
-            Row row = list.get(0);
-            updated.add(RowUpdater.addField(row, CommonConstants.COL_HAS_ALTERNATIVE_EXONS, false, DataTypes.BooleanType));
-
-        } else {
-            Map<Integer, Boolean> map = new HashMap<>();
-            Set<Integer> hashKeys = getHashKeysAsSet(list);
-            boolean hasAlternativeExons = false;
-            for ( Integer key : hashKeys ) {
-                for (Row transcript : list) {
-                    Set<Integer> txKeys = getHashKeys(range(transcript));
-                    if (!txKeys.contains(key)) {
-                        map.put(key, true);
-                        if (!hasAlternativeExons)
-                            hasAlternativeExons = true;
-                        break;
+            } else {
+                Map<Integer, Boolean> map = new HashMap<>();
+                Set<Integer> hashKeys = getHashKeysAsSet(list);
+                boolean hasAlternativeExons = false;
+                for ( Integer key : hashKeys ) {
+                    for (Row transcript : list) {
+                        Set<Integer> txKeys = getHashKeys(range(transcript));
+                        if (!txKeys.contains(key)) {
+                            map.put(key, true);
+                            if (!hasAlternativeExons)
+                                hasAlternativeExons = true;
+                            break;
+                        }
                     }
+                    if (!map.keySet().contains(key))
+                        map.put(key, false);
                 }
-                if (!map.keySet().contains(key))
-                    map.put(key, false);
-            }
 
-            for (Row row : list) {
-                if (hasAlternativeExons) {
-                    Set<Integer> keys = getHashKeys(range(row));
-                    List<Boolean> flags = map.entrySet().stream().filter(e -> keys.contains(e.getKey())).map(e -> e.getValue()).collect(Collectors.toList());
+                for (Row row : list) {
+                    List<Boolean> flags = new ArrayList<>();
+                    if (hasAlternativeExons) {
+                        Set<Integer> keys = getHashKeys(range(row));
+                        flags = map.entrySet().stream().filter(e -> keys.contains(e.getKey())).map(e -> e.getValue()).collect(Collectors.toList());
+                    }
                     row = RowUpdater.addArray(row, CommonConstants.COL_ALTERNATIVE_EXONS, flags, DataTypes.BooleanType);
+                    updated.add(RowUpdater.addField(row, CommonConstants.COL_HAS_ALTERNATIVE_EXONS, hasAlternativeExons, DataTypes.BooleanType));
                 }
-                updated.add(RowUpdater.addField(row, CommonConstants.COL_HAS_ALTERNATIVE_EXONS, hasAlternativeExons, DataTypes.BooleanType));
             }
+        } catch (Exception e) {
+            logger.error("Error has occurred while calculating alternative events {} : {}", e.getCause(), e.getMessage());
         }
         return updated;
     }

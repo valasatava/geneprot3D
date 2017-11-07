@@ -18,7 +18,7 @@ public class Transcript implements Serializable {
 	private int cdsEnd;
 
 	private int exonsCount;
-	private List<CoordinatesRange> exonsCoordinates = new ArrayList<>();
+	private List<CoordinatesRange> cdsCoordinates = new ArrayList<>();
 	private List<CoordinatesRange> mRNACoordinates = new ArrayList<>();
 	private List<CoordinatesRange> proteinCoordinates = new ArrayList<>();
 
@@ -98,12 +98,12 @@ public class Transcript implements Serializable {
 		this.exonsCount = exonsCount;
 	}
 
-	public List<CoordinatesRange> getExonsCoordinates() {
-		return exonsCoordinates;
+	public List<CoordinatesRange> getCdsCoordinates() {
+		return cdsCoordinates;
 	}
 
-	public void setExonsCoordinates(List<CoordinatesRange> exonsCoordinates) {
-		this.exonsCoordinates = exonsCoordinates;
+	public void setCdsCoordinates(List<CoordinatesRange> cdsCoordinates) {
+		this.cdsCoordinates = cdsCoordinates;
 	}
 
 	public List<CoordinatesRange> getmRNACoordinates() {

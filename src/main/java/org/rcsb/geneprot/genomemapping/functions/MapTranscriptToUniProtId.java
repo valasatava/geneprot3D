@@ -5,6 +5,8 @@ import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.genomemapping.utils.RowUpdater;
 import org.rcsb.mojave.util.CommonConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,6 +19,8 @@ import java.util.Map;
  * Created by Yana Valasatava on 10/24/17.
  */
 public class MapTranscriptToUniProtId implements FlatMapFunction<Row, Row>, Serializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(MapTranscriptToUniProtId.class);
 
     private Map<String, Iterable<String>> map;
     public MapTranscriptToUniProtId(Broadcast<Map<String, Iterable<String>>> bc) {
@@ -35,6 +39,9 @@ public class MapTranscriptToUniProtId implements FlatMapFunction<Row, Row>, Seri
                     String uniProtId = it.next();
                     list.add(RowUpdater.updateField(row, CommonConstants.COL_UNIPROT_ACCESSION, uniProtId));
                 }
+            }
+            else {
+                logger.info("Gene {} cannot be mapped", geneName);
             }
         } else {
             list.add(row);

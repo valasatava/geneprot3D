@@ -63,9 +63,7 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
         m.setOrientation(row.getString(row.fieldIndex(CommonConstants.ORIENTATION)));
         m.setUniProtId(row.getString(row.fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)));
 
-        logger.info("Mapping {} to UniProt {}", m.getGeneName(), m.getUniProtId());
         List<Row> annotations = row.getList(row.fieldIndex(CommonConstants.TRANSCRIPTS));
-
         for (Row annotation : annotations)
         {
             Transcript t = new Transcript();
@@ -73,7 +71,8 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
             t.setRnaSequenceIdentifier(annotation.getString(annotation.fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)));
             t.setProteinSequenceIdentifier(annotation.getString(annotation.fieldIndex(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION)));
             t.setMoleculeId(annotation.getString(annotation.fieldIndex(CommonConstants.COL_MOLECULE_ID)));
-            t.setIsoformId(annotation.getString(annotation.fieldIndex(CommonConstants.COL_ISOFORM_ID)));
+            t.setIsoformId(annotation.get(annotation.fieldIndex(CommonConstants.COL_ISOFORM_ID)) == null?
+                    t.getMoleculeId().split("-")[1] : annotation.getString(annotation.fieldIndex(CommonConstants.COL_ISOFORM_ID)));
 
             t.setTranscriptionStart(annotation.getInt(annotation.fieldIndex(CommonConstants.TX_START)));
             t.setTranscriptionEnd(annotation.getInt(annotation.fieldIndex(CommonConstants.TX_END)));
@@ -103,7 +102,7 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
             {
                 mRNAPosEnd = mRNAPosStart + cds._2-cds._1;
 
-                t.getExonsCoordinates().add(new CoordinatesRange(cds._1, cds._2));
+                t.getCdsCoordinates().add(new CoordinatesRange(cds._1, cds._2));
                 t.getmRNACoordinates().add(new CoordinatesRange(mRNAPosStart+1, mRNAPosEnd));
                 t.getProteinCoordinates().add(new CoordinatesRange((int)Math.ceil(mRNAPosStart/3.0f)+1, (int)Math.ceil(mRNAPosEnd/3.0f)));
 
