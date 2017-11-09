@@ -58,34 +58,34 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
 
         GenomeToUniProtMapping m = new GenomeToUniProtMapping();
 
-        m.setChromosome(row.getString(row.fieldIndex(CommonConstants.CHROMOSOME)));
-        m.setGeneName(row.getString(row.fieldIndex(CommonConstants.GENE_NAME)));
-        m.setOrientation(row.getString(row.fieldIndex(CommonConstants.ORIENTATION)));
+        m.setChromosome(row.getString(row.fieldIndex(CommonConstants.COL_CHROMOSOME)));
+        m.setGeneName(row.getString(row.fieldIndex(CommonConstants.COL_GENE_NAME)));
+        m.setOrientation(row.getString(row.fieldIndex(CommonConstants.COL_ORIENTATION)));
         m.setUniProtId(row.getString(row.fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)));
 
-        List<Row> annotations = row.getList(row.fieldIndex(CommonConstants.TRANSCRIPTS));
+        List<Row> annotations = row.getList(row.fieldIndex(CommonConstants.COL_TRANSCRIPTS));
         for (Row annotation : annotations)
         {
             Transcript t = new Transcript();
 
-            t.setRnaSequenceIdentifier(annotation.getString(annotation.fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)));
-            t.setProteinSequenceIdentifier(annotation.getString(annotation.fieldIndex(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION)));
+            t.setRnaSequenceIdentifier(annotation.getString(annotation.fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)));
+            t.setProteinSequenceIdentifier(annotation.getString(annotation.fieldIndex(CommonConstants.COL_NCBI_PROTEIN_SEQUENCE_ACCESSION)));
             t.setMoleculeId(annotation.getString(annotation.fieldIndex(CommonConstants.COL_MOLECULE_ID)));
             t.setIsoformId(annotation.get(annotation.fieldIndex(CommonConstants.COL_ISOFORM_ID)) == null?
                     t.getMoleculeId().split("-")[1] : annotation.getString(annotation.fieldIndex(CommonConstants.COL_ISOFORM_ID)));
 
-            t.setTranscriptionStart(annotation.getInt(annotation.fieldIndex(CommonConstants.TX_START)));
-            t.setTranscriptionEnd(annotation.getInt(annotation.fieldIndex(CommonConstants.TX_END)));
+            t.setTranscriptionStart(annotation.getInt(annotation.fieldIndex(CommonConstants.COL_TX_START)));
+            t.setTranscriptionEnd(annotation.getInt(annotation.fieldIndex(CommonConstants.COL_TX_END)));
 
-            int cdsStart = annotation.getInt(annotation.fieldIndex(CommonConstants.CDS_START));
-            int cdsEnd = annotation.getInt(annotation.fieldIndex(CommonConstants.CDS_END));
+            int cdsStart = annotation.getInt(annotation.fieldIndex(CommonConstants.COL_CDS_START));
+            int cdsEnd = annotation.getInt(annotation.fieldIndex(CommonConstants.COL_CDS_END));
             t.setCdsStart(cdsStart);
             t.setCdsEnd(cdsEnd);
 
-            t.setExonsCount(annotation.getInt(annotation.fieldIndex(CommonConstants.EXONS_COUNT)));
+            t.setExonsCount(annotation.getInt(annotation.fieldIndex(CommonConstants.COL_EXONS_COUNT)));
 
-            List<Integer> exonsStart = annotation.getList(annotation.fieldIndex(CommonConstants.EXONS_START));
-            List<Integer> exonsEnd = annotation.getList(annotation.fieldIndex(CommonConstants.EXONS_END));
+            List<Integer> exonsStart = annotation.getList(annotation.fieldIndex(CommonConstants.COL_EXONS_START));
+            List<Integer> exonsEnd = annotation.getList(annotation.fieldIndex(CommonConstants.COL_EXONS_END));
 
             if ( m.getOrientation().equals("-") ) // 3 last bases encode for a stop codon
                 cdsStart += 3;

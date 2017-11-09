@@ -16,9 +16,7 @@
 
 package org.rcsb.geneprot.gencode.gtf;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,11 +31,12 @@ import java.util.regex.Pattern;
  * @author Andrew E. Bruno
  * 
  */
-public class GTFParser {
+public class GTFParser implements Serializable {
+
     private static final Pattern ATTRIBUTE_PATTERN = Pattern
             .compile("^\\s*(.+)\\s(.+)$");
 
-    public Feature parseLine(String line) throws GTFParseException {
+    public GencodeFeature parseLine(String line) throws GTFParseException {
         if (line == null || line.startsWith("#"))
             return null;
 
@@ -105,17 +104,18 @@ public class GTFParser {
         return record;
     }
 
-    //XXX test only. remove soon
-    public static void main(String[] args) throws Exception {
-        GTFParser parser = new GTFParser();
-
-        FileInputStream in = new FileInputStream("test.gtf");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-        String line = null;
-        while ((line = reader.readLine()) != null) {
-            Feature f = parser.parseLine(line);
-            System.out.print(f);
-        }
-    }
+//    //XXX test only. remove soon
+//    public static void main(String[] args) throws Exception {
+//
+//        GTFParser parser = new GTFParser();
+//
+//        FileInputStream in = new FileInputStream("test.gtf");
+//        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+//        String line = null;
+//        while ((line = reader.readLine()) != null) {
+//            Feature f = parser.parseLine(line);
+//            System.out.print(f);
+//        }
+//    }
 
 }

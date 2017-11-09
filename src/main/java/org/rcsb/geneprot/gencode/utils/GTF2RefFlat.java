@@ -35,7 +35,7 @@ public class GTF2RefFlat {
         {
             TranscriptData data = null;
             for(String line : map.get(id)) {
-                Feature feature;
+                GencodeFeature feature;
                 try {
                     feature = parser.parseLine(line);
                     if ( (! feature.getAttributes().keySet().contains("transcript_type")) || (! feature.getAttribute("transcript_type").equals("protein_coding")) ) {
@@ -174,8 +174,8 @@ public class GTF2RefFlat {
         logger.info("Output written to: "+outFile.getAbsolutePath());
     }
     
-    protected class FeatureCompare implements Comparator<Feature> {
-        public int compare(Feature o1, Feature o2) {
+    protected class FeatureCompare implements Comparator<GencodeFeature> {
+        public int compare(GencodeFeature o1, GencodeFeature o2) {
             return Double.compare(o1.getStart(), o2.getStart());
         }
     }
@@ -188,7 +188,7 @@ public class GTF2RefFlat {
             String line = null;
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("#")) continue;
-                Feature feature = parser.parseLine(line);
+                GencodeFeature feature = parser.parseLine(line);
                 
                 List<String> lines = map.get(feature.getTranscriptId());
                 if(lines == null) {
@@ -207,7 +207,7 @@ public class GTF2RefFlat {
 
     private class TranscriptData
     {
-        private List<Feature> features = new ArrayList<Feature>();
+        private List<GencodeFeature> features = new ArrayList<GencodeFeature>();
         private String transcriptId;
         private String geneId;
         private String chrom;
@@ -220,11 +220,11 @@ public class GTF2RefFlat {
             this.strand = strand;
         }
         
-        public void addFeature(Feature f) {
+        public void addFeature(GencodeFeature f) {
             features.add(f);
         }
 
-        public List<Feature> getFeatures() {
+        public List<GencodeFeature> getFeatures() {
             return features;
         }
 

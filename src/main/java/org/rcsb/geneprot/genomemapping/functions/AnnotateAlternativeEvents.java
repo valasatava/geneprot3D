@@ -1,7 +1,7 @@
 package org.rcsb.geneprot.genomemapping.functions;
 
 import com.google.common.collect.Range;
-import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataTypes;
 import org.rcsb.geneprot.common.utils.CommonConstants;
@@ -16,17 +16,17 @@ import java.util.stream.Collectors;
 /**
  * Created by Yana Valasatava on 11/1/17.
  */
-public class AnnotateAlternativeEvents implements Function<Iterable<Row>, Iterable<Row>> {
+public class AnnotateAlternativeEvents implements FlatMapFunction<Iterable<Row>, Row> {
 
     private static final Logger logger = LoggerFactory.getLogger(AnnotateAlternativeEvents.class);
 
     private static List<Range<Integer>> range(Row transcript) {
 
-        List<Integer> start = transcript.getList(transcript.fieldIndex(CommonConstants.EXONS_START));
-        List<Integer> end = transcript.getList(transcript.fieldIndex(CommonConstants.EXONS_END));
+        List<Integer> start = transcript.getList(transcript.fieldIndex(CommonConstants.COL_EXONS_START));
+        List<Integer> end = transcript.getList(transcript.fieldIndex(CommonConstants.COL_EXONS_END));
 
-        int cdsStart = transcript.getInt(transcript.fieldIndex(CommonConstants.CDS_START));
-        int cdsEnd = transcript.getInt(transcript.fieldIndex(CommonConstants.CDS_END));
+        int cdsStart = transcript.getInt(transcript.fieldIndex(CommonConstants.COL_CDS_START));
+        int cdsEnd = transcript.getInt(transcript.fieldIndex(CommonConstants.COL_CDS_END));
 
         List<Integer> exonStarts = new ArrayList(start);
         List<Integer> exonEnds = new ArrayList(end);
@@ -78,16 +78,17 @@ public class AnnotateAlternativeEvents implements Function<Iterable<Row>, Iterab
     }
 
     @Override
-    public Iterable<Row> call(Iterable<Row> it) throws Exception {
+    public Iterator<Row> call(Iterable<Row> it) throws Exception {
 
         List<Row> list = new ArrayList<>();
         it.iterator().forEachRemaining(e -> list.add(e));
 
         List<Row> updated = new ArrayList<>();
-        logger.info("Calculate alternative events for {}", list.get(0).getString(list.get(0).fieldIndex(CommonConstants.GENE_NAME)));
+        logger.info("Calculate alternative events for {}", list.get(0).getString(list.get(0).fieldIndex(CommonConstants.COL_GENE_NAME)));
         try {
             if (list.size() == 1) {
                 Row row = list.get(0);
+                row = RowUpdater.addArray(row, CommonConstants.COL_ALTERNATIVE_EXONS, new ArrayList<>(), DataTypes.BooleanType);
                 updated.add(RowUpdater.addField(row, CommonConstants.COL_HAS_ALTERNATIVE_EXONS, false, DataTypes.BooleanType));
 
             } else {
@@ -121,6 +122,6 @@ public class AnnotateAlternativeEvents implements Function<Iterable<Row>, Iterab
         } catch (Exception e) {
             logger.error("Error has occurred while calculating alternative events {} : {}", e.getCause(), e.getMessage());
         }
-        return updated;
+        return updated.iterator();
     }
 }

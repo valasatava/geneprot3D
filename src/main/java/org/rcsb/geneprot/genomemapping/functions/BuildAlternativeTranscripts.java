@@ -18,23 +18,23 @@ public class BuildAlternativeTranscripts implements PairFunction<Row, Row, GeneC
     {
         GeneChromosomePosition chromosomePosition = new GeneChromosomePosition();
         chromosomePosition
-                .setChromosome(row.getString(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.CHROMOSOME)));
+                .setChromosome(row.getString(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.COL_CHROMOSOME)));
         chromosomePosition
-                .setOrientation(row.getString(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.ORIENTATION))
+                .setOrientation(row.getString(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.COL_ORIENTATION))
                         .charAt(0));
         chromosomePosition
-                .setTranscriptionStart(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.TX_START)));
+                .setTranscriptionStart(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.COL_TX_START)));
         chromosomePosition
-                .setTranscriptionEnd(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.TX_END)));
+                .setTranscriptionEnd(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.COL_TX_END)));
         chromosomePosition
-                .setCdsStart(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.CDS_START)));
+                .setCdsStart(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.COL_CDS_START)));
         chromosomePosition
-                .setCdsEnd(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.CDS_END)));
+                .setCdsEnd(row.getInt(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.COL_CDS_END)));
         chromosomePosition
-                .setExonStarts(row.getList(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.EXONS_START))
+                .setExonStarts(row.getList(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.COL_EXONS_START))
                         .stream().map(e->(Integer)e).collect(Collectors.toList()));
         chromosomePosition
-                .setExonEnds(row.getList(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.EXONS_END))
+                .setExonEnds(row.getList(row.schema().fieldIndex(org.rcsb.geneprot.common.utils.CommonConstants.COL_EXONS_END))
                         .stream().map(e->(Integer)e).collect(Collectors.toList()));
         return new Tuple2<>(row, chromosomePosition);
     }

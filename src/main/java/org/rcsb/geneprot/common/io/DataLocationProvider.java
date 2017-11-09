@@ -56,16 +56,47 @@ public class DataLocationProvider {
 
 	// =-=-= GENOME ANNOTATION =-=-=
 
-	private static final String humanGenomeAnnotationResource = "http://hgdownload.cse.ucsc.edu/goldenPath/"+CommonConstants.HUMAN_GENOME_ASSEMBLY_GRCH38+"/database/refFlat.txt.gz";
-	public static String getHumanGenomeAnnotationResource() {
+	private static final String humanGenomeAnnotationResource = "http://hgdownload.cse.ucsc.edu/goldenPath/"
+			+CommonConstants.HUMAN_GENOME_ASSEMBLY_GRCH38+"/database/refFlat.txt.gz";
+	public static String getHumanGenomeAnnotationResourceFromUCSC() {
 		return humanGenomeAnnotationResource;
 	}
 
-	private static final String mouseGenomeAnnotationResource = "http://hgdownload.cse.ucsc.edu/goldenPath/"+CommonConstants.MOUSE_GENOME_ASSEMBLY_GRCH38+"/database/refFlat.txt.gz";
-	public static String getMouseGenomeAnnotationResource() {
+	private static final String mouseGenomeAnnotationResource = "http://hgdownload.cse.ucsc.edu/goldenPath/"
+			+CommonConstants.MOUSE_GENOME_ASSEMBLY_GRCH38+"/database/refFlat.txt.gz";
+	public static String getMouseGenomeAnnotationResourceFromUCSC() {
 		return mouseGenomeAnnotationResource;
 	}
 
+	//private static final String humanGenomeAnnotationResourceFromEnsembl = "http://ftp.ensembl.org/pub/release-90/gtf/homo_sapiens/Homo_sapiens.GRCh38.90.gtf.gz";
+	private static final String humanGenomeAnnotationResourceFromEnsembl = "/Users/yana/Downloads/Homo_sapiens.GRCh38.90.gtf";
+
+	public static String getHumanGenomeAnnotationResourceFromEnsembl() {
+		return humanGenomeAnnotationResourceFromEnsembl;
+	}
+
+	private static final String mouseGenomeAnnotationResourceFromEnsembl = "";
+	public static String getMouseGenomeAnnotationResourceFromEnsembl() {
+		return mouseGenomeAnnotationResourceFromEnsembl;
+	}
+
+	public static String getGenomeAnnotationResource(int taxonomyId, String format) {
+
+		if (format.equals("refFlat")) {
+			if (taxonomyId == 9606) {
+				return getHumanGenomeAnnotationResourceFromUCSC();
+			} else if (taxonomyId == 10090) {
+				return getMouseGenomeAnnotationResourceFromUCSC();
+			}
+		} else if (format.equals("gtf")) {
+			if (taxonomyId == 9606) {
+				return getHumanGenomeAnnotationResourceFromEnsembl();
+			} else if (taxonomyId == 10090) {
+				return getMouseGenomeAnnotationResourceFromEnsembl();
+			}
+		}
+		return null;
+	}
 // =-=-=-=-=-=-=-=-=-=-=-=-=
 
 	// Metal-binding data

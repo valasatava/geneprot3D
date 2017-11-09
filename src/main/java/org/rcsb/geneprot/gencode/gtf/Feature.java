@@ -1,5 +1,6 @@
 package org.rcsb.geneprot.gencode.gtf;
 
+import java.io.Serializable;
 import java.util.Map;
 
 
@@ -14,7 +15,8 @@ import java.util.Map;
  * @author Andrew E. Bruno
  * 
  */
-public class Feature {
+public class Feature implements Serializable {
+
     protected String seqname;
     protected String source;
     protected FeatureType featureType;
@@ -25,9 +27,7 @@ public class Feature {
     protected Integer frame;
     protected Map<String, String> attributes;
     protected String geneId;
-    protected String geneName;
-    protected String transcriptId;
-    
+
     public Feature() {
 
     }
@@ -123,18 +123,6 @@ public class Feature {
      */
     public String getGeneId() {
         return geneId;
-    }
-
-    public String getGeneName() {
-        return geneName;
-    }
-
-    /**
-     * A globally unique identifier for the predicted transcript. If empty, no
-     * transcript is associated with this feature
-     */
-    public String getTranscriptId() {
-        return transcriptId;
     }
 
     public String toString() {

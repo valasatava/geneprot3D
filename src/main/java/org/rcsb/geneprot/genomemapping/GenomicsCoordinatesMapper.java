@@ -4,7 +4,6 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.spark.SparkFiles;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -15,7 +14,7 @@ import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 import org.rcsb.geneprot.common.utils.SparkUtils;
-import org.rcsb.geneprot.genomemapping.functions.*;
+import org.rcsb.geneprot.genomemapping.functions.MapGenomeToUniProt;
 import org.rcsb.geneprot.genomemapping.model.GenomeToUniProtMapping;
 import org.rcsb.geneprot.genomemapping.utils.MapperUtils;
 import org.slf4j.Logger;
@@ -125,26 +124,26 @@ public class GenomicsCoordinatesMapper {
         String filename = SparkFiles.get(filePath.split("/")[n - 1]);
 
         StructType schema = CommonConstants.GENOME_ANNOTATION_SCHEMA;
-        schema.fieldIndex(CommonConstants.GENE_NAME);
+        schema.fieldIndex(CommonConstants.COL_GENE_NAME);
 
         JavaRDD<Row> rdd =
                 sparkSession.sparkContext().textFile(filename, 200)
                         .toJavaRDD()
                         .map(t -> t.split(CommonConstants.FIELD_SEPARATOR))
                         .map(t -> RowFactory.create(
-                                t[schema.fieldIndex(CommonConstants.GENE_NAME)]
-                                , t[schema.fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)]
-                                , t[schema.fieldIndex(CommonConstants.CHROMOSOME)]
-                                , t[schema.fieldIndex(CommonConstants.ORIENTATION)]
-                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.TX_START)])
-                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.TX_END)])
-                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.CDS_START)])
-                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.CDS_END)])
-                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.EXONS_COUNT)])
-                                , Arrays.stream(t[schema.fieldIndex(CommonConstants.EXONS_START)]
+                                t[schema.fieldIndex(CommonConstants.COL_GENE_NAME)]
+                                , t[schema.fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)]
+                                , t[schema.fieldIndex(CommonConstants.COL_CHROMOSOME)]
+                                , t[schema.fieldIndex(CommonConstants.COL_ORIENTATION)]
+                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.COL_TX_START)])
+                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.COL_TX_END)])
+                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.COL_CDS_START)])
+                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.COL_CDS_END)])
+                                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.COL_EXONS_COUNT)])
+                                , Arrays.stream(t[schema.fieldIndex(CommonConstants.COL_EXONS_START)]
                                         .split(CommonConstants.EXONS_FIELD_SEPARATOR))
                                         .map(e -> Integer.valueOf(e)).collect(Collectors.toList()).toArray()
-                                , Arrays.stream(t[schema.fieldIndex(CommonConstants.EXONS_END)]
+                                , Arrays.stream(t[schema.fieldIndex(CommonConstants.COL_EXONS_END)]
                                         .split(Pattern.quote(",")))
                                         .map(e -> Integer.valueOf(e)).collect(Collectors.toList()).toArray()
                                 )
@@ -156,64 +155,64 @@ public class GenomicsCoordinatesMapper {
 
     public static Dataset<Row> buildTranscripts() throws Exception {
 
-        Dataset<Row> transcripts = getTranscriptsAnnotation(DataLocationProvider.getHumanGenomeAnnotationResource());
-        transcripts = transcripts.filter(col(CommonConstants.CDS_START).notEqual(col(CommonConstants.CDS_END)));
+        Dataset<Row> transcripts = getTranscriptsAnnotation(DataLocationProvider.getHumanGenomeAnnotationResourceFromUCSC());
+        transcripts = transcripts.filter(col(CommonConstants.COL_CDS_START).notEqual(col(CommonConstants.COL_CDS_END)));
         transcripts = MapperUtils.mapTranscriptsToUniProtAccession(transcripts);
         transcripts = transcripts.withColumn(CommonConstants.COL_MATCH, lit(true));
 
 //        transcripts = transcripts
-//                .filter(col(CommonConstants.GENE_NAME).equalTo("AMY1A")
-//                //.and(col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION).equalTo("NM_001286828"))
+//                .filter(col(CommonConstants.COL_GENE_NAME).equalTo("AMY1A")
+//                //.and(col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION).equalTo("NM_001286828"))
 //        );
 //        transcripts.show();
 
         return transcripts.cache();
     }
 
-    public static Dataset<Row> processTranscripts(Dataset<Row> transcripts) throws Exception {
-
-        Broadcast<Map<String, Row>> bcVar = jsc.broadcast(getVariationsMap());
-        Broadcast<Map<String, Row>> bcSeq = jsc.broadcast(getSequenceFeaturesMap());
-        Broadcast<Map<String, Iterable<String>>> bcGen = jsc.broadcast(getGeneNamesMap());
-
-        JavaRDD<Row> rdd = transcripts
-                .toJavaRDD()
-                .flatMap(new MapTranscriptToUniProtId(bcGen))
-                .mapToPair(e -> new Tuple2<>(e.getString(e.fieldIndex(CommonConstants.CHROMOSOME))+
-                                        "_"+e.getString(e.fieldIndex(CommonConstants.GENE_NAME))+
-                                        "_"+e.getString(e.fieldIndex(CommonConstants.ORIENTATION)), e))
-                .groupByKey(10).map(e -> e._2)
-                .map(new AnnotateAlternativeEvents())
-                .flatMap(new MapTranscriptsToIsoforms(getOrganism(), bcSeq, bcVar));
-
-        List<Row> list = rdd.collect();
-        StructType schema = list.get(0).schema();
-        return sparkSession.createDataFrame(list, schema);
-    }
+//    public static Dataset<Row> processTranscripts(Dataset<Row> transcripts) throws Exception {
+//
+//        Broadcast<Map<String, Row>> bcVar = jsc.broadcast(getVariationsMap());
+//        Broadcast<Map<String, Row>> bcSeq = jsc.broadcast(getSequenceFeaturesMap());
+//        Broadcast<Map<String, Iterable<String>>> bcGen = jsc.broadcast(getGeneNamesMap());
+//
+//        JavaRDD<Row> rdd = transcripts
+//                .toJavaRDD()
+//                .flatMap(new MapTranscriptToUniProtId(bcGen))
+//                .mapToPair(e -> new Tuple2<>(e.getString(e.fieldIndex(CommonConstants.COL_CHROMOSOME))+
+//                                        "_"+e.getString(e.fieldIndex(CommonConstants.COL_GENE_NAME))+
+//                                        "_"+e.getString(e.fieldIndex(CommonConstants.COL_ORIENTATION)), e))
+//                .groupByKey(10).map(e -> e._2)
+//                //.map(new AnnotateAlternativeEvents())
+//                .flatMap(new MapTranscriptsToIsoforms(bcSeq, bcVar));
+//
+//        List<Row> list = rdd.collect();
+//        StructType schema = list.get(0).schema();
+//        return sparkSession.createDataFrame(list, schema);
+//    }
 
     public static Dataset<Row> assembleTranscriptsAsGenes(Dataset<Row> isoforms) {
 
         try {
             isoforms = isoforms
                     .filter(col(CommonConstants.COL_MOLECULE_ID).isNotNull())
-                    .groupBy(col(CommonConstants.CHROMOSOME), col(CommonConstants.GENE_NAME), col(CommonConstants.ORIENTATION), col(CommonConstants.COL_UNIPROT_ACCESSION))
+                    .groupBy(col(CommonConstants.COL_CHROMOSOME), col(CommonConstants.COL_GENE_NAME), col(CommonConstants.COL_ORIENTATION), col(CommonConstants.COL_UNIPROT_ACCESSION))
                     .agg(collect_list(
-                            struct(   col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)
-                                    , col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION)
+                            struct(   col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)
+                                    , col(CommonConstants.COL_NCBI_PROTEIN_SEQUENCE_ACCESSION)
                                     , col(CommonConstants.COL_MOLECULE_ID)
                                     , col(CommonConstants.COL_ISOFORM_ID)
                                     , col(CommonConstants.COL_MATCH)
-                                    , col(CommonConstants.TX_START)
-                                    , col(CommonConstants.TX_END)
-                                    , col(CommonConstants.CDS_START)
-                                    , col(CommonConstants.CDS_END)
-                                    , col(CommonConstants.EXONS_COUNT)
-                                    , col(CommonConstants.EXONS_START)
-                                    , col(CommonConstants.EXONS_END)
+                                    , col(CommonConstants.COL_TX_START)
+                                    , col(CommonConstants.COL_TX_END)
+                                    , col(CommonConstants.COL_CDS_START)
+                                    , col(CommonConstants.COL_CDS_END)
+                                    , col(CommonConstants.COL_EXONS_COUNT)
+                                    , col(CommonConstants.COL_EXONS_START)
+                                    , col(CommonConstants.COL_EXONS_END)
                                     , col(CommonConstants.COL_HAS_ALTERNATIVE_EXONS)
                                     , col(CommonConstants.COL_ALTERNATIVE_EXONS)
-                            )).as(CommonConstants.TRANSCRIPTS))
-                    .sort(col(CommonConstants.CHROMOSOME), col(CommonConstants.GENE_NAME));
+                            )).as(CommonConstants.COL_TRANSCRIPTS))
+                    .sort(col(CommonConstants.COL_CHROMOSOME), col(CommonConstants.COL_GENE_NAME));
         } catch (Exception e) {
             logger.error("Error has occurred while assembling transcripts as genes {} : {}", e.getCause(), e.getMessage());
         }
@@ -228,7 +227,7 @@ public class GenomicsCoordinatesMapper {
         setOrganism("human");
         Dataset<Row> transcripts=null;
         try {
-            transcripts = processTranscripts(buildTranscripts());
+            //transcripts = processTranscripts(buildTranscripts());
             transcripts = assembleTranscriptsAsGenes(transcripts);
         } catch (Exception e) {
             logger.error("Exiting: fatal error has occurred while building the transcripts {} : {}", e.getCause(), e.getMessage());
@@ -242,7 +241,7 @@ public class GenomicsCoordinatesMapper {
                 List<GenomeToUniProtMapping> list = rdd.collect();
 
                 logger.info("Writing mapping to a database");
-                ExternalDBUtils.writeListToMongo(list);
+                ExternalDBUtils.writeListToMongo(list, "");
             }
 
         } catch (Exception e) {

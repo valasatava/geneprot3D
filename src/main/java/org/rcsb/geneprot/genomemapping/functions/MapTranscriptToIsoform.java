@@ -62,7 +62,7 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
         int transcriptLength = ChromosomeMappingTools.getCDSLength(gcp);
         if (transcriptLength < 6) {
             logger.info("Chromosome positions for {} cannot be translated to protein sequence because of short transcript length"
-                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)));
+                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)));
             return null;
         }
 
@@ -79,21 +79,21 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
                 s = GenomeUtils.getProteinSequence(gcp);
             } catch (Exception e) {
                 logger.error("Chromosome positions for {} cannot be translated to protein sequence"
-                        , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)));
+                        , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)));
                 return null;
             }
 
             for (String moleculeId : isoforms.keySet()) {
                 if (isoforms.get(moleculeId).contains(s) || s.contains(isoforms.get(moleculeId))) {
                     logger.info("The sequence of transcript {} is mapped to isoform sequence {}"
-                            , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
+                            , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
                             , moleculeId);
                     return RowUpdater.updateField(RowUpdater.updateField(transcript, CommonConstants.COL_MOLECULE_ID, moleculeId), CommonConstants.COL_MATCH, false);
                 }
             }
 
             logger.info("The sequence of transcript {} doesn't match any isoform sequence of {} entry"
-                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
+                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
                     , uniProtId);
             return null;
         }
@@ -106,7 +106,7 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
                 sequence = GenomeUtils.getProteinSequence(gcp);
             } catch (Exception e) {
                 logger.error("Chromosome positions for {} cannot be translated to protein sequence"
-                        , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)));
+                        , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)));
                 return null;
             }
 
@@ -116,7 +116,7 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
                 String isoform = isoforms.get(moleculeId);
                 if (sequence.equals(isoform)) {
                     logger.info("The sequence of transcript {} is mapped to isoform sequence {}"
-                            , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
+                            , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
                             , moleculeId);
                     return RowUpdater.updateField(transcript, CommonConstants.COL_MOLECULE_ID, moleculeId);
                 }
@@ -135,21 +135,21 @@ public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromoso
                 float identity =(float) (sequence.length() - count) / sequence.length();
                 if ( identity > 0.99f) {
                     logger.info("The sequence of transcript {} is mapped to isoform sequence {}"
-                            , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
+                            , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
                             , moleculeId);
                     return RowUpdater.updateField(RowUpdater.updateField(transcript, CommonConstants.COL_MOLECULE_ID, moleculeId), "match", false);
                 }
             }
 
             logger.info("The sequence of transcript {} doesn't match any isoform sequence length for {} entry"
-                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
+                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
                     , uniProtId);
             return null;
 
         } else {
             String moleculeId = map.get(proteinLength).get(0);
             logger.info("The sequence of transcript {} is mapped to isoform sequence {}"
-                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
+                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
                     , moleculeId);
             return RowUpdater.updateField(transcript, CommonConstants.COL_MOLECULE_ID, moleculeId);
         }

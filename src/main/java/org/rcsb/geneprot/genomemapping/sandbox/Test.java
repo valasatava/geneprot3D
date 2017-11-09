@@ -34,10 +34,10 @@ public class Test {
     }
 
     public static void boo() {
-        Dataset<Row> transcripts = GenomicsCoordinatesMapper.getTranscriptsAnnotation(DataLocationProvider.getHumanGenomeAnnotationResource());
+        Dataset<Row> transcripts = GenomicsCoordinatesMapper.getTranscriptsAnnotation(DataLocationProvider.getHumanGenomeAnnotationResourceFromUCSC());
         transcripts = MapperUtils.mapTranscriptsToUniProtAccession(transcripts);
 
-        transcripts = transcripts.filter(col(CommonConstants.GENE_NAME).equalTo("INIP").and(col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION).equalTo("NM_001329588")));
+        transcripts = transcripts.filter(col(CommonConstants.COL_GENE_NAME).equalTo("INIP").and(col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION).equalTo("NM_001329588")));
 
         JavaPairRDD<Row, GeneChromosomePosition> rdd = transcripts.toJavaRDD()
                 .mapToPair(new BuildAlternativeTranscripts());

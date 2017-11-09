@@ -69,17 +69,20 @@ public class ExternalDBUtils {
     public static Dataset<Row> getGeneNameToUniProtAccessionsMap(int taxonomyId)
     {
         StringBuffer sb = new StringBuffer();
-        sb.append("select ea.hjvalue as "+ org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION + ", ");
-        sb.append("gnt.VALUE_ as " + org.rcsb.mojave.util.CommonConstants.COL_GENE_NAME + " ");
+        sb.append("select ea.hjvalue as "+ CommonConstants.COL_UNIPROT_ACCESSION + ", ");
+        sb.append("gnt.VALUE_ as " + CommonConstants.COL_GENE_NAME + " ");
         sb.append("from entry_accession as ea ");
         sb.append("JOIN entry as e on (ea.HJID=e.HJID)");
         sb.append("JOIN gene_type as gt on ( ea.HJID=gt.GENE_ENTRY_HJID ) ");
         sb.append("JOIN gene_name_type as gnt on ( gt.HJID=gnt.NAME__GENE_TYPE_HJID ) ");
         sb.append("JOIN organism_type as ot on (e.ORGANISM_ENTRY_HJID=ot.HJID) ");
         sb.append("JOIN db_reference_type as dbref on (dbref.DB_REFERENCE_ORGANISM_TYPE_H_0=ot.HJID) ");
-        sb.append("where ( gnt.TYPE_='primary') ");
-        sb.append("and ( ea.HJINDEX=0) ");
-        sb.append("and dbref.ID="+String.valueOf(taxonomyId));
+        sb.append("where ");
+        sb.append("gnt.TYPE_='primary'");
+        sb.append(" and ");
+        sb.append("ea.HJINDEX=0");
+        sb.append(" and ");
+        sb.append("dbref.ID="+String.valueOf(taxonomyId));
 
         return DBUtils.executeSQLsourceUniprot("("+sb.toString()+") as tbl");
     }
@@ -88,8 +91,8 @@ public class ExternalDBUtils {
     {
         StringBuffer sb = new StringBuffer();
         sb.append("select ea.hjvalue as "+ org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION + ", ");
-        sb.append("pt.VALUE_ as " + CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION + ", ");
-        sb.append("dbr.ID as " + CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION + " ");
+        sb.append("pt.VALUE_ as " + CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION + ", ");
+        sb.append("dbr.ID as " + CommonConstants.COL_NCBI_PROTEIN_SEQUENCE_ACCESSION + " ");
         sb.append("from entry_accession as ea " +
                 "LEFT JOIN db_reference_type as dbr on ( ea.HJID=dbr.DB_REFERENCE_ENTRY_HJID ) " +
                 "LEFT JOIN property_type as pt on ( dbr.HJID=pt.PROPERTY_DB_REFERENCE_TYPE_H_0 ) ");
@@ -104,8 +107,8 @@ public class ExternalDBUtils {
     {
         StringBuffer sb = new StringBuffer();
         sb.append("select ea.hjvalue as "+ org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION + ", ");
-        sb.append("pt.VALUE_ as " + CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION + ", ");
-        sb.append("dbr.ID as " + CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION + ", ");
+        sb.append("pt.VALUE_ as " + CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION + ", ");
+        sb.append("dbr.ID as " + CommonConstants.COL_NCBI_PROTEIN_SEQUENCE_ACCESSION + ", ");
         sb.append("mt.ID as "+CommonConstants.COL_MOLECULE_ID +" ");
         sb.append("from entry_accession as ea " +
                 "LEFT JOIN db_reference_type as dbr on ( ea.HJID=dbr.DB_REFERENCE_ENTRY_HJID ) " +
@@ -273,14 +276,14 @@ public class ExternalDBUtils {
         return df;
     }
 
-    public static void writeListToMongo(List<GenomeToUniProtMapping> list) throws Exception
+    public static void writeListToMongo(List<GenomeToUniProtMapping> list, String collName) throws Exception
     {
         int bulkSize = 10000;
         int count = 0;
 
         MongoClient mongoClient = new MongoClient("132.249.213.154");
         DB db = mongoClient.getDB("dw_v1");
-        DBCollection collection = db.getCollection("humanGenomeMapping");
+        DBCollection collection = db.getCollection(collName);
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -317,9 +320,6 @@ public class ExternalDBUtils {
     {
         String var = "VSP_057275";
         Dataset<Row> df = getGeneNameToUniProtAccessionsMap(9606);
-        df.filter(col(CommonConstants.GENE_NAME).equalTo("ACAN")).show();
-
-        //df.filter(col(CommonConstants.COL_UNIPROT_ACCESSION).equalTo("Q8NA29")).show();
-
+        df.filter(col(CommonConstants.COL_GENE_NAME).equalTo("TOGARAM2")).show();
     }
 }

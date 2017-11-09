@@ -21,10 +21,10 @@ public class MapperUtils {
     {
         Dataset<Row> df = ExternalDBUtils.getNCBIAccessionsToIsofomsMap();
         df = df
-                .withColumn(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION
-                        , split(col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
-                .withColumn(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION
-                        , split(col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
+                .withColumn(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION
+                        , split(col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
+                .withColumn(CommonConstants.COL_NCBI_PROTEIN_SEQUENCE_ACCESSION
+                        , split(col(CommonConstants.COL_NCBI_PROTEIN_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
                 .withColumn(CommonConstants.COL_ISOFORM_ID
                         , split(col(CommonConstants.COL_MOLECULE_ID), CommonConstants.DASH).getItem(1));
         return df;
@@ -34,10 +34,10 @@ public class MapperUtils {
     {
         Dataset<Row> df = ExternalDBUtils.getNCBItoUniProtAccessionsMap();
         df = df
-                .withColumn(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION
-                        , split(col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
-                .withColumn(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION
-                        , split(col(CommonConstants.NCBI_PROTEIN_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0));
+                .withColumn(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION
+                        , split(col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0))
+                .withColumn(CommonConstants.COL_NCBI_PROTEIN_SEQUENCE_ACCESSION
+                        , split(col(CommonConstants.COL_NCBI_PROTEIN_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0));
         return df;
 
     }
@@ -56,10 +56,10 @@ public class MapperUtils {
     {
         Dataset<Row> accessions = getNCBIToMoleculeIdAccessionDataset();
         annotation = annotation.join(accessions
-                        , annotation.col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION)
-                                .equalTo(accessions.col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION))
+                        , annotation.col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)
+                                .equalTo(accessions.col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
                         , "left_outer")
-                .drop(accessions.col(CommonConstants.NCBI_RNA_SEQUENCE_ACCESSION));
+                .drop(accessions.col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION));
         return annotation;
     }
 

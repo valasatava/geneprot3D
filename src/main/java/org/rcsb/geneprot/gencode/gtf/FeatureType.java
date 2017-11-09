@@ -38,7 +38,7 @@ public enum FeatureType {
             return FeatureType.EXON;
         } else if (str.equalsIgnoreCase("gene")) {
             return FeatureType.GENE;
-        } else if (str.equalsIgnoreCase("Selenocysteine")) {
+        } else if (str.equalsIgnoreCase("selenocysteine")) {
             return FeatureType.SELENOCYSTEINE;
         } else if (str.equalsIgnoreCase("start_codon")) {
             return FeatureType.START_CODON;
@@ -46,11 +46,13 @@ public enum FeatureType {
             return FeatureType.STOP_CODON;
         } else if (str.equalsIgnoreCase("transcript")) {
             return FeatureType.TRANSCRIPT;
-        } else if (str.equalsIgnoreCase("UTR")) {
+        } else if (str.equalsIgnoreCase("utr")) {
             return FeatureType.UTR;
-        } else if (str.equalsIgnoreCase("5utr")) {
+        } else if (str.equalsIgnoreCase("5utr")
+                || str.equalsIgnoreCase("five_prime_utr")) {
             return FeatureType.UTR5;
-        } else if (str.equalsIgnoreCase("3utr")) {
+        } else if (str.equalsIgnoreCase("3utr")
+                || str.equalsIgnoreCase("three_prime_utr")) {
             return FeatureType.UTR3;
         } else if (str.equalsIgnoreCase("inter")) {
             return FeatureType.INTER;

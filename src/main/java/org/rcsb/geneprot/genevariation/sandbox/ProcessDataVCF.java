@@ -41,7 +41,7 @@ public class ProcessDataVCF {
 		Iterator<VariantInterface> variations = vdp.getAllVariants();
 		System.out.println("Time to filter the variation data: " + (System.nanoTime() - start2) / 1E9 + " sec.");
 
-		// --> GET CHROMOSOME POSITIONS
+		// --> GET COL_CHROMOSOME POSITIONS
 		long start3 = System.nanoTime();
 		List<Transcript> transcripts = GenePredictionsParser.getChromosomeMappings().stream()
 				.filter(t -> t.getChromosomeName().equals(chrName)).collect(Collectors.toList());
