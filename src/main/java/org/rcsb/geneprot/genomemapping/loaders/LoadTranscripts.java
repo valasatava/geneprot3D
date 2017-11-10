@@ -7,7 +7,6 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.types.StructType;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.common.utils.MongoCollections;
@@ -22,8 +21,6 @@ import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import java.util.List;
-
-import static org.apache.spark.sql.functions.*;
 
 /**
  * Created by Yana Valasatava on 11/7/17.
@@ -43,23 +40,26 @@ public class LoadTranscripts extends AbstractLoader {
                 .textFile(filename, 200)
                 .toJavaRDD();
 
-        JavaRDD<Row> rdd = null;
         if (format.equals("refFlat")) {
-            rdd = records.map(new ParseRefFlatRecords());
-
+            JavaRDD<Row> rdd = records.map(new ParseRefFlatRecords())
+                    .filter(r -> ! (r.getString(r.fieldIndex(CommonConstants.COL_CDS_START))
+                            .equals(r.getString(r.fieldIndex(CommonConstants.COL_CDS_END)))));
+            Dataset<Row> df = sparkSession.createDataFrame(rdd, CommonConstants.GENOME_ANNOTATION_SCHEMA);
+            return df;
         } else if (format.equals("gtf")) {
             GTFParser parser = new GTFParser();
-            rdd = records
-                    .filter(e -> e.contains("protein_coding"))
+            JavaRDD<Row> rdd = records
                     .map(line -> parser.parseLine(line))
-                    .mapToPair(e -> new Tuple2<>(e.getTranscriptId(), e))
-                    .groupByKey()
-                    .map(t -> t._2)
+                    .filter(e -> e!= null)
+                    .filter(e -> e.getAttributes().containsKey("transcript_biotype"))
+                    .filter(e -> e.getAttributes().get("transcript_biotype").equals("protein_coding"))
+                    .mapToPair(e -> new Tuple2<>(e.getAttributes().get("transcript_id"), e))
+                    .groupByKey().map(t -> t._2)
                     .map(new ParseGTFRecords());
+            Dataset<Row> df = sparkSession.createDataFrame(rdd, CommonConstants.GENCODE_TRANSCRIPT_SCHEMA);
+            return df;
         }
-
-        Dataset<Row> df = sparkSession.createDataFrame(rdd, CommonConstants.GENOME_ANNOTATION_SCHEMA);
-        return df;
+        return null;
     }
 
     public static Dataset<Row> buildTranscripts() {
@@ -67,7 +67,6 @@ public class LoadTranscripts extends AbstractLoader {
         try {
             String genomicAnnotationsFile = DataLocationProvider.getGenomeAnnotationResource(getTaxonomyId(), "gtf");
             Dataset<Row> transcripts = getTranscriptsAnnotation(genomicAnnotationsFile, "gtf");
-            transcripts = transcripts.filter(col(CommonConstants.COL_CDS_START).notEqual(col(CommonConstants.COL_CDS_END)));
             return transcripts;
         } catch (Exception e) {
             logger.error("Exiting: fatal error has occurred while building transcripts {} : {}", e.getCause(), e.getMessage());
@@ -81,40 +80,16 @@ public class LoadTranscripts extends AbstractLoader {
             JavaRDD<Row> rdd = transcripts
                     .toJavaRDD()
                     .mapToPair(e -> new Tuple2<>(e.getString(e.fieldIndex(CommonConstants.COL_CHROMOSOME)) +
-                            "_" + e.getString(e.fieldIndex(CommonConstants.COL_GENE_NAME)) +
-                            "_" + e.getString(e.fieldIndex(CommonConstants.COL_ORIENTATION)), e))
+                            CommonConstants.KEY_SEPARATOR + e.getString(e.fieldIndex(CommonConstants.COL_GENE_NAME)) +
+                            CommonConstants.KEY_SEPARATOR + e.getString(e.fieldIndex(CommonConstants.COL_ORIENTATION)), e))
                     .groupByKey()
                     .map(e -> e._2)
                     .flatMap(new AnnotateAlternativeEvents());
             List<Row> list = rdd.collect();
-            StructType schema = list.get(0).schema();
-            return sparkSession.createDataFrame(list, schema);
-        } catch (Exception e) {
-            logger.error("Exiting: fatal error has occurred while processing transcripts {} : {}", e.getCause(), e.getMessage());
-        }
-        return null;
-    }
+            return sparkSession.createDataFrame(list, list.get(0).schema());
 
-    public static Dataset<Row> assembleTranscriptsAsGenes(Dataset<Row> transcripts) {
-        try {
-            transcripts = transcripts
-                    .groupBy(col(CommonConstants.COL_CHROMOSOME), col(CommonConstants.COL_GENE_NAME), col(CommonConstants.COL_ORIENTATION))
-                    .agg(collect_list(
-                            struct(   col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)
-                                    , col(CommonConstants.COL_TX_START)
-                                    , col(CommonConstants.COL_TX_END)
-                                    , col(CommonConstants.COL_CDS_START)
-                                    , col(CommonConstants.COL_CDS_END)
-                                    , col(CommonConstants.COL_EXONS_COUNT)
-                                    , col(CommonConstants.COL_EXONS_START)
-                                    , col(CommonConstants.COL_EXONS_END)
-                                    , col(CommonConstants.COL_HAS_ALTERNATIVE_EXONS)
-                                    , col(CommonConstants.COL_ALTERNATIVE_EXONS)
-                            )).as(CommonConstants.COL_TRANSCRIPTS))
-                    .sort(col(CommonConstants.COL_CHROMOSOME), col(CommonConstants.COL_GENE_NAME));
-            return transcripts;
         } catch (Exception e) {
-            logger.error("Error has occurred while assembling transcripts as genes {} : {}", e.getCause(), e.getMessage());
+            logger.error("Exiting: fatal error has occurred while processing transcripts {} : {} {}", e.getCause(), e.getMessage(), e.fillInStackTrace());
         }
         return null;
     }
@@ -134,12 +109,8 @@ public class LoadTranscripts extends AbstractLoader {
         if (transcripts == null)
             System.exit(1);
 
-        transcripts = assembleTranscriptsAsGenes(transcripts);
-        if (transcripts == null)
-            System.exit(1);
-
         logger.info("Writing mapping to a database");
-        String collectionName = MongoCollections.COLL_TRANSCRIPTS + getOrganism();
+        String collectionName = MongoCollections.COLL_TRANSCRIPTS +"_"+ String.valueOf(getTaxonomyId());
         DerivedDataLoadUtils.writeToMongo(transcripts, collectionName, SaveMode.Overwrite);
 
         long timeE = System.currentTimeMillis();

@@ -2,12 +2,14 @@ package org.rcsb.geneprot.genomemapping.parsers;
 
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.StructType;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.gencode.gtf.FeatureType;
 import org.rcsb.geneprot.gencode.gtf.GencodeFeature;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Yana Valasatava on 11/8/17.
@@ -17,54 +19,55 @@ public class ParseGTFRecords implements Function<Iterable<GencodeFeature>, Row> 
     @Override
     public Row call(Iterable<GencodeFeature> features) throws Exception {
 
-        StructType schema = CommonConstants.GENOME_ANNOTATION_SCHEMA;
+        StructType schema = CommonConstants.GENCODE_TRANSCRIPT_SCHEMA;
         Object[] t = new Object[schema.fields().length];
 
         for (GencodeFeature feature : features) {
 
             if (feature.getFeatureType().equals(FeatureType.TRANSCRIPT)) {
+
                 t[schema.fieldIndex(CommonConstants.COL_CHROMOSOME)] = "chr"+feature.getChrom();
                 t[schema.fieldIndex(CommonConstants.COL_GENE_NAME)] = feature.getGeneName();
+                t[schema.fieldIndex(CommonConstants.COL_GENE_ID)] = feature.getAttributes().get("gene_id");
                 t[schema.fieldIndex(CommonConstants.COL_ORIENTATION)] = feature.getStrand().toString();
-                t[schema.fieldIndex(CommonConstants.COL_TX_START)] = feature.getStart();
-                t[schema.fieldIndex(CommonConstants.COL_TX_END)] = feature.getEnd();
+                t[schema.fieldIndex(CommonConstants.COL_TRANSCRIPT_NAME)] = feature.getTranscriptName();
+                t[schema.fieldIndex(CommonConstants.COL_TRANSCRIPT_ID)] = feature.getAttributes().get("transcript_id");
+                Object[] array = {feature.getStart(), feature.getEnd()};
+                t[schema.fieldIndex(CommonConstants.COL_TRANSCRIPTION)] = RowFactory.create(array);
+
+            } else if (feature.getFeatureType().equals(FeatureType.START_CODON)) {
+                Object[] array = {feature.getStart(), feature.getEnd()};
+                t[schema.fieldIndex(CommonConstants.COL_START_CODON)] = RowFactory.create(array);
+
+            } else if (feature.getFeatureType().equals(FeatureType.STOP_CODON)) {
+                Object[] array = {feature.getStart(), feature.getEnd()};
+                t[schema.fieldIndex(CommonConstants.COL_STOP_CODON)] = RowFactory.create(array);
             }
         }
 
-        ArrayList<Integer> startPosExons = new ArrayList<>();
-        features.forEach(f -> {
-            if(f.getFeatureType().equals(FeatureType.EXON)) {
-                startPosExons.add(Integer.valueOf(f.getAttributes().get("start")));
-            }
+        List<Row> utr = new ArrayList<>();
+        features.forEach(f -> { if ( f.getFeatureType().equals(FeatureType.UTR)
+                                  || f.getFeatureType().equals(FeatureType.UTR5)
+                                  || f.getFeatureType().equals(FeatureType.UTR3))
+        {utr.add(RowFactory.create(new Object[]{f.getStart(), f.getEnd()}));}
         });
-        t[schema.fieldIndex(CommonConstants.COL_EXONS_START)] = startPosExons.toArray();
+        t[schema.fieldIndex(CommonConstants.COL_UTR)] = utr.toArray();
 
-        ArrayList<Integer> endPosExons = new ArrayList<>();
-        features.forEach(f -> {
-            if(f.getFeatureType().equals(FeatureType.EXON)) {
-                endPosExons.add(Integer.valueOf(f.getAttributes().get("end")));
-            }
+        List<Row> cds = new ArrayList<>();
+        features.forEach(f -> { if (f.getFeatureType().equals(FeatureType.CDS))
+                {cds.add(RowFactory.create(new Object[]{Integer.valueOf(f.getAttributes().get("exon_number"))
+                        , f.getStart(), f.getEnd()}));}
         });
-        t[schema.fieldIndex(CommonConstants.COL_EXONS_END)] = endPosExons.toArray();
+        t[schema.fieldIndex(CommonConstants.COL_CODING)] = cds.toArray();
 
-//        return RowFactory.create(
-//                t[schema.fieldIndex(CommonConstants.COL_GENE_NAME)]
-//                , t[schema.fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)]
-//                , t[schema.fieldIndex(CommonConstants.COL_CHROMOSOME)]
-//                , t[schema.fieldIndex(CommonConstants.COL_ORIENTATION)]
-//                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.COL_TX_START)])
-//                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.COL_TX_END)])
-//                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.COL_CDS_START)])
-//                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.COL_CDS_END)])
-//                , Integer.valueOf(t[schema.fieldIndex(CommonConstants.COL_EXONS_COUNT)])
-//                , Arrays.stream(t[schema.fieldIndex(CommonConstants.COL_EXONS_START)]
-//                        .split(CommonConstants.EXONS_FIELD_SEPARATOR))
-//                        .map(e -> Integer.valueOf(e)).collect(Collectors.toList()).toArray()
-//                , Arrays.stream(t[schema.fieldIndex(CommonConstants.COL_EXONS_END)]
-//                        .split(Pattern.quote(",")))
-//                        .map(e -> Integer.valueOf(e)).collect(Collectors.toList()).toArray()
-//        );
+        List<Row> exons = new ArrayList<>();
+        features.forEach(f -> {if(f.getFeatureType().equals(FeatureType.EXON)) {
+            exons.add(RowFactory.create(new Object[]{Integer.valueOf(f.getAttributes().get("exon_number"))
+                    , f.getStart(), f.getEnd()}));}
+        });
+        t[schema.fieldIndex(CommonConstants.COL_EXONS_COUNT)] = exons.size();
+        t[schema.fieldIndex(CommonConstants.COL_EXONS)] = exons.toArray();
 
-        return null;
+        return RowFactory.create(t);
     }
 }

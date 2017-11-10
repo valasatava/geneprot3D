@@ -48,7 +48,7 @@ public class GTF2RefFlat {
                     continue;
                 }
                 if(data == null) {
-                    data = new TranscriptData(feature.getTranscriptId(), feature.getGeneName(), feature.getSeqname(), feature.getStrand());
+                    data = new TranscriptData(feature.getAttributes().get("transcript_id"), feature.getGeneName(), feature.getSeqname(), feature.getStrand());
                 }
 
                 data.addFeature(feature);
@@ -190,13 +190,13 @@ public class GTF2RefFlat {
                 if (line.startsWith("#")) continue;
                 GencodeFeature feature = parser.parseLine(line);
                 
-                List<String> lines = map.get(feature.getTranscriptId());
+                List<String> lines = map.get(feature.getAttributes().get("transcript_id"));
                 if(lines == null) {
                     lines = new ArrayList<String>();
                 }
                 
                 lines.add(line);
-                map.put(feature.getTranscriptId(), lines);
+                map.put(feature.getAttributes().get("transcript_id"), lines);
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to read gene modle file", e);

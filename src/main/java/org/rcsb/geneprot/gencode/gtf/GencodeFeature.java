@@ -36,7 +36,6 @@ public class GencodeFeature extends Feature {
     protected String transcriptType;
     protected String transcriptStatus;
     protected String transcriptName;
-    protected String transcriptId;
     protected Integer level;
 
     public GencodeFeature() {
@@ -71,32 +70,24 @@ public class GencodeFeature extends Feature {
     }
 
     /**
-     * Transcript Biotype
+     * TranscriptMapping Biotype
      */
     public String getTranscriptType() {
         return transcriptType;
     }
 
     /**
-     * Transcript status {KNOWN, NOVEL, PUTATIVE}
+     * TranscriptMapping status {KNOWN, NOVEL, PUTATIVE}
      */
     public String getTranscriptStatus() {
         return transcriptStatus;
     }
 
     /**
-     * Transcript name
+     * TranscriptMapping name
      */
     public String getTranscriptName() {
         return transcriptName;
-    }
-
-    /**
-     * A globally unique identifier for the predicted transcript. If empty, no
-     * transcript is associated with this feature
-     */
-    public String getTranscriptId() {
-        return transcriptId;
     }
 
     /**

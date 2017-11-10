@@ -12,17 +12,22 @@ import java.util.regex.Pattern;
  */
 public class CommonConstants {
 
+    public static final String HUMAN_GENOME_ASSEMBLY_GRCH37 = "hg19";
     public static final String HUMAN_GENOME_ASSEMBLY_GRCH38 = "hg38";
     public static final String MOUSE_GENOME_ASSEMBLY_GRCH38 = "mm10";
-
-    public static final String HUMAN_GENOME_ASSEMBLY_GRCH37 = "hg19";
 
     public static final String COL_NCBI_RNA_SEQUENCE_ACCESSION = "rnaSequenceIdentifier";
     public static final String COL_NCBI_PROTEIN_SEQUENCE_ACCESSION = "proteinSequenceIdentifier";
 
+    public static final String COL_ID = "id";
+
     public static final String COL_CHROMOSOME = "chromosome";
+
     public static final String COL_GENE_NAME = "geneName";
+    public static final String COL_GENE_ID = "geneId";
+
     public static final String COL_ORIENTATION = "orientation";
+
     public static final String COL_TX_START = "transcriptionStart";
     public static final String COL_TX_END = "transcriptionEnd";
     public static final String COL_CDS_START = "cdsStart";
@@ -32,7 +37,29 @@ public class CommonConstants {
     public static final String COL_EXONS_END = "exonsEnd";
 
     public static final String COL_TRANSCRIPT = "transcript";
+    public static final String COL_TRANSCRIPT_NAME = "transcriptName";
+    public static final String COL_TRANSCRIPT_ID = "transcriptId";
     public static final String COL_TRANSCRIPTS = "transcripts";
+
+    public static final String COL_TRANSCRIPTION = "transcription";
+    public static final String COL_UNTRANSLATED = "untranslated";
+    public static final String COL_CODING = "cds";
+
+    public static final String COL_UTR = "utr";
+    public static final String COL_UTRS = "utrs";
+    public static final String COL_UTR3 = "utr3";
+    public static final String COL_UTR5 = "utr5";
+
+    public static final String COL_EXON = "exon";
+    public static final String COL_EXON_ID = "exonId";
+    public static final String COL_EXON_NUMBER = "exonNumber";
+    public static final String COL_EXONS = "exons";
+
+    public static final String COL_CDSEQ = "cdseq";
+    public static final String COL_CDSEQS = "cdseqs";
+
+    public static final String COL_START_CODON = "startCodon";
+    public static final String COL_STOP_CODON = "stopCodon";
 
     public static final String COL_UNIPROT_ACCESSION = "uniProtId";
     public static final String COL_MOLECULES = "molecules";
@@ -56,6 +83,7 @@ public class CommonConstants {
     public static final String COL_ORIGINAL = "original";
     public static final String COL_VARIATION = "variation";
     public static final String COL_BEGIN = "begin";
+    public static final String COL_START = "start";
     public static final String COL_END = "end";
 
     public static final String COL_SINGLE_AMINO_ACID = "singleAminoAcid";
@@ -83,6 +111,55 @@ public class CommonConstants {
                     , DataTypes.createStructField(COL_EXONS_END, DataTypes.createArrayType(DataTypes.IntegerType), false)
             });
 
+    public static final StructType RANGE_SCHEMA = DataTypes
+            .createStructType(new StructField[] {
+                      DataTypes.createStructField(COL_START, DataTypes.IntegerType, false)
+                    , DataTypes.createStructField(COL_END, DataTypes.IntegerType, false)
+            });
+
+    public static final StructType RANGE_SCHEMA_WITH_ID = DataTypes
+            .createStructType(new StructField[] {
+                      DataTypes.createStructField(COL_ID, DataTypes.IntegerType, false)
+                    , DataTypes.createStructField(COL_START, DataTypes.IntegerType, false)
+                    , DataTypes.createStructField(COL_END, DataTypes.IntegerType, false)
+            });
+
+    public static final StructType GENCODE_TRANSCRIPT_SCHEMA = DataTypes
+            .createStructType(new StructField[] {
+                      DataTypes.createStructField(COL_CHROMOSOME, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_GENE_NAME, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_GENE_ID, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_ORIENTATION, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_TRANSCRIPT_NAME, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_TRANSCRIPT_ID, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_TRANSCRIPTION, RANGE_SCHEMA, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_START_CODON, RANGE_SCHEMA, true, Metadata.empty())
+                    , DataTypes.createStructField(COL_STOP_CODON, RANGE_SCHEMA, true, Metadata.empty())
+                    , DataTypes.createStructField(COL_UTR, DataTypes.createArrayType(RANGE_SCHEMA), false, Metadata.empty())
+                    , DataTypes.createStructField(COL_CODING, DataTypes.createArrayType(RANGE_SCHEMA_WITH_ID), false, Metadata.empty())
+                    , DataTypes.createStructField(COL_EXONS_COUNT, DataTypes.IntegerType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_EXONS, DataTypes.createArrayType(RANGE_SCHEMA_WITH_ID), false, Metadata.empty())
+            });
+
+    public static final StructType GENCODE_TRANSCRIPT_SCHEMA_WITH_ALTERNATIVE = DataTypes
+            .createStructType(new StructField[] {
+                      DataTypes.createStructField(COL_CHROMOSOME, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_GENE_NAME, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_GENE_ID, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_ORIENTATION, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_TRANSCRIPT_NAME, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_TRANSCRIPT_ID, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_TRANSCRIPTION, RANGE_SCHEMA, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_START_CODON, RANGE_SCHEMA, true, Metadata.empty())
+                    , DataTypes.createStructField(COL_STOP_CODON, RANGE_SCHEMA, true, Metadata.empty())
+                    , DataTypes.createStructField(COL_UTR, DataTypes.createArrayType(RANGE_SCHEMA), false, Metadata.empty())
+                    , DataTypes.createStructField(COL_CODING, DataTypes.createArrayType(RANGE_SCHEMA_WITH_ID), false, Metadata.empty())
+                    , DataTypes.createStructField(COL_EXONS_COUNT, DataTypes.IntegerType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_EXONS, DataTypes.createArrayType(RANGE_SCHEMA_WITH_ID), false, Metadata.empty())
+                    , DataTypes.createStructField(COL_HAS_ALTERNATIVE_EXONS, DataTypes.BooleanType, false, Metadata.empty())
+                    , DataTypes.createStructField(COL_ALTERNATIVE_EXONS, DataTypes.createArrayType(DataTypes.BooleanType), false, Metadata.empty())
+            });
+
     public static final StructType NCBI_RNA_TO_PROTEIN_ACCESSION_SCHEMA = DataTypes
             .createStructType(new StructField[]{
                     DataTypes.createStructField(COL_NCBI_RNA_SEQUENCE_ACCESSION, DataTypes.StringType, true)
@@ -100,17 +177,16 @@ public class CommonConstants {
                     DataTypes.createStructField(COL_TRANSCRIPTS, DataTypes.createArrayType(
                             DataTypes
                                     .createStructType(new StructField[]{
-                                              DataTypes.createStructField(COL_NCBI_RNA_SEQUENCE_ACCESSION, DataTypes.StringType, false)
-                                            , DataTypes.createStructField(COL_NCBI_PROTEIN_SEQUENCE_ACCESSION, DataTypes.StringType, false)
-                                            , DataTypes.createStructField(COL_MOLECULE_ID, DataTypes.StringType, false)
-                                            , DataTypes.createStructField(COL_ISOFORM_ID, DataTypes.StringType, false)
-                                            , DataTypes.createStructField(COL_TX_START, DataTypes.IntegerType, false, Metadata.empty())
-                                            , DataTypes.createStructField(COL_TX_END, DataTypes.IntegerType, false, Metadata.empty())
-                                            , DataTypes.createStructField(COL_CDS_START, DataTypes.IntegerType, false, Metadata.empty())
-                                            , DataTypes.createStructField(COL_CDS_END, DataTypes.IntegerType, false, Metadata.empty())
+                                              DataTypes.createStructField(COL_TRANSCRIPT_NAME, DataTypes.StringType, false, Metadata.empty())
+                                            , DataTypes.createStructField(COL_TRANSCRIPT_ID, DataTypes.StringType, false, Metadata.empty())
+                                            , DataTypes.createStructField(COL_TRANSCRIPTION, RANGE_SCHEMA, false, Metadata.empty())
+                                            , DataTypes.createStructField(COL_START_CODON, RANGE_SCHEMA, false, Metadata.empty())
+                                            , DataTypes.createStructField(COL_STOP_CODON, RANGE_SCHEMA, false, Metadata.empty())
+                                            , DataTypes.createStructField(COL_UTR5, RANGE_SCHEMA, false, Metadata.empty())
+                                            , DataTypes.createStructField(COL_UTR3, RANGE_SCHEMA, false, Metadata.empty())
+                                            , DataTypes.createStructField(COL_CODING, DataTypes.createArrayType(RANGE_SCHEMA_WITH_ID), false, Metadata.empty())
                                             , DataTypes.createStructField(COL_EXONS_COUNT, DataTypes.IntegerType, false, Metadata.empty())
-                                            , DataTypes.createStructField(COL_EXONS_START, DataTypes.createArrayType(DataTypes.IntegerType), false, Metadata.empty())
-                                            , DataTypes.createStructField(COL_EXONS_END, DataTypes.createArrayType(DataTypes.IntegerType), false, Metadata.empty())
+                                            , DataTypes.createStructField(COL_EXONS, DataTypes.createArrayType(RANGE_SCHEMA_WITH_ID), false, Metadata.empty())
                                     })
                     ), true)
             });

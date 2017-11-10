@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Transcript implements Serializable {
+public class TranscriptMapping implements Serializable {
 
 	private String rnaSequenceIdentifier;
 	private String proteinSequenceIdentifier;

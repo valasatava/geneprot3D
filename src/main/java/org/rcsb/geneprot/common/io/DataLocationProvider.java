@@ -68,8 +68,9 @@ public class DataLocationProvider {
 		return mouseGenomeAnnotationResource;
 	}
 
-	//private static final String humanGenomeAnnotationResourceFromEnsembl = "http://ftp.ensembl.org/pub/release-90/gtf/homo_sapiens/Homo_sapiens.GRCh38.90.gtf.gz";
-	private static final String humanGenomeAnnotationResourceFromEnsembl = "/Users/yana/Downloads/Homo_sapiens.GRCh38.90.gtf";
+	private static final String humanGenomeAnnotationResourceFromEnsembl = "http://ftp.ensembl.org/pub/release-90/gtf/homo_sapiens/Homo_sapiens.GRCh38.90.gtf.gz";
+//	private static final String humanGenomeAnnotationResourceFromEnsembl = "/Users/yana/Downloads/Homo_sapiens.GRCh38.90.gtf";
+//	private static final String humanGenomeAnnotationResourceFromEnsembl = "/Users/yana/Downloads/WDR86.gtf";
 
 	public static String getHumanGenomeAnnotationResourceFromEnsembl() {
 		return humanGenomeAnnotationResourceFromEnsembl;

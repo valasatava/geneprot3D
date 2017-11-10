@@ -14,7 +14,7 @@ public class GenomeToUniProtMapping implements Serializable {
     protected String orientation;
     protected String uniProtId;
 
-    protected List<Transcript> transcripts = new ArrayList<>();
+    protected List<TranscriptMapping> transcripts = new ArrayList<>();
 
     public String getChromosome() {
         return chromosome;
@@ -48,11 +48,11 @@ public class GenomeToUniProtMapping implements Serializable {
         this.uniProtId = uniProtId;
     }
 
-    public List<Transcript> getTranscripts() {
+    public List<TranscriptMapping> getTranscripts() {
         return transcripts;
     }
 
-    public void setTranscripts(List<Transcript> transcripts) {
+    public void setTranscripts(List<TranscriptMapping> transcripts) {
         this.transcripts = transcripts;
     }
 }

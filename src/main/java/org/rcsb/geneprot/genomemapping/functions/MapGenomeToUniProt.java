@@ -5,7 +5,7 @@ import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.genomemapping.model.CoordinatesRange;
 import org.rcsb.geneprot.genomemapping.model.GenomeToUniProtMapping;
-import org.rcsb.geneprot.genomemapping.model.Transcript;
+import org.rcsb.geneprot.genomemapping.model.TranscriptMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
@@ -66,7 +66,7 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
         List<Row> annotations = row.getList(row.fieldIndex(CommonConstants.COL_TRANSCRIPTS));
         for (Row annotation : annotations)
         {
-            Transcript t = new Transcript();
+            TranscriptMapping t = new TranscriptMapping();
 
             t.setRnaSequenceIdentifier(annotation.getString(annotation.fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)));
             t.setProteinSequenceIdentifier(annotation.getString(annotation.fieldIndex(CommonConstants.COL_NCBI_PROTEIN_SEQUENCE_ACCESSION)));

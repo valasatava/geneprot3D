@@ -8,10 +8,8 @@ import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.genomemapping.utils.RowUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by Yana Valasatava on 11/1/17.
@@ -22,33 +20,14 @@ public class AnnotateAlternativeEvents implements FlatMapFunction<Iterable<Row>,
 
     private static List<Range<Integer>> range(Row transcript) {
 
-        List<Integer> start = transcript.getList(transcript.fieldIndex(CommonConstants.COL_EXONS_START));
-        List<Integer> end = transcript.getList(transcript.fieldIndex(CommonConstants.COL_EXONS_END));
+        List<Row> cds = transcript.getList(transcript.fieldIndex(CommonConstants.COL_CODING));
 
-        int cdsStart = transcript.getInt(transcript.fieldIndex(CommonConstants.COL_CDS_START));
-        int cdsEnd = transcript.getInt(transcript.fieldIndex(CommonConstants.COL_CDS_END));
-
-        List<Integer> exonStarts = new ArrayList(start);
-        List<Integer> exonEnds = new ArrayList(end);
-        int j = 0;
-
-
-        for(int nExons = 0; nExons < start.size(); ++nExons) {
-            if((end.get(nExons)).intValue() >= cdsStart && (start.get(nExons)).intValue() <= cdsEnd) {
-                ++j;
-            } else {
-                exonStarts.remove(j);
-                exonEnds.remove(j);
-            }
+        List<Range<Integer>> regions = new ArrayList();
+        for(Row r : cds) {
+            regions.add(Range.closed(r.getInt(r.fieldIndex(CommonConstants.COL_START))
+                                   , r.getInt(r.fieldIndex(CommonConstants.COL_END))));
         }
-
-        List<Range<Integer>> cdsRegions = new ArrayList();
-        for(int i = 0; i < exonStarts.size(); ++i) {
-            Range<Integer> r = Range.closed(exonStarts.get(i), exonEnds.get(i));
-            cdsRegions.add(r);
-        }
-
-        return cdsRegions;
+        return regions;
     }
 
     private static List<Range<Integer>> getRanges(List<Row> transcripts) {
@@ -62,19 +41,18 @@ public class AnnotateAlternativeEvents implements FlatMapFunction<Iterable<Row>,
         return list;
     }
 
-    private static Set<Integer> getHashKeys(List<Range<Integer>> ranges) {
+    private static Map<Integer, Integer> getHashKeys(List<Range<Integer>> ranges) {
 
-        Set<Integer> set = new HashSet<>();
+        Map<Integer, Integer> map = new HashMap<>();
         for (Range<Integer> range : ranges) {
-            Tuple2<Integer, Integer> t = new Tuple2<>(range.lowerEndpoint(), range.upperEndpoint());
-            set.add(t.hashCode());
+            if (map.containsKey(range.hashCode())) {
+                int i = map.get(range.hashCode());
+                map.put(range.hashCode(), i+1);
+            }
+            else 
+                map.put(range.hashCode(), 1);
         }
-        return set;
-    }
-
-    private static Set<Integer> getHashKeysAsSet(List<Row> list) {
-        List<Range<Integer>> ranges = getRanges(list);
-        return getHashKeys(ranges);
+        return map;
     }
 
     @Override
@@ -82,7 +60,8 @@ public class AnnotateAlternativeEvents implements FlatMapFunction<Iterable<Row>,
 
         List<Row> list = new ArrayList<>();
         it.iterator().forEachRemaining(e -> list.add(e));
-
+        int n = list.size();
+        
         List<Row> updated = new ArrayList<>();
         logger.info("Calculate alternative events for {}", list.get(0).getString(list.get(0).fieldIndex(CommonConstants.COL_GENE_NAME)));
         try {
@@ -92,30 +71,21 @@ public class AnnotateAlternativeEvents implements FlatMapFunction<Iterable<Row>,
                 updated.add(RowUpdater.addField(row, CommonConstants.COL_HAS_ALTERNATIVE_EXONS, false, DataTypes.BooleanType));
 
             } else {
-                Map<Integer, Boolean> map = new HashMap<>();
-                Set<Integer> hashKeys = getHashKeysAsSet(list);
-                boolean hasAlternativeExons = false;
-                for ( Integer key : hashKeys ) {
-                    for (Row transcript : list) {
-                        Set<Integer> txKeys = getHashKeys(range(transcript));
-                        if (!txKeys.contains(key)) {
-                            map.put(key, true);
+                Map<Integer, Integer> hashKeys = getHashKeys(getRanges(list));
+                for (Row transcript : list) {
+                    boolean hasAlternativeExons = false;
+                    List<Boolean> map = new ArrayList<>();
+                    Set<Integer> txKeys = getHashKeys(range(transcript)).keySet();
+                    for (Integer key : txKeys) {
+                        boolean flag = false;
+                        if (hashKeys.get(key) != n) {
                             if (!hasAlternativeExons)
                                 hasAlternativeExons = true;
-                            break;
+                            flag = true;
                         }
+                        map.add(flag);
                     }
-                    if (!map.keySet().contains(key))
-                        map.put(key, false);
-                }
-
-                for (Row row : list) {
-                    List<Boolean> flags = new ArrayList<>();
-                    if (hasAlternativeExons) {
-                        Set<Integer> keys = getHashKeys(range(row));
-                        flags = map.entrySet().stream().filter(e -> keys.contains(e.getKey())).map(e -> e.getValue()).collect(Collectors.toList());
-                    }
-                    row = RowUpdater.addArray(row, CommonConstants.COL_ALTERNATIVE_EXONS, flags, DataTypes.BooleanType);
+                    Row row = RowUpdater.addArray(transcript, CommonConstants.COL_ALTERNATIVE_EXONS, map, DataTypes.BooleanType);
                     updated.add(RowUpdater.addField(row, CommonConstants.COL_HAS_ALTERNATIVE_EXONS, hasAlternativeExons, DataTypes.BooleanType));
                 }
             }

@@ -87,7 +87,6 @@ public class GTFParser implements Serializable {
         
         //XXX should probably throw an exception if these are null
         record.geneId = record.getAttribute("gene_id");
-        record.transcriptId = record.getAttribute("transcript_id");
         
         //XXX These fields are specific to Gencode. Consider doing more type checking
         record.geneType = record.getAttribute("gene_type");
