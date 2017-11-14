@@ -1,157 +1,221 @@
 package org.rcsb.geneprot.genomemapping.functions;
 
-import org.apache.spark.api.java.function.Function;
+import com.google.common.collect.Range;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Row;
-import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
-import org.biojava.nbio.genome.util.ChromosomeMappingTools;
+import org.apache.spark.sql.types.DataTypes;
+import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
+import org.biojava.nbio.core.exceptions.TranslationException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.rcsb.geneprot.common.utils.CommonConstants;
+import org.rcsb.geneprot.common.utils.CommonUtils;
 import org.rcsb.geneprot.genomemapping.utils.GenomeUtils;
-import org.rcsb.geneprot.genomemapping.utils.IsoformUtils;
 import org.rcsb.geneprot.genomemapping.utils.RowUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * Created by Yana Valasatava on 10/20/17.
  */
-public class MapTranscriptToIsoform implements Function<Tuple2<Row, GeneChromosomePosition>, Row> {
+public class MapTranscriptToIsoform implements FlatMapFunction<Tuple2<String, Iterable<Row>>, Row> {
 
     private static final Logger logger = LoggerFactory.getLogger(MapTranscriptToIsoform.class);
 
-    private static String organism;
-    private static Map<String, Row> seqMap;
-    private static Map<String, Row> varMap;
+    public static String organism;
+    public MapTranscriptToIsoform(Broadcast<String> bc) {
+        organism = bc.getValue();
+    }
 
-    public MapTranscriptToIsoform(String organismName, Broadcast<Map<String, Row>> bcSeq, Broadcast<Map<String, Row>> bcVar) throws Exception
-    {
-        organism = organismName;
-        seqMap = bcSeq.value();
-        varMap = bcVar.value();
+    public static JSONArray getUniProtIsoforms(String uniProtId) throws Exception {
+
+        JSONArray isoArray = CommonUtils.readJsonArrayFromUrl("https://www.ebi.ac.uk/proteins/api/proteins/" + uniProtId + "/isoforms.json");
+
+        JSONArray isoforms = new JSONArray();
+        if (isoArray !=null && isoArray.length()>0) {
+
+            for (int i=0; i<isoArray.length();i++) {
+
+                JSONObject isoObj = isoArray.getJSONObject(i);
+                JSONObject iso = new JSONObject();
+                iso.put("id", isoObj.getString("accession"));
+                iso.put("sequence", isoObj.getJSONObject("sequence").getString("sequence"));
+                JSONArray transcriptIds = new JSONArray();
+                if (isoObj.has("dbReferences")) {
+                    JSONArray references = isoObj.getJSONArray("dbReferences");
+                    for (int k=0; k<references.length();k++) {
+                        if (references.getJSONObject(k).getString("type").equals("Ensembl"))
+                            transcriptIds.put(references.getJSONObject(k).getString("id"));
+                    }
+                }
+                iso.put("transcriptIds", transcriptIds);
+                isoforms.put(iso);
+            }
+        }
+        else {
+            JSONObject isoObj = CommonUtils.readJsonObjectFromUrl("https://www.ebi.ac.uk/proteins/api/proteins/" + uniProtId + ".json");
+            if (isoObj != null) {
+                JSONObject iso = new JSONObject();
+                iso.put("id", isoObj.getString("accession") + "-1");
+                iso.put("sequence", isoObj.getJSONObject("sequence").getString("sequence"));
+                JSONArray transcriptIds = new JSONArray();
+                if (isoObj.has("dbReferences")) {
+                    JSONArray references = isoObj.getJSONArray("dbReferences");
+                    for (int k = 0; k < references.length(); k++) {
+                        if (references.getJSONObject(k).getString("type").equals("Ensembl"))
+                            transcriptIds.put(references.getJSONObject(k).getString("id"));
+                    }
+                }
+                iso.put("transcriptIds", transcriptIds);
+                isoforms.put(iso);
+            }
+        }
+        return isoforms;
+    }
+
+    public static Map<String, JSONObject> getTranscriptsMap(JSONArray isoforms) {
+
+        Map<String, JSONObject> map = new HashMap<>();
+        for (int i=0; i<isoforms.length(); i++) {
+            JSONArray txpts = isoforms.getJSONObject(i).getJSONArray("transcriptIds");
+            for (int j=0; j<txpts.length(); j++) {
+                map.put(txpts.getString(j), isoforms.getJSONObject(i));
+            }
+        }
+        return map;
+    }
+
+    public static Map<Integer, List<JSONObject>> getLengthMap(JSONArray isoforms) {
+
+        Map<Integer, List<JSONObject>> map = new HashMap<>();
+        for (int i=0; i<isoforms.length(); i++) {
+            String seq = isoforms.getJSONObject(i).getString("sequence");
+            if (!map.keySet().contains(seq.length())) {
+                map.put(seq.length(), new ArrayList<>());
+            }
+            map.get(seq.length()).add(isoforms.getJSONObject(i));
+        }
+        return map;
+    }
+
+    public static boolean duplicatesIn(Map<Integer, List<JSONObject>> lengthMap) {
+        for (List<JSONObject> values : lengthMap.values()){
+            if (values.size()>1)
+                return true;
+        }
+        return false;
+    }
+
+    public static int getCodingLength(List<Row> coding) {
+
+        int len = 0;
+        for (Row cds : coding) {
+            int start = cds.getInt(cds.fieldIndex(CommonConstants.COL_START));
+            int end = cds.getInt(cds.fieldIndex(CommonConstants.COL_END));
+            len += ( Math.abs(end-start) + 1);
+        }
+        return len;
+    }
+
+    private static boolean translationLength(int transcriptLength){
+        if (transcriptLength < 6)
+            return false;
+        if (transcriptLength % 3 != 0)
+            return false;
+        return true;
     }
 
     @Override
-    public Row call(Tuple2<Row, GeneChromosomePosition> t) throws Exception
+    public Iterator<Row> call(Tuple2<String, Iterable<Row>> t) throws Exception
     {
-        Row transcript = t._1;
-        String uniProtId = transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION));
+        String uniProtId = t._1.split(CommonConstants.KEY_SEPARATOR)[3];
+        Iterable<Row> it = t._2;
 
-        if ( ! seqMap.keySet().contains(uniProtId) ) {
-            logger.error("Could not retrieve sequence features for {}", uniProtId);
+        JSONArray isoforms = getUniProtIsoforms(uniProtId);
+        if (isoforms.length() == 0) {
+            logger.error("Could not get data for {}", uniProtId);
             return null;
         }
 
-        Row row = seqMap.get(uniProtId);
-        List<Row> sequenceFeatures = row.getList(row.schema().fieldIndex(CommonConstants.COL_FEATURES))
-                .stream().map(e->(Row)e).collect(Collectors.toList());
+        Map<String, JSONObject> txptsMap = getTranscriptsMap(isoforms);
+        Map<Integer, List<JSONObject>> lengthMap = getLengthMap(isoforms);
 
-        Map<String, String> isoforms;
-        try {
-            isoforms = IsoformUtils.buildIsoforms(sequenceFeatures, varMap);
-        } catch (Exception e) {
-            logger.error("Cannot build isoforms for {}", uniProtId);
-            return null;
-        }
+        List<Row> list = new ArrayList<>();
+        it.iterator().forEachRemaining(e -> list.add(e));
 
-        GeneChromosomePosition gcp = t._2;
-        int transcriptLength = ChromosomeMappingTools.getCDSLength(gcp);
-        if (transcriptLength < 6) {
-            logger.info("Chromosome positions for {} cannot be translated to protein sequence because of short transcript length"
-                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)));
-            return null;
-        }
+        List<Row> transcripts = new ArrayList<>();
+        for (Row txpt : list) {
 
-        int proteinLength = transcriptLength / 3;
+            String txptId = txpt.getString(txpt.fieldIndex(CommonConstants.COL_TRANSCRIPT_ID));
 
-        Map<Integer, List<String>> map = IsoformUtils.mapToLength(isoforms);
+            if (txptsMap.keySet().contains(txptId)) {
+                JSONObject isoform = txptsMap.get(txptId);
+                txpt = RowUpdater.addField(txpt, CommonConstants.COL_MOLECULE_ID, isoform.getString("id"), DataTypes.StringType);
+                txpt = RowUpdater.addField(txpt, CommonConstants.COL_PROTEIN_SEQUENCE, isoform.getString("sequence"), DataTypes.StringType);
+                transcripts.add(txpt);
+                logger.info("The sequence of transcript {} is mapped to isoform sequence {}", txptId, isoform.getString("id"));
+                
+            } else {
 
-        GenomeUtils.setGenome(organism);
+                List<Row> coding = txpt.getList(txpt.fieldIndex(CommonConstants.COL_CODING));
+                int codingLength = getCodingLength(coding);
 
-        if (! map.keySet().contains(proteinLength)) {
+                if (!translationLength(codingLength)) {
+                    logger.debug("Chromosome positions for {} cannot be translated to protein sequence because of short or not mod3 length", txptId);
+                    continue;
+                }
 
-            String s;
-            try {
-                s = GenomeUtils.getProteinSequence(gcp);
-            } catch (Exception e) {
-                logger.error("Chromosome positions for {} cannot be translated to protein sequence"
-                        , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)));
-                return null;
-            }
+                int proteinLength = codingLength / 3;
+                if ( !lengthMap.keySet().contains(proteinLength)) {
+                    logger.info("The sequence of transcript {} doesn't match any isoform sequence of {} entry", txptId, uniProtId);
+                    continue;
+                }
 
-            for (String moleculeId : isoforms.keySet()) {
-                if (isoforms.get(moleculeId).contains(s) || s.contains(isoforms.get(moleculeId))) {
-                    logger.info("The sequence of transcript {} is mapped to isoform sequence {}"
-                            , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
-                            , moleculeId);
-                    return RowUpdater.updateField(RowUpdater.updateField(transcript, CommonConstants.COL_MOLECULE_ID, moleculeId), CommonConstants.COL_MATCH, false);
+                if ( !duplicatesIn(lengthMap) ) {
+                    JSONObject isoform = lengthMap.get(proteinLength).get(0);
+                    txpt = RowUpdater.addField(txpt, CommonConstants.COL_MOLECULE_ID, isoform.getString("id"), DataTypes.StringType);
+                    txpt = RowUpdater.addField(txpt, CommonConstants.COL_PROTEIN_SEQUENCE, isoform.getString("sequence"), DataTypes.StringType);
+                    transcripts.add(txpt);
+                    logger.info("The sequence of transcript {} is mapped to isoform sequence {}", txptId, isoform.getString("id"));
+
+                } else {
+                    List<Range<Integer>> cds = new ArrayList<>();
+                    coding.stream().map(e -> cds.add(Range.closed(e.getInt(e.fieldIndex(CommonConstants.COL_START))
+                                                                , e.getInt(e.fieldIndex(CommonConstants.COL_END)))));
+                    String chr = txpt.getString(txpt.fieldIndex(CommonConstants.COL_CHROMOSOME));
+                    String strand = txpt.getString(txpt.fieldIndex(CommonConstants.COL_ORIENTATION));
+
+                    GenomeUtils.setGenome(organism);
+
+                    String sequence = null;
+                    try {
+                        sequence = GenomeUtils.getProteinSequence(strand, GenomeUtils.getTranscriptSequence(chr, cds));
+                    } catch (CompoundNotFoundException e) {
+                        logger.error("Could not construct DNA sequence for {}: {}", txptId, e.getCause());
+                        continue;
+                    }
+                    catch (TranslationException e) {
+                        logger.error("Could not construct protein sequence for {}: {}", txptId, e.getCause());
+                        continue;
+                    }
+
+                    for (JSONObject isoform : lengthMap.get(proteinLength)) {
+                        if (isoform.getString("sequence").equals(sequence)) {
+                            txpt = RowUpdater.addField(txpt, CommonConstants.COL_MOLECULE_ID, isoform.getString("id"), DataTypes.StringType);
+                            txpt = RowUpdater.addField(txpt, CommonConstants.COL_PROTEIN_SEQUENCE, isoform.getString("sequence"), DataTypes.StringType);
+                            transcripts.add(txpt);
+                            logger.info("The sequence of transcript {} is mapped to isoform sequence {}", txptId, isoform.getString("id"));
+                            continue;
+                        }
+                    }
+                    logger.info("The sequence of transcript {} is NOT mapped to any isoform sequence of {}", txptId, uniProtId);
                 }
             }
-
-            logger.info("The sequence of transcript {} doesn't match any isoform sequence of {} entry"
-                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
-                    , uniProtId);
-            return null;
         }
-
-        if(IsoformUtils.duplicatesIn(map)) {
-
-            String sequence;
-            try {
-
-                sequence = GenomeUtils.getProteinSequence(gcp);
-            } catch (Exception e) {
-                logger.error("Chromosome positions for {} cannot be translated to protein sequence"
-                        , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)));
-                return null;
-            }
-
-            // Try check equal
-            List<String> moleculeIds = map.get(proteinLength);
-            for (String moleculeId : moleculeIds) {
-                String isoform = isoforms.get(moleculeId);
-                if (sequence.equals(isoform)) {
-                    logger.info("The sequence of transcript {} is mapped to isoform sequence {}"
-                            , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
-                            , moleculeId);
-                    return RowUpdater.updateField(transcript, CommonConstants.COL_MOLECULE_ID, moleculeId);
-                }
-            }
-
-            // Try identity threshold
-            for (String moleculeId : moleculeIds) {
-                String isoform = isoforms.get(moleculeId);
-                int count = 0;
-                try {
-                    count = IsoformUtils.difference(sequence, isoform);
-                } catch (Exception e) {
-                    logger.error("Error occurred at {}: gettitng the difference between sequence of length {} and isoform of length {}"
-                            , uniProtId, sequence.length(), isoform.length());
-                }
-                float identity =(float) (sequence.length() - count) / sequence.length();
-                if ( identity > 0.99f) {
-                    logger.info("The sequence of transcript {} is mapped to isoform sequence {}"
-                            , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
-                            , moleculeId);
-                    return RowUpdater.updateField(RowUpdater.updateField(transcript, CommonConstants.COL_MOLECULE_ID, moleculeId), "match", false);
-                }
-            }
-
-            logger.info("The sequence of transcript {} doesn't match any isoform sequence length for {} entry"
-                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
-                    , uniProtId);
-            return null;
-
-        } else {
-            String moleculeId = map.get(proteinLength).get(0);
-            logger.info("The sequence of transcript {} is mapped to isoform sequence {}"
-                    , transcript.getString(transcript.schema().fieldIndex(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
-                    , moleculeId);
-            return RowUpdater.updateField(transcript, CommonConstants.COL_MOLECULE_ID, moleculeId);
-        }
+        return transcripts.iterator();
     }
 }

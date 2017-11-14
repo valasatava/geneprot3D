@@ -5,9 +5,7 @@ import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 
-import static org.apache.spark.sql.functions.col;
-import static org.apache.spark.sql.functions.collect_set;
-import static org.apache.spark.sql.functions.split;
+import static org.apache.spark.sql.functions.*;
 
 /**
  * Created by Yana Valasatava on 10/20/17.
@@ -39,7 +37,6 @@ public class MapperUtils {
                 .withColumn(CommonConstants.COL_NCBI_PROTEIN_SEQUENCE_ACCESSION
                         , split(col(CommonConstants.COL_NCBI_PROTEIN_SEQUENCE_ACCESSION), CommonConstants.DOT).getItem(0));
         return df;
-
     }
 
     public static Dataset<Row> getGeneNameToUniProtAccessionDataset() {
@@ -52,14 +49,22 @@ public class MapperUtils {
         return df;
     }
 
+    public static Dataset<Row> getEnsemblToUniProtAccessionDataset(int taxonomyId) {
+
+
+        return null;
+    }
+
     public static Dataset<Row> mapTranscriptsToUniProtAccession(Dataset<Row> annotation)
     {
-        Dataset<Row> accessions = getNCBIToMoleculeIdAccessionDataset();
+        Dataset<Row> accessions = null;
+
+
         annotation = annotation.join(accessions
-                        , annotation.col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION)
-                                .equalTo(accessions.col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION))
+                        , annotation.col(CommonConstants.COL_TRANSCRIPT_ID)
+                                .equalTo(accessions.col(CommonConstants.COL_TRANSCRIPT_ID))
                         , "left_outer")
-                .drop(accessions.col(CommonConstants.COL_NCBI_RNA_SEQUENCE_ACCESSION));
+                .drop(accessions.col(CommonConstants.COL_TRANSCRIPT_ID));
         return annotation;
     }
 

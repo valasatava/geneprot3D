@@ -327,4 +327,5 @@ public class IsoformUtils {
 
         return chromosomePosition;
     }
+
 }

@@ -28,6 +28,7 @@ public class MapTranscriptsToIsoforms implements FlatMapFunction<Tuple2<String, 
 
     private static Map<String, Row> seqMap;
     private static Map<String, Row> varMap;
+
     public MapTranscriptsToIsoforms(Broadcast<Map<String, Row>> bcSeq, Broadcast<Map<String, Row>> bcVar) {
         seqMap = bcSeq.value();
         varMap = bcVar.value();

@@ -46,13 +46,14 @@ public class LoadTranscripts extends AbstractLoader {
                             .equals(r.getString(r.fieldIndex(CommonConstants.COL_CDS_END)))));
             Dataset<Row> df = sparkSession.createDataFrame(rdd, CommonConstants.GENOME_ANNOTATION_SCHEMA);
             return df;
+
         } else if (format.equals("gtf")) {
             GTFParser parser = new GTFParser();
             JavaRDD<Row> rdd = records
                     .map(line -> parser.parseLine(line))
                     .filter(e -> e!= null)
-                    .filter(e -> e.getAttributes().containsKey("transcript_biotype"))
-                    .filter(e -> e.getAttributes().get("transcript_biotype").equals("protein_coding"))
+                    .filter(e -> (e.getAttributes().containsKey("transcript_biotype")
+                              && (e.getAttributes().get("transcript_biotype").equals("protein_coding"))))
                     .mapToPair(e -> new Tuple2<>(e.getAttributes().get("transcript_id"), e))
                     .groupByKey().map(t -> t._2)
                     .map(new ParseGTFRecords());

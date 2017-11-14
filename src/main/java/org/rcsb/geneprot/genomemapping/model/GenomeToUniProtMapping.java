@@ -10,6 +10,7 @@ import java.util.List;
 public class GenomeToUniProtMapping implements Serializable {
 
     protected String chromosome;
+    protected String geneId;
     protected String geneName;
     protected String orientation;
     protected String uniProtId;
@@ -22,6 +23,14 @@ public class GenomeToUniProtMapping implements Serializable {
 
     public void setChromosome(String chromosome) {
         this.chromosome = chromosome;
+    }
+
+    public String getGeneId() {
+        return geneId;
+    }
+
+    public void setGeneId(String geneId) {
+        this.geneId = geneId;
     }
 
     public String getGeneName() {

@@ -33,7 +33,7 @@ public abstract class AbstractLoader {
 
     public static String getOrganism() {
         if (taxonomyId==9606)
-            return "HomoSapience";
+            return "human";
         return "";
     }
 

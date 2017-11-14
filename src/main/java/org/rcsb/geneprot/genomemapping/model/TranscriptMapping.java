@@ -6,88 +6,37 @@ import java.util.List;
 
 public class TranscriptMapping implements Serializable {
 
-	private String rnaSequenceIdentifier;
-	private String proteinSequenceIdentifier;
-	private String moleculeId;
-	private String isoformId;
-
-	private int transcriptionStart;
-	private int transcriptionEnd;
-
-	private int cdsStart;
-	private int cdsEnd;
+	private String transcriptId;
+	private String transcriptName;
 
 	private int exonsCount;
-	private List<CoordinatesRange> cdsCoordinates = new ArrayList<>();
+	private CoordinatesRange transcriptionCoordinates;
+	private List<CoordinatesRange> urtCoordinates = new ArrayList<>();
+	private List<CoordinatesRange> codingCoordinates = new ArrayList<>();
+	private List<CoordinatesRange> exonCoordinates = new ArrayList<>();
 	private List<CoordinatesRange> mRNACoordinates = new ArrayList<>();
 	private List<CoordinatesRange> proteinCoordinates = new ArrayList<>();
 
-	private boolean match;
 	private boolean hasAlternativeExons;
 	private List<Boolean> alternativeExons;
 
-	public String getRnaSequenceIdentifier() {
-		return rnaSequenceIdentifier;
+	private String moleculeId;
+	private String sequence;
+
+	public String getTranscriptId() {
+		return transcriptId;
 	}
 
-	public void setRnaSequenceIdentifier(String rnaSequenceIdentifier) {
-		this.rnaSequenceIdentifier = rnaSequenceIdentifier;
+	public void setTranscriptId(String transcriptId) {
+		this.transcriptId = transcriptId;
 	}
 
-	public String getProteinSequenceIdentifier() {
-		return proteinSequenceIdentifier;
+	public String getTranscriptName() {
+		return transcriptName;
 	}
 
-	public void setProteinSequenceIdentifier(String proteinSequenceIdentifier) {
-		this.proteinSequenceIdentifier = proteinSequenceIdentifier;
-	}
-
-	public String getMoleculeId() {
-		return moleculeId;
-	}
-
-	public void setMoleculeId(String moleculeId) {
-		this.moleculeId = moleculeId;
-	}
-
-	public String getIsoformId() {
-		return isoformId;
-	}
-
-	public void setIsoformId(String isoformId) {
-		this.isoformId = isoformId;
-	}
-
-	public int getTranscriptionStart() {
-		return transcriptionStart;
-	}
-
-	public void setTranscriptionStart(int transcriptionStart) {
-		this.transcriptionStart = transcriptionStart;
-	}
-
-	public int getTranscriptionEnd() {
-		return transcriptionEnd;
-	}
-
-	public void setTranscriptionEnd(int transcriptionEnd) {
-		this.transcriptionEnd = transcriptionEnd;
-	}
-
-	public int getCdsStart() {
-		return cdsStart;
-	}
-
-	public void setCdsStart(int cdsStart) {
-		this.cdsStart = cdsStart;
-	}
-
-	public int getCdsEnd() {
-		return cdsEnd;
-	}
-
-	public void setCdsEnd(int cdsEnd) {
-		this.cdsEnd = cdsEnd;
+	public void setTranscriptName(String transcriptName) {
+		this.transcriptName = transcriptName;
 	}
 
 	public int getExonsCount() {
@@ -98,12 +47,36 @@ public class TranscriptMapping implements Serializable {
 		this.exonsCount = exonsCount;
 	}
 
-	public List<CoordinatesRange> getCdsCoordinates() {
-		return cdsCoordinates;
+	public CoordinatesRange getTranscriptionCoordinates() {
+		return transcriptionCoordinates;
 	}
 
-	public void setCdsCoordinates(List<CoordinatesRange> cdsCoordinates) {
-		this.cdsCoordinates = cdsCoordinates;
+	public void setTranscriptionCoordinates(CoordinatesRange transcriptionCoordinates) {
+		this.transcriptionCoordinates = transcriptionCoordinates;
+	}
+
+	public List<CoordinatesRange> getUrtCoordinates() {
+		return urtCoordinates;
+	}
+
+	public void setUrtCoordinates(List<CoordinatesRange> urtCoordinates) {
+		this.urtCoordinates = urtCoordinates;
+	}
+
+	public List<CoordinatesRange> getCodingCoordinates() {
+		return codingCoordinates;
+	}
+
+	public void setCodingCoordinates(List<CoordinatesRange> codingCoordinates) {
+		this.codingCoordinates = codingCoordinates;
+	}
+
+	public List<CoordinatesRange> getExonCoordinates() {
+		return exonCoordinates;
+	}
+
+	public void setExonCoordinates(List<CoordinatesRange> exonCoordinates) {
+		this.exonCoordinates = exonCoordinates;
 	}
 
 	public List<CoordinatesRange> getmRNACoordinates() {
@@ -122,14 +95,6 @@ public class TranscriptMapping implements Serializable {
 		this.proteinCoordinates = proteinCoordinates;
 	}
 
-	public boolean isMatch() {
-		return match;
-	}
-
-	public void setMatch(boolean match) {
-		this.match = match;
-	}
-
 	public boolean isHasAlternativeExons() {
 		return hasAlternativeExons;
 	}
@@ -144,6 +109,22 @@ public class TranscriptMapping implements Serializable {
 
 	public void setAlternativeExons(List<Boolean> alternativeExons) {
 		this.alternativeExons = alternativeExons;
+	}
+
+	public String getMoleculeId() {
+		return moleculeId;
+	}
+
+	public void setMoleculeId(String moleculeId) {
+		this.moleculeId = moleculeId;
+	}
+
+	public String getSequence() {
+		return sequence;
+	}
+
+	public void setSequence(String sequence) {
+		this.sequence = sequence;
 	}
 }
 

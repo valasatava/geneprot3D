@@ -1,6 +1,7 @@
 package org.rcsb.geneprot.common.utils;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -46,14 +47,32 @@ public class CommonUtils {
      */
     public static JSONArray readJsonArrayFromUrl(String url) throws Exception {
 
-        InputStream is = new URL(url).openStream();
-        Charset ENCODING = StandardCharsets.UTF_8;
-        BufferedReader rd = new BufferedReader(new InputStreamReader(is, ENCODING));
-        String jsonText = read(rd);
-        JSONArray json = new JSONArray(jsonText);
-        is.close();
+        try {
+            InputStream is = new URL(url).openStream();
+            Charset ENCODING = StandardCharsets.UTF_8;
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, ENCODING));
+            String jsonText = read(rd);
+            JSONArray json = new JSONArray(jsonText);
+            is.close();
+            return json;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-        return json;
+    public static JSONObject readJsonObjectFromUrl(String url) throws Exception {
+
+        try {
+            InputStream is = new URL(url).openStream();
+            Charset ENCODING = StandardCharsets.UTF_8;
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, ENCODING));
+            String jsonText = read(rd);
+            JSONObject json = new JSONObject(jsonText);
+            is.close();
+            return json;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static void writeListToFile(List<String>results, String filename) throws IOException {
@@ -87,5 +106,12 @@ public class CommonUtils {
                 .filter(entry -> Objects.equals(entry.getValue(), value))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        JSONObject features = CommonUtils.readJsonObjectFromUrl("http://www.ebi.ac.uk/pdbe/api/mappings/all_isoforms/1b8i");
+
+        System.out.println();
     }
 }

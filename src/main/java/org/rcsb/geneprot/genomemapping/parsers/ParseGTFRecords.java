@@ -32,6 +32,9 @@ public class ParseGTFRecords implements Function<Iterable<GencodeFeature>, Row> 
                 t[schema.fieldIndex(CommonConstants.COL_ORIENTATION)] = feature.getStrand().toString();
                 t[schema.fieldIndex(CommonConstants.COL_TRANSCRIPT_NAME)] = feature.getTranscriptName();
                 t[schema.fieldIndex(CommonConstants.COL_TRANSCRIPT_ID)] = feature.getAttributes().get("transcript_id");
+
+                t[schema.fieldIndex(CommonConstants.COL_CCDS_ID)] = feature.getAttributes().get("ccds_id");
+
                 Object[] array = {feature.getStart(), feature.getEnd()};
                 t[schema.fieldIndex(CommonConstants.COL_TRANSCRIPTION)] = RowFactory.create(array);
 

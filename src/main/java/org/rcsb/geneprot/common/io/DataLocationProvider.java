@@ -68,8 +68,8 @@ public class DataLocationProvider {
 		return mouseGenomeAnnotationResource;
 	}
 
-	private static final String humanGenomeAnnotationResourceFromEnsembl = "http://ftp.ensembl.org/pub/release-90/gtf/homo_sapiens/Homo_sapiens.GRCh38.90.gtf.gz";
-//	private static final String humanGenomeAnnotationResourceFromEnsembl = "/Users/yana/Downloads/Homo_sapiens.GRCh38.90.gtf";
+//	private static final String humanGenomeAnnotationResourceFromEnsembl = "http://ftp.ensembl.org/pub/release-90/gtf/homo_sapiens/Homo_sapiens.GRCh38.90.gtf.gz";
+	private static final String humanGenomeAnnotationResourceFromEnsembl = "/Users/yana/Downloads/Homo_sapiens.GRCh38.90.gtf";
 //	private static final String humanGenomeAnnotationResourceFromEnsembl = "/Users/yana/Downloads/WDR86.gtf";
 
 	public static String getHumanGenomeAnnotationResourceFromEnsembl() {
@@ -99,6 +99,13 @@ public class DataLocationProvider {
 		return null;
 	}
 // =-=-=-=-=-=-=-=-=-=-=-=-=
+
+	private static final String humanUniProtMapping = "ftp://anonymous:pwd@141.161.180.197/ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping//by_organism/HUMAN_9606_idmapping_selected.tab.gz";
+	public static String getUniProtMappingResource(int taxonomyId) {
+		if (taxonomyId == 9606)
+			return humanUniProtMapping;
+		return null;
+	}
 
 	// Metal-binding data
 	private final static String metalPDBdataLocation = getDataHome()
