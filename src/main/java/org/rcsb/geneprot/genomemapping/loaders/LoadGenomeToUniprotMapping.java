@@ -48,8 +48,7 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
                         .withOptions(mongoDBOptions));
 
         Dataset<Row> df = rdd.withPipeline(
-                Arrays.asList(
-                        Document.parse("{ $project: { "+
+                Arrays.asList(Document.parse("{ $project: { "+
                                 CommonConstants.COL_CHROMOSOME + ": \"$" + CommonConstants.COL_CHROMOSOME + "\", " +
                                 CommonConstants.COL_GENE_NAME + ": \"$" + CommonConstants.COL_GENE_NAME + "\", " +
                                 CommonConstants.COL_GENE_ID + ": \"$" + CommonConstants.COL_GENE_ID + "\", " +
@@ -63,10 +62,11 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
                                 CommonConstants.COL_CODING + ": \"$" + CommonConstants.COL_CODING + "\", " +
                                 CommonConstants.COL_HAS_ALTERNATIVE_EXONS + ": \"$" + CommonConstants.COL_HAS_ALTERNATIVE_EXONS + "\", " +
                                 CommonConstants.COL_ALTERNATIVE_EXONS + ": \"$" + CommonConstants.COL_ALTERNATIVE_EXONS + "\" " +
-                                " } }")
-                )
-        ).toDF().drop(col("_id"));
+                      " } }")))
+                .toDF()
+                .drop(col("_id"));
 
+        //df = df.filter(col(CommonConstants.COL_GENE_NAME).equalTo("BIN1"));
         return df;
     }
 
@@ -121,12 +121,12 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
 
         JavaRDD<Row> rdd = transcripts
                 .toJavaRDD()
-                .mapToPair(e -> new Tuple2<>(e.getString(e.fieldIndex(CommonConstants.COL_CHROMOSOME))+CommonConstants.KEY_SEPARATOR+
-                                                 e.getString(e.fieldIndex(CommonConstants.COL_GENE_NAME))+CommonConstants.KEY_SEPARATOR+
-                                                 e.getString(e.fieldIndex(CommonConstants.COL_ORIENTATION))+CommonConstants.KEY_SEPARATOR+
+                .mapToPair(e -> new Tuple2<>(e.getString(e.fieldIndex(CommonConstants.COL_CHROMOSOME))  + CommonConstants.KEY_SEPARATOR +
+                                                 e.getString(e.fieldIndex(CommonConstants.COL_GENE_ID))     + CommonConstants.KEY_SEPARATOR +
+                                                 e.getString(e.fieldIndex(CommonConstants.COL_GENE_NAME))   + CommonConstants.KEY_SEPARATOR +
+                                                 e.getString(e.fieldIndex(CommonConstants.COL_ORIENTATION)) + CommonConstants.KEY_SEPARATOR +
                                                  e.getString(e.fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)), e))
-
-                .groupByKey(50)
+                .groupByKey()
                 .flatMap(new MapTranscriptToIsoform(bc));
 
         List<Row> list = rdd.collect();
@@ -138,7 +138,6 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
 
         try {
             transcripts = transcripts
-                    .filter(col(CommonConstants.COL_MOLECULE_ID).isNotNull())
                     .groupBy(col(CommonConstants.COL_CHROMOSOME), col(CommonConstants.COL_GENE_ID), col(CommonConstants.COL_GENE_NAME), col(CommonConstants.COL_ORIENTATION), col(CommonConstants.COL_UNIPROT_ACCESSION))
                     .agg(collect_list(
                             struct(   col(CommonConstants.COL_TRANSCRIPT_ID)
@@ -152,6 +151,7 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
                                     , col(CommonConstants.COL_ALTERNATIVE_EXONS)
                                     , col(CommonConstants.COL_MOLECULE_ID)
                                     , col(CommonConstants.COL_PROTEIN_SEQUENCE)
+                                    , col(CommonConstants.COL_SEQUENCE_STATUS)
                             )).as(CommonConstants.COL_TRANSCRIPTS))
                     .sort(col(CommonConstants.COL_CHROMOSOME), col(CommonConstants.COL_GENE_NAME));
         } catch (Exception e) {
@@ -161,6 +161,7 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
     }
 
     public static List<GenomeToUniProtMapping> createMapping(Dataset<Row> transcripts) {
+
         JavaRDD<GenomeToUniProtMapping> rdd = transcripts
                 .toJavaRDD()
                 .map(new MapGenomeToUniProt());
@@ -183,7 +184,7 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
         List<GenomeToUniProtMapping> list = createMapping(transcripts);
 
         logger.info("Writing mapping to a database");
-        String collectionName = MongoCollections.COLL_GENOME_TO_UNIPROT + "_" + getTaxonomyId();
+        String collectionName = MongoCollections.COLL_MAPPING_UP + "_" + getTaxonomyId();
         ExternalDBUtils.writeListToMongo(list, collectionName);
 
         long timeE = System.currentTimeMillis();

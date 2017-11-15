@@ -15,13 +15,15 @@ public class TranscriptMapping implements Serializable {
 	private List<CoordinatesRange> codingCoordinates = new ArrayList<>();
 	private List<CoordinatesRange> exonCoordinates = new ArrayList<>();
 	private List<CoordinatesRange> mRNACoordinates = new ArrayList<>();
-	private List<CoordinatesRange> proteinCoordinates = new ArrayList<>();
+	private List<CoordinatesRange> isoformCoordinates = new ArrayList<>();
+	private List<CoordinatesRange> canonicalCoordinates = new ArrayList<>();
 
 	private boolean hasAlternativeExons;
 	private List<Boolean> alternativeExons;
 
 	private String moleculeId;
 	private String sequence;
+	private String sequenceStatus;
 
 	public String getTranscriptId() {
 		return transcriptId;
@@ -87,12 +89,20 @@ public class TranscriptMapping implements Serializable {
 		this.mRNACoordinates = mRNACoordinates;
 	}
 
-	public List<CoordinatesRange> getProteinCoordinates() {
-		return proteinCoordinates;
+	public List<CoordinatesRange> getIsoformCoordinates() {
+		return isoformCoordinates;
 	}
 
-	public void setProteinCoordinates(List<CoordinatesRange> proteinCoordinates) {
-		this.proteinCoordinates = proteinCoordinates;
+	public void setIsoformCoordinates(List<CoordinatesRange> isoformCoordinates) {
+		this.isoformCoordinates = isoformCoordinates;
+	}
+
+	public List<CoordinatesRange> getCanonicalCoordinates() {
+		return canonicalCoordinates;
+	}
+
+	public void setCanonicalCoordinates(List<CoordinatesRange> canonicalCoordinates) {
+		this.canonicalCoordinates = canonicalCoordinates;
 	}
 
 	public boolean isHasAlternativeExons() {
@@ -125,6 +135,14 @@ public class TranscriptMapping implements Serializable {
 
 	public void setSequence(String sequence) {
 		this.sequence = sequence;
+	}
+
+	public String getSequenceStatus() {
+		return sequenceStatus;
+	}
+
+	public void setSequenceStatus(String sequenceStatus) {
+		this.sequenceStatus = sequenceStatus;
 	}
 }
 

@@ -2,16 +2,17 @@ package org.rcsb.geneprot.genomemapping.functions;
 
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
+import org.biojava.nbio.core.sequence.ProteinSequence;
 import org.rcsb.geneprot.common.utils.CommonConstants;
 import org.rcsb.geneprot.genomemapping.model.CoordinatesRange;
 import org.rcsb.geneprot.genomemapping.model.GenomeToUniProtMapping;
 import org.rcsb.geneprot.genomemapping.model.TranscriptMapping;
+import org.rcsb.uniprot.isoform.IsoformMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Yana Valasatava on 10/2/17.
@@ -19,38 +20,6 @@ import java.util.List;
 public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping> {
 
     private static final Logger logger = LoggerFactory.getLogger(MapGenomeToUniProt.class);
-
-    private static List<Tuple2<Integer, Integer>> getCDSRegions(List<Integer> origExonStarts, List<Integer> origExonEnds, int cdsStart, int cdsEnd)
-    {
-        List<Integer> exonStarts = new ArrayList(origExonStarts);
-        List<Integer> exonEnds = new ArrayList(origExonEnds);
-        int j = 0;
-
-        int nExons;
-        for(nExons = 0; nExons < origExonStarts.size(); ++nExons) {
-            if((origExonEnds.get(nExons)).intValue() >= cdsStart && (origExonStarts.get(nExons)).intValue() <= cdsEnd) {
-                ++j;
-            } else {
-                exonStarts.remove(j);
-                exonEnds.remove(j);
-            }
-        }
-
-        nExons = exonStarts.size();
-        exonStarts.remove(0);
-        exonStarts.add(0, Integer.valueOf(cdsStart));
-        exonEnds.remove(nExons - 1);
-        exonEnds.add(Integer.valueOf(cdsEnd));
-
-        List<Tuple2<Integer, Integer>> cdsRegion = new ArrayList();
-
-        for(int i = 0; i < nExons; ++i) {
-            Tuple2<Integer, Integer> r = new Tuple2(exonStarts.get(i), exonEnds.get(i));
-            cdsRegion.add(r);
-        }
-
-        return cdsRegion;
-    }
 
     private static CoordinatesRange getCoordinates(Row r) {
 
@@ -72,6 +41,13 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
         m.setUniProtId(row.getString(row.fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)));
 
         List<Row> annotations = row.getList(row.fieldIndex(CommonConstants.COL_TRANSCRIPTS));
+
+        Row can = annotations.stream()
+                .filter(r -> r.getString(r.fieldIndex(CommonConstants.COL_SEQUENCE_STATUS)).equals("displayed"))
+                .collect(Collectors.toList()).get(0);
+        String canonical = can.getString(can.fieldIndex(CommonConstants.COL_PROTEIN_SEQUENCE));
+        ProteinSequence canonicalSequence = new ProteinSequence(canonical);
+
         for (Row annotation : annotations)
         {
             TranscriptMapping t = new TranscriptMapping();
@@ -95,20 +71,27 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
                 t.getCodingCoordinates().add(getCoordinates((Row)o));
             }
 
+            t.setMoleculeId(annotation.getString(annotation.fieldIndex(CommonConstants.COL_MOLECULE_ID)));
+            t.setSequence(annotation.getString(annotation.fieldIndex(CommonConstants.COL_PROTEIN_SEQUENCE)));
+            t.setSequenceStatus(annotation.getString(annotation.fieldIndex(CommonConstants.COL_SEQUENCE_STATUS)));
+
+            ProteinSequence isoformSequence = new ProteinSequence(t.getSequence());
+            IsoformMapper isomapper = new IsoformMapper(canonicalSequence, isoformSequence);
+
             int mRNAPosEnd;
             int mRNAPosStart = 0;
             for (CoordinatesRange cds : t.getCodingCoordinates())
             {
                 mRNAPosEnd = mRNAPosStart + cds.getEnd()-cds.getStart();
-                t.getmRNACoordinates().add(new CoordinatesRange(mRNAPosStart+1, mRNAPosEnd));
-                t.getProteinCoordinates().add(new CoordinatesRange((int)Math.ceil(mRNAPosStart/3.0f)+1, (int)Math.ceil(mRNAPosEnd/3.0f)));
-                mRNAPosStart = mRNAPosEnd;
+                t.getmRNACoordinates().add(new CoordinatesRange(mRNAPosStart, mRNAPosEnd));
+                int c1 = (int) Math.ceil(mRNAPosStart / 3.0f) + 1;
+                int c2 = (int)Math.ceil(mRNAPosEnd/3.0f);
+                t.getIsoformCoordinates().add(new CoordinatesRange(c1, c2));
+                t.getCanonicalCoordinates().add(new CoordinatesRange(isomapper.convertPos2toPos1(c1), isomapper.convertPos2toPos1(c2)));
+                mRNAPosStart = mRNAPosEnd+1;
             }
             t.setHasAlternativeExons(annotation.getBoolean(annotation.fieldIndex(CommonConstants.COL_HAS_ALTERNATIVE_EXONS)));
             t.setAlternativeExons(annotation.getList(annotation.fieldIndex(CommonConstants.COL_ALTERNATIVE_EXONS)));
-
-            t.setMoleculeId(annotation.getString(annotation.fieldIndex(CommonConstants.COL_MOLECULE_ID)));
-            t.setSequence(annotation.getString(annotation.fieldIndex(CommonConstants.COL_PROTEIN_SEQUENCE)));
 
             m.getTranscripts().add(t);
         }

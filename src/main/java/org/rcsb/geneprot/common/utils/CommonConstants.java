@@ -73,6 +73,7 @@ public class CommonConstants {
     public static final String COL_ALTERNATIVE_EXONS = "alternativeExons";
     public static final String COL_HAS_ALTERNATIVE_EXONS = "hasAlternativeExons";
 
+    public static final String COL_SEQUENCE_STATUS = "sequenceStatus";
     public static final String COL_PROTEIN_SEQUENCE = "proteinSequence";
     public static final String COL_SEQUENCE_TYPE = "sequenceType";
     public static final String COL_FEATURE_ID = "featureId";

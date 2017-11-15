@@ -31,46 +31,64 @@ public class MapTranscriptToIsoform implements FlatMapFunction<Tuple2<String, It
         organism = bc.getValue();
     }
 
+    public static JSONObject getIsoformObject(JSONObject isoObj) {
+
+        JSONObject iso = new JSONObject();
+
+        if (isoObj.getString("accession").contains("-"))
+            iso.put("id", isoObj.getString("accession"));
+        else
+            iso.put("id", isoObj.getString("accession")+"-1");
+
+        iso.put("sequence", isoObj.getJSONObject("sequence").getString("sequence"));
+
+        JSONArray transcriptIds = new JSONArray();
+        if (isoObj.has("dbReferences")) {
+            JSONArray references = isoObj.getJSONArray("dbReferences");
+            for (int k=0; k<references.length();k++) {
+                if (references.getJSONObject(k).getString("type").equals("Ensembl"))
+                    transcriptIds.put(references.getJSONObject(k).getString("id"));
+            }
+        }
+        iso.put("transcriptIds", transcriptIds);
+
+        if (isoObj.has("comments")) {
+            JSONArray comments = isoObj.getJSONArray("comments");
+            for (int c=0; c<comments.length(); c++) {
+                JSONObject comment = comments.getJSONObject(c);
+                if (comment.has("isoforms")) {
+                    JSONArray isoComments = comment.getJSONArray("isoforms");
+                    for (int q=0; q<isoComments.length(); q++) {
+                        JSONObject isoComment = isoComments.getJSONObject(q);
+                        if (isoComment.getJSONArray("ids").toList().contains(iso.getString("id"))) {
+                            iso.put("sequenceStatus", isoComment.getString("sequenceStatus"));
+                            return iso;
+                        }
+                    }
+                }
+            }
+        }
+        if (!iso.has("sequenceStatus"))
+            iso.put("sequenceStatus", "displayed");
+        return iso;
+    }
+
     public static JSONArray getUniProtIsoforms(String uniProtId) throws Exception {
 
         JSONArray isoArray = CommonUtils.readJsonArrayFromUrl("https://www.ebi.ac.uk/proteins/api/proteins/" + uniProtId + "/isoforms.json");
 
         JSONArray isoforms = new JSONArray();
         if (isoArray !=null && isoArray.length()>0) {
-
             for (int i=0; i<isoArray.length();i++) {
-
                 JSONObject isoObj = isoArray.getJSONObject(i);
-                JSONObject iso = new JSONObject();
-                iso.put("id", isoObj.getString("accession"));
-                iso.put("sequence", isoObj.getJSONObject("sequence").getString("sequence"));
-                JSONArray transcriptIds = new JSONArray();
-                if (isoObj.has("dbReferences")) {
-                    JSONArray references = isoObj.getJSONArray("dbReferences");
-                    for (int k=0; k<references.length();k++) {
-                        if (references.getJSONObject(k).getString("type").equals("Ensembl"))
-                            transcriptIds.put(references.getJSONObject(k).getString("id"));
-                    }
-                }
-                iso.put("transcriptIds", transcriptIds);
+                JSONObject iso = getIsoformObject(isoObj);
                 isoforms.put(iso);
             }
         }
         else {
             JSONObject isoObj = CommonUtils.readJsonObjectFromUrl("https://www.ebi.ac.uk/proteins/api/proteins/" + uniProtId + ".json");
             if (isoObj != null) {
-                JSONObject iso = new JSONObject();
-                iso.put("id", isoObj.getString("accession") + "-1");
-                iso.put("sequence", isoObj.getJSONObject("sequence").getString("sequence"));
-                JSONArray transcriptIds = new JSONArray();
-                if (isoObj.has("dbReferences")) {
-                    JSONArray references = isoObj.getJSONArray("dbReferences");
-                    for (int k = 0; k < references.length(); k++) {
-                        if (references.getJSONObject(k).getString("type").equals("Ensembl"))
-                            transcriptIds.put(references.getJSONObject(k).getString("id"));
-                    }
-                }
-                iso.put("transcriptIds", transcriptIds);
+                JSONObject iso = getIsoformObject(isoObj);
                 isoforms.put(iso);
             }
         }
@@ -130,9 +148,9 @@ public class MapTranscriptToIsoform implements FlatMapFunction<Tuple2<String, It
     }
 
     @Override
-    public Iterator<Row> call(Tuple2<String, Iterable<Row>> t) throws Exception
-    {
-        String uniProtId = t._1.split(CommonConstants.KEY_SEPARATOR)[3];
+    public Iterator<Row> call(Tuple2<String, Iterable<Row>> t) throws Exception {
+
+        String uniProtId = t._1.split(CommonConstants.KEY_SEPARATOR)[4];
         Iterable<Row> it = t._2;
 
         JSONArray isoforms = getUniProtIsoforms(uniProtId);
@@ -156,6 +174,7 @@ public class MapTranscriptToIsoform implements FlatMapFunction<Tuple2<String, It
                 JSONObject isoform = txptsMap.get(txptId);
                 txpt = RowUpdater.addField(txpt, CommonConstants.COL_MOLECULE_ID, isoform.getString("id"), DataTypes.StringType);
                 txpt = RowUpdater.addField(txpt, CommonConstants.COL_PROTEIN_SEQUENCE, isoform.getString("sequence"), DataTypes.StringType);
+                txpt = RowUpdater.addField(txpt, CommonConstants.COL_SEQUENCE_STATUS, isoform.getString("sequenceStatus"), DataTypes.StringType);
                 transcripts.add(txpt);
                 logger.info("The sequence of transcript {} is mapped to isoform sequence {}", txptId, isoform.getString("id"));
                 
@@ -179,20 +198,22 @@ public class MapTranscriptToIsoform implements FlatMapFunction<Tuple2<String, It
                     JSONObject isoform = lengthMap.get(proteinLength).get(0);
                     txpt = RowUpdater.addField(txpt, CommonConstants.COL_MOLECULE_ID, isoform.getString("id"), DataTypes.StringType);
                     txpt = RowUpdater.addField(txpt, CommonConstants.COL_PROTEIN_SEQUENCE, isoform.getString("sequence"), DataTypes.StringType);
+                    txpt = RowUpdater.addField(txpt, CommonConstants.COL_SEQUENCE_STATUS, isoform.getString("sequenceStatus"), DataTypes.StringType);
                     transcripts.add(txpt);
                     logger.info("The sequence of transcript {} is mapped to isoform sequence {}", txptId, isoform.getString("id"));
 
                 } else {
-                    List<Range<Integer>> cds = new ArrayList<>();
-                    coding.stream().map(e -> cds.add(Range.closed(e.getInt(e.fieldIndex(CommonConstants.COL_START))
-                                                                , e.getInt(e.fieldIndex(CommonConstants.COL_END)))));
                     String chr = txpt.getString(txpt.fieldIndex(CommonConstants.COL_CHROMOSOME));
                     String strand = txpt.getString(txpt.fieldIndex(CommonConstants.COL_ORIENTATION));
+                    List<Range<Integer>> cds = new ArrayList<>();
+                    for (Row range : coding) {
+                        cds.add(Range.closed(range.getInt(range.fieldIndex(CommonConstants.COL_START))
+                                , range.getInt(range.fieldIndex(CommonConstants.COL_END))));
+                    }
 
-                    GenomeUtils.setGenome(organism);
-
-                    String sequence = null;
+                    String sequence = "";
                     try {
+                        GenomeUtils.setGenome(organism);
                         sequence = GenomeUtils.getProteinSequence(strand, GenomeUtils.getTranscriptSequence(chr, cds));
                     } catch (CompoundNotFoundException e) {
                         logger.error("Could not construct DNA sequence for {}: {}", txptId, e.getCause());
@@ -207,6 +228,7 @@ public class MapTranscriptToIsoform implements FlatMapFunction<Tuple2<String, It
                         if (isoform.getString("sequence").equals(sequence)) {
                             txpt = RowUpdater.addField(txpt, CommonConstants.COL_MOLECULE_ID, isoform.getString("id"), DataTypes.StringType);
                             txpt = RowUpdater.addField(txpt, CommonConstants.COL_PROTEIN_SEQUENCE, isoform.getString("sequence"), DataTypes.StringType);
+                            txpt = RowUpdater.addField(txpt, CommonConstants.COL_SEQUENCE_STATUS, isoform.getString("sequenceStatus"), DataTypes.StringType);
                             transcripts.add(txpt);
                             logger.info("The sequence of transcript {} is mapped to isoform sequence {}", txptId, isoform.getString("id"));
                             continue;

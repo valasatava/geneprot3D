@@ -6,5 +6,5 @@ package org.rcsb.geneprot.common.utils;
 public class MongoCollections {
 
     public static final String COLL_TRANSCRIPTS = "transcripts";
-    public static final String COLL_GENOME_TO_UNIPROT = "mapping_up";
+    public static final String COLL_MAPPING_UP = "mappingToUniProt";
 }
