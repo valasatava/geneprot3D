@@ -30,7 +30,8 @@ import java.util.*;
 
 import static org.apache.spark.sql.functions.*;
 
-/**
+/** This loader maps transcripts to UniProt isoform sequences.
+ *
  * Created by Yana Valasatava on 11/7/17.
  */
 public class LoadGenomeToUniprotMapping extends AbstractLoader {
@@ -66,10 +67,13 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
                 .toDF()
                 .drop(col("_id"));
 
-        //df = df.filter(col(CommonConstants.COL_GENE_NAME).equalTo("BIN1"));
+//        df = df.filter(col(CommonConstants.COL_GENE_NAME).equalTo("BIN1"));
+//        df.show();
+
         return df;
     }
 
+    // TODO: Refactor this unit
     public static Dataset<Row> getUniProtMapping() throws Exception {
 
         String server = "ftp.uniprot.org";
@@ -119,8 +123,7 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
         JavaSparkContext jsc = new JavaSparkContext(sparkSession.sparkContext());
         Broadcast<String> bc = jsc.broadcast(getOrganism());
 
-        JavaRDD<Row> rdd = transcripts
-                .toJavaRDD()
+        JavaRDD<Row> rdd = transcripts.toJavaRDD()
                 .mapToPair(e -> new Tuple2<>(e.getString(e.fieldIndex(CommonConstants.COL_CHROMOSOME))  + CommonConstants.KEY_SEPARATOR +
                                                  e.getString(e.fieldIndex(CommonConstants.COL_GENE_ID))     + CommonConstants.KEY_SEPARATOR +
                                                  e.getString(e.fieldIndex(CommonConstants.COL_GENE_NAME))   + CommonConstants.KEY_SEPARATOR +
@@ -129,8 +132,9 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
                 .groupByKey()
                 .flatMap(new MapTranscriptToIsoform(bc));
 
-        List<Row> list = rdd.collect();
+        List<Row> list = rdd.filter( e -> e !=null ).collect();
         StructType schema = list.get(0).schema();
+
         return sparkSession.createDataFrame(list, schema);
     }
 
@@ -165,7 +169,7 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
         JavaRDD<GenomeToUniProtMapping> rdd = transcripts
                 .toJavaRDD()
                 .map(new MapGenomeToUniProt());
-        List<GenomeToUniProtMapping> list = rdd.collect();
+        List<GenomeToUniProtMapping> list = rdd.filter(e->e!=null).collect();
         return list;
     }
 
@@ -175,6 +179,7 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
         long timeS = System.currentTimeMillis();
 
         setArguments(args);
+
         String collectionNameTranscripts = MongoCollections.COLL_TRANSCRIPTS +"_"+ getTaxonomyId();
         Dataset<Row> transcripts = mapTranscriptsToUniProtAccession(getTranscripts(collectionNameTranscripts));
 

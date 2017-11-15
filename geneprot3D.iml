@@ -29,6 +29,9 @@
     <orderEntry type="library" name="Maven: org.eclipse.platform:org.eclipse.core.filesystem:1.6.1" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.platform:org.eclipse.text:3.6.0" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.platform:org.eclipse.core.commands:3.8.1" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.jersey:jersey-server:1.9" level="project" />
+    <orderEntry type="library" name="Maven: asm:asm:3.1" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.jersey:jersey-core:1.9" level="project" />
     <orderEntry type="library" name="Maven: org.rcsb:rcsb-redwood:3.0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.rcsb:rcsb-mojave:3.0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.2" level="project" />

@@ -120,14 +120,6 @@ public class MapTranscriptToIsoform implements FlatMapFunction<Tuple2<String, It
         return map;
     }
 
-    public static boolean duplicatesIn(Map<Integer, List<JSONObject>> lengthMap) {
-        for (List<JSONObject> values : lengthMap.values()){
-            if (values.size()>1)
-                return true;
-        }
-        return false;
-    }
-
     public static int getCodingLength(List<Row> coding) {
 
         int len = 0;
@@ -194,7 +186,8 @@ public class MapTranscriptToIsoform implements FlatMapFunction<Tuple2<String, It
                     continue;
                 }
 
-                if ( !duplicatesIn(lengthMap) ) {
+                if ( lengthMap.get(proteinLength).size() == 1 ) {
+
                     JSONObject isoform = lengthMap.get(proteinLength).get(0);
                     txpt = RowUpdater.addField(txpt, CommonConstants.COL_MOLECULE_ID, isoform.getString("id"), DataTypes.StringType);
                     txpt = RowUpdater.addField(txpt, CommonConstants.COL_PROTEIN_SEQUENCE, isoform.getString("sequence"), DataTypes.StringType);
@@ -211,7 +204,7 @@ public class MapTranscriptToIsoform implements FlatMapFunction<Tuple2<String, It
                                 , range.getInt(range.fieldIndex(CommonConstants.COL_END))));
                     }
 
-                    String sequence = "";
+                    String sequence;
                     try {
                         GenomeUtils.setGenome(organism);
                         sequence = GenomeUtils.getProteinSequence(strand, GenomeUtils.getTranscriptSequence(chr, cds));

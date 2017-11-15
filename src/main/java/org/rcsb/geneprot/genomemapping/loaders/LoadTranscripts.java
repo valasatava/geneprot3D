@@ -20,9 +20,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import java.util.IllegalFormatException;
 import java.util.List;
 
-/**
+/** This loader process transcripts annotation file (in GTF format).
+ *  This includes annotating alternative transcripts.
+ *
  * Created by Yana Valasatava on 11/7/17.
  */
 public class LoadTranscripts extends AbstractLoader {
@@ -30,7 +33,7 @@ public class LoadTranscripts extends AbstractLoader {
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
     private static final Logger logger = LoggerFactory.getLogger(LoadTranscripts.class);
 
-    public static Dataset<Row> getTranscriptsAnnotation(String filePath, String format) {
+    public static Dataset<Row> parseAnnotationFile(String filePath) throws IllegalFormatException {
 
         sparkSession.sparkContext().addFile(filePath);
         int n = filePath.split("/").length;
@@ -40,14 +43,15 @@ public class LoadTranscripts extends AbstractLoader {
                 .textFile(filename, 200)
                 .toJavaRDD();
 
-        if (format.equals("refFlat")) {
+        if (getFormat().equals("refFlat")) {
             JavaRDD<Row> rdd = records.map(new ParseRefFlatRecords())
                     .filter(r -> ! (r.getString(r.fieldIndex(CommonConstants.COL_CDS_START))
                             .equals(r.getString(r.fieldIndex(CommonConstants.COL_CDS_END)))));
+
             Dataset<Row> df = sparkSession.createDataFrame(rdd, CommonConstants.GENOME_ANNOTATION_SCHEMA);
             return df;
 
-        } else if (format.equals("gtf")) {
+        } else if (getFormat().equals("gtf")) {
             GTFParser parser = new GTFParser();
             JavaRDD<Row> rdd = records
                     .map(line -> parser.parseLine(line))
@@ -57,18 +61,25 @@ public class LoadTranscripts extends AbstractLoader {
                     .mapToPair(e -> new Tuple2<>(e.getAttributes().get("transcript_id"), e))
                     .groupByKey().map(t -> t._2)
                     .map(new ParseGTFRecords());
+
             Dataset<Row> df = sparkSession.createDataFrame(rdd, CommonConstants.GENCODE_TRANSCRIPT_SCHEMA);
             return df;
+
+        } else {
+            throw new IllegalArgumentException("The format entered, " + getFormat()+ " is not supported.");
         }
-        return null;
     }
 
     public static Dataset<Row> buildTranscripts() {
 
         try {
-            String genomicAnnotationsFile = DataLocationProvider.getGenomeAnnotationResource(getTaxonomyId(), "gtf");
-            Dataset<Row> transcripts = getTranscriptsAnnotation(genomicAnnotationsFile, "gtf");
+            String genomicAnnotationsFile = DataLocationProvider.getGenomeAnnotationResource(getTaxonomyId(), getFormat());
+            Dataset<Row> transcripts = parseAnnotationFile(genomicAnnotationsFile);
             return transcripts;
+
+        } catch (IllegalFormatException fe) {
+            logger.error("This format is not supported {}", getFormat());
+
         } catch (Exception e) {
             logger.error("Exiting: fatal error has occurred while building transcripts {} : {}", e.getCause(), e.getMessage());
         }
@@ -80,12 +91,12 @@ public class LoadTranscripts extends AbstractLoader {
         try {
             JavaRDD<Row> rdd = transcripts
                     .toJavaRDD()
-                    .mapToPair(e -> new Tuple2<>(e.getString(e.fieldIndex(CommonConstants.COL_CHROMOSOME)) +
-                            CommonConstants.KEY_SEPARATOR + e.getString(e.fieldIndex(CommonConstants.COL_GENE_NAME)) +
-                            CommonConstants.KEY_SEPARATOR + e.getString(e.fieldIndex(CommonConstants.COL_ORIENTATION)), e))
-                    .groupByKey()
-                    .map(e -> e._2)
+                    .mapToPair(e -> new Tuple2<>( e.getString(e.fieldIndex(CommonConstants.COL_CHROMOSOME)) + CommonConstants.KEY_SEPARATOR
+                                                    + e.getString(e.fieldIndex(CommonConstants.COL_GENE_NAME))  + CommonConstants.KEY_SEPARATOR
+                                                    + e.getString(e.fieldIndex(CommonConstants.COL_ORIENTATION)), e))
+                    .groupByKey().map(e -> e._2)
                     .flatMap(new AnnotateAlternativeEvents());
+
             List<Row> list = rdd.collect();
             return sparkSession.createDataFrame(list, list.get(0).schema());
 

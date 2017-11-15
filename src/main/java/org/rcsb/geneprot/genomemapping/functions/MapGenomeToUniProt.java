@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by Yana Valasatava on 10/2/17.
@@ -40,15 +39,21 @@ public class MapGenomeToUniProt implements Function<Row, GenomeToUniProtMapping>
         m.setOrientation(row.getString(row.fieldIndex(CommonConstants.COL_ORIENTATION)));
         m.setUniProtId(row.getString(row.fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)));
 
-        List<Row> annotations = row.getList(row.fieldIndex(CommonConstants.COL_TRANSCRIPTS));
+        List<Row> transcripts = row.getList(row.fieldIndex(CommonConstants.COL_TRANSCRIPTS));
+        if (transcripts == null || transcripts.size() == 0)
+            return null;
 
-        Row can = annotations.stream()
-                .filter(r -> r.getString(r.fieldIndex(CommonConstants.COL_SEQUENCE_STATUS)).equals("displayed"))
-                .collect(Collectors.toList()).get(0);
-        String canonical = can.getString(can.fieldIndex(CommonConstants.COL_PROTEIN_SEQUENCE));
+        String canonical = transcripts.get(0).getString(transcripts.get(0).fieldIndex(CommonConstants.COL_PROTEIN_SEQUENCE));
+        for (Row r : transcripts) {
+            if (r.get(r.fieldIndex(CommonConstants.COL_SEQUENCE_STATUS))!=null && r.getString(r.fieldIndex(CommonConstants.COL_SEQUENCE_STATUS)).equals("displayed")) {
+                canonical = r.getString(r.fieldIndex(CommonConstants.COL_PROTEIN_SEQUENCE));
+                break;
+            }
+        }
+
         ProteinSequence canonicalSequence = new ProteinSequence(canonical);
 
-        for (Row annotation : annotations)
+        for (Row annotation : transcripts)
         {
             TranscriptMapping t = new TranscriptMapping();
 

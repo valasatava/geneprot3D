@@ -1,4 +1,4 @@
-package org.rcsb.geneprot.genomemapping;
+package org.rcsb.geneprot.genomemapping.mouse;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -10,9 +10,6 @@ import org.apache.spark.storage.StorageLevel;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePositionParser;
 import org.rcsb.geneprot.common.utils.SparkUtils;
-import org.rcsb.geneprot.genomemapping.functions.BuildGeneChromosomePosition;
-import org.rcsb.geneprot.genomemapping.functions.GetUniprotGeneMapping;
-import org.rcsb.geneprot.genomemapping.functions.SortByChromosomeName;
 import org.rcsb.humangenome.function.ChromosomeHaplotypeNameMap;
 import org.rcsb.humangenome.function.ChromosomeNameFilter;
 import org.rcsb.humangenome.function.SparkGeneChromosomePosition;

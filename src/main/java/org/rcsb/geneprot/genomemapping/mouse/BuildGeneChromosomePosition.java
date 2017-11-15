@@ -1,4 +1,4 @@
-package org.rcsb.geneprot.genomemapping.functions;
+package org.rcsb.geneprot.genomemapping.mouse;
 
 import org.apache.spark.api.java.function.PairFunction;
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;

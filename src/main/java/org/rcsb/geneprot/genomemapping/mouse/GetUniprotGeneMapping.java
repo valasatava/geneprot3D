@@ -1,4 +1,4 @@
-package org.rcsb.geneprot.genomemapping.functions;
+package org.rcsb.geneprot.genomemapping.mouse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
