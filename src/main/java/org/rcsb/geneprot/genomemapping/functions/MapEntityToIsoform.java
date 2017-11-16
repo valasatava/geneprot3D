@@ -20,19 +20,21 @@ public class MapEntityToIsoform implements Function<Row, EntityToIsoform> {
     public static JSONArray getIsoformsCoordinates(String entryId) throws Exception {
 
         HttpResponse<JsonNode> response = Unirest.get("https://www.ebi.ac.uk/pdbe/api/mappings/all_isoforms/{id}")
-                .routeParam("id", entryId)
-                .asJson();
+                .routeParam("id", entryId).asJson();
 
+        JSONArray results = new JSONArray();
         if (response.getStatus() != 200)
-            return new JSONArray();
+            return results;
 
         JsonNode body = response.getBody();
         JSONObject obj = body.getObject()
                     .getJSONObject(entryId.toLowerCase())
                     .getJSONObject("UniProt");
-
+        
         Iterator<String> it = obj.keys();
         while (it.hasNext()) {
+            String id = it.next();
+            JSONArray mappings = obj.getJSONObject(id).getJSONArray("mappings");
 
         }
 
