@@ -4,7 +4,7 @@ import com.google.common.collect.Range;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataTypes;
-import org.rcsb.geneprot.common.utils.CommonConstants;
+import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.utils.RowUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

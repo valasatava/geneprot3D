@@ -14,13 +14,14 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 import org.bson.Document;
-import org.rcsb.geneprot.common.utils.CommonConstants;
+import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.common.utils.ExternalDBUtils;
-import org.rcsb.geneprot.common.utils.MongoCollections;
+import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
 import org.rcsb.geneprot.common.utils.SparkUtils;
-import org.rcsb.geneprot.genomemapping.functions.MapGenomeToUniProt;
-import org.rcsb.geneprot.genomemapping.functions.MapTranscriptToIsoform;
-import org.rcsb.geneprot.genomemapping.model.GenomeToUniProtMapping;
+import org.rcsb.geneprot.genomemapping.constants.DatasetSchemas;
+import org.rcsb.geneprot.genomemapping.functions.MapGeneToUniProt;
+import org.rcsb.geneprot.genomemapping.functions.MapTranscriptsToIsoforms;
+import org.rcsb.geneprot.genomemapping.model.GeneToUniProt;
 import org.rcsb.redwood.util.DBConnectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +35,9 @@ import static org.apache.spark.sql.functions.*;
  *
  * Created by Yana Valasatava on 11/7/17.
  */
-public class LoadGenomeToUniprotMapping extends AbstractLoader {
+public class LoadMappingGenomeToUniProt extends AbstractLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoadGenomeToUniprotMapping.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoadMappingGenomeToUniProt.class);
 
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
     private static Map<String, String> mongoDBOptions = DBConnectionUtils.getMongoDBOptions();
@@ -102,7 +103,7 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
                 })
                 .map(row -> RowFactory.create(row))
                 .collect();
-        Dataset<Row> df = sparkSession.createDataFrame(records, CommonConstants.UNIPROT_TO_TRANSCRIPT_SCHEMA);
+        Dataset<Row> df = sparkSession.createDataFrame(records, DatasetSchemas.UNIPROT_TO_TRANSCRIPT_SCHEMA);
 
         return df;
     }
@@ -123,14 +124,16 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
         JavaSparkContext jsc = new JavaSparkContext(sparkSession.sparkContext());
         Broadcast<String> bc = jsc.broadcast(getOrganism());
 
-        JavaRDD<Row> rdd = transcripts.toJavaRDD()
+        JavaRDD<Row> rdd = transcripts
+                .toJavaRDD()
+                .repartition(2000)
                 .mapToPair(e -> new Tuple2<>(e.getString(e.fieldIndex(CommonConstants.COL_CHROMOSOME))  + CommonConstants.KEY_SEPARATOR +
                                                  e.getString(e.fieldIndex(CommonConstants.COL_GENE_ID))     + CommonConstants.KEY_SEPARATOR +
                                                  e.getString(e.fieldIndex(CommonConstants.COL_GENE_NAME))   + CommonConstants.KEY_SEPARATOR +
                                                  e.getString(e.fieldIndex(CommonConstants.COL_ORIENTATION)) + CommonConstants.KEY_SEPARATOR +
                                                  e.getString(e.fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)), e))
                 .groupByKey()
-                .flatMap(new MapTranscriptToIsoform(bc));
+                .flatMap(new MapTranscriptsToIsoforms(bc));
 
         List<Row> list = rdd.filter( e -> e !=null ).collect();
         StructType schema = list.get(0).schema();
@@ -164,12 +167,13 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
         return transcripts;
     }
 
-    public static List<GenomeToUniProtMapping> createMapping(Dataset<Row> transcripts) {
+    public static List<GeneToUniProt> createMapping(Dataset<Row> transcripts) {
 
-        JavaRDD<GenomeToUniProtMapping> rdd = transcripts
+        JavaRDD<GeneToUniProt> rdd = transcripts
                 .toJavaRDD()
-                .map(new MapGenomeToUniProt());
-        List<GenomeToUniProtMapping> list = rdd.filter(e->e!=null).collect();
+                .repartition(50)
+                .map(new MapGeneToUniProt());
+        List<GeneToUniProt> list = rdd.filter(e->e!=null).collect();
         return list;
     }
 
@@ -180,16 +184,16 @@ public class LoadGenomeToUniprotMapping extends AbstractLoader {
 
         setArguments(args);
 
-        String collectionNameTranscripts = MongoCollections.COLL_TRANSCRIPTS +"_"+ getTaxonomyId();
+        String collectionNameTranscripts = MongoCollections.COLL_CORE_TRANSCRIPTS +"_"+ getTaxonomyId();
         Dataset<Row> transcripts = mapTranscriptsToUniProtAccession(getTranscripts(collectionNameTranscripts));
 
         transcripts = processTranscripts(transcripts);
         transcripts = assembleTranscriptsAsGenes(transcripts);
 
-        List<GenomeToUniProtMapping> list = createMapping(transcripts);
+        List<GeneToUniProt> list = createMapping(transcripts);
 
         logger.info("Writing mapping to a database");
-        String collectionName = MongoCollections.COLL_MAPPING_UP + "_" + getTaxonomyId();
+        String collectionName = MongoCollections.COLL_CORE_MAPPING_UP + "_" + getTaxonomyId();
         ExternalDBUtils.writeListToMongo(list, collectionName);
 
         long timeE = System.currentTimeMillis();

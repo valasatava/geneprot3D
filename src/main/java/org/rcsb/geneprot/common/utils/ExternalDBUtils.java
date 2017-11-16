@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.*;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.rcsb.geneprot.genomemapping.model.GenomeToUniProtMapping;
+import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.redwood.util.DBUtils;
 
 import java.util.List;
@@ -276,7 +276,7 @@ public class ExternalDBUtils {
         return df;
     }
 
-    public static void writeListToMongo(List<GenomeToUniProtMapping> list, String collName) throws Exception
+    public static <T> void writeListToMongo(List<T> list, String collName) throws Exception
     {
         int bulkSize = 10000;
         int count = 0;
@@ -291,7 +291,7 @@ public class ExternalDBUtils {
         try {
             bulkOperation = collection.initializeUnorderedBulkOperation();
 
-            for (GenomeToUniProtMapping object : list) {
+            for (T object : list) {
 
                 DBObject dbo = mapper.convertValue(object, BasicDBObject.class);
 

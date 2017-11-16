@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TranscriptMapping implements Serializable {
+public class TranscriptToUniProt implements Serializable {
 
 	private String transcriptId;
 	private String transcriptName;
@@ -16,7 +16,6 @@ public class TranscriptMapping implements Serializable {
 	private List<CoordinatesRange> exonCoordinates = new ArrayList<>();
 	private List<CoordinatesRange> mRNACoordinates = new ArrayList<>();
 	private List<CoordinatesRange> isoformCoordinates = new ArrayList<>();
-	private List<CoordinatesRange> canonicalCoordinates = new ArrayList<>();
 
 	private boolean hasAlternativeExons;
 	private List<Boolean> alternativeExons;
@@ -95,14 +94,6 @@ public class TranscriptMapping implements Serializable {
 
 	public void setIsoformCoordinates(List<CoordinatesRange> isoformCoordinates) {
 		this.isoformCoordinates = isoformCoordinates;
-	}
-
-	public List<CoordinatesRange> getCanonicalCoordinates() {
-		return canonicalCoordinates;
-	}
-
-	public void setCanonicalCoordinates(List<CoordinatesRange> canonicalCoordinates) {
-		this.canonicalCoordinates = canonicalCoordinates;
 	}
 
 	public boolean isHasAlternativeExons() {

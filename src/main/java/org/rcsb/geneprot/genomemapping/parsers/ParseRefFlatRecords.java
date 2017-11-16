@@ -4,7 +4,8 @@ import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.StructType;
-import org.rcsb.geneprot.common.utils.CommonConstants;
+import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
+import org.rcsb.geneprot.genomemapping.constants.DatasetSchemas;
 
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -18,7 +19,7 @@ public class ParseRefFlatRecords implements Function<String, Row> {
     @Override
     public Row call(String s) throws Exception {
 
-        StructType schema = CommonConstants.GENOME_ANNOTATION_SCHEMA;
+        StructType schema = DatasetSchemas.GENOME_ANNOTATION_SCHEMA;
         String[] t = s.split(CommonConstants.FIELD_SEPARATOR);
         return RowFactory.create(
                 t[schema.fieldIndex(CommonConstants.COL_GENE_NAME)]

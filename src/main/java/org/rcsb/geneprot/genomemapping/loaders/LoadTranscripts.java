@@ -8,10 +8,11 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.common.utils.CommonConstants;
-import org.rcsb.geneprot.common.utils.MongoCollections;
+import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
+import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
 import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.gencode.gtf.GTFParser;
+import org.rcsb.geneprot.genomemapping.constants.DatasetSchemas;
 import org.rcsb.geneprot.genomemapping.functions.AnnotateAlternativeEvents;
 import org.rcsb.geneprot.genomemapping.parsers.ParseGTFRecords;
 import org.rcsb.geneprot.genomemapping.parsers.ParseRefFlatRecords;
@@ -48,7 +49,7 @@ public class LoadTranscripts extends AbstractLoader {
                     .filter(r -> ! (r.getString(r.fieldIndex(CommonConstants.COL_CDS_START))
                             .equals(r.getString(r.fieldIndex(CommonConstants.COL_CDS_END)))));
 
-            Dataset<Row> df = sparkSession.createDataFrame(rdd, CommonConstants.GENOME_ANNOTATION_SCHEMA);
+            Dataset<Row> df = sparkSession.createDataFrame(rdd, DatasetSchemas.GENOME_ANNOTATION_SCHEMA);
             return df;
 
         } else if (getFormat().equals("gtf")) {
@@ -62,7 +63,7 @@ public class LoadTranscripts extends AbstractLoader {
                     .groupByKey().map(t -> t._2)
                     .map(new ParseGTFRecords());
 
-            Dataset<Row> df = sparkSession.createDataFrame(rdd, CommonConstants.GENCODE_TRANSCRIPT_SCHEMA);
+            Dataset<Row> df = sparkSession.createDataFrame(rdd, DatasetSchemas.GENCODE_TRANSCRIPT_SCHEMA);
             return df;
 
         } else {
@@ -122,7 +123,7 @@ public class LoadTranscripts extends AbstractLoader {
             System.exit(1);
 
         logger.info("Writing mapping to a database");
-        String collectionName = MongoCollections.COLL_TRANSCRIPTS +"_"+ String.valueOf(getTaxonomyId());
+        String collectionName = MongoCollections.COLL_CORE_TRANSCRIPTS +"_"+ String.valueOf(getTaxonomyId());
         DerivedDataLoadUtils.writeToMongo(transcripts, collectionName, SaveMode.Overwrite);
 
         long timeE = System.currentTimeMillis();

@@ -2,7 +2,7 @@ package org.rcsb.geneprot.genomemapping.utils;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.rcsb.geneprot.common.utils.CommonConstants;
+import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 
 import static org.apache.spark.sql.functions.*;

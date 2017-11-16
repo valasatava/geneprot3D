@@ -4,9 +4,10 @@ import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.types.StructType;
-import org.rcsb.geneprot.common.utils.CommonConstants;
+import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.gencode.gtf.FeatureType;
 import org.rcsb.geneprot.gencode.gtf.GencodeFeature;
+import org.rcsb.geneprot.genomemapping.constants.DatasetSchemas;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ public class ParseGTFRecords implements Function<Iterable<GencodeFeature>, Row> 
     @Override
     public Row call(Iterable<GencodeFeature> features) throws Exception {
 
-        StructType schema = CommonConstants.GENCODE_TRANSCRIPT_SCHEMA;
+        StructType schema = DatasetSchemas.GENCODE_TRANSCRIPT_SCHEMA;
         Object[] t = new Object[schema.fields().length];
 
         for (GencodeFeature feature : features) {

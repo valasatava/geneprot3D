@@ -1,6 +1,6 @@
 package org.rcsb.geneprot.common.io;
 
-import org.rcsb.geneprot.common.utils.CommonConstants;
+import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

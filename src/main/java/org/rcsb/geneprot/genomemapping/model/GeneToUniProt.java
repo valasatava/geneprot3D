@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Created by tara on 3/1/16.
  */
-public class GenomeToUniProtMapping implements Serializable {
+public class GeneToUniProt implements Serializable {
 
     protected String chromosome;
     protected String geneId;
@@ -15,7 +15,7 @@ public class GenomeToUniProtMapping implements Serializable {
     protected String orientation;
     protected String uniProtId;
 
-    protected List<TranscriptMapping> transcripts = new ArrayList<>();
+    protected List<TranscriptToUniProt> transcripts = new ArrayList<>();
 
     public String getChromosome() {
         return chromosome;
@@ -57,11 +57,11 @@ public class GenomeToUniProtMapping implements Serializable {
         this.uniProtId = uniProtId;
     }
 
-    public List<TranscriptMapping> getTranscripts() {
+    public List<TranscriptToUniProt> getTranscripts() {
         return transcripts;
     }
 
-    public void setTranscripts(List<TranscriptMapping> transcripts) {
+    public void setTranscripts(List<TranscriptToUniProt> transcripts) {
         this.transcripts = transcripts;
     }
 }

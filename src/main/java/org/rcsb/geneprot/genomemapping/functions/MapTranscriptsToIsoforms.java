@@ -9,7 +9,7 @@ import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
 import org.biojava.nbio.core.exceptions.TranslationException;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.rcsb.geneprot.common.utils.CommonConstants;
+import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.common.utils.CommonUtils;
 import org.rcsb.geneprot.genomemapping.utils.GenomeUtils;
 import org.rcsb.geneprot.genomemapping.utils.RowUpdater;
@@ -22,12 +22,12 @@ import java.util.*;
 /**
  * Created by Yana Valasatava on 10/20/17.
  */
-public class MapTranscriptToIsoform implements FlatMapFunction<Tuple2<String, Iterable<Row>>, Row> {
+public class MapTranscriptsToIsoforms implements FlatMapFunction<Tuple2<String, Iterable<Row>>, Row> {
 
-    private static final Logger logger = LoggerFactory.getLogger(MapTranscriptToIsoform.class);
+    private static final Logger logger = LoggerFactory.getLogger(MapTranscriptsToIsoforms.class);
 
     public static String organism;
-    public MapTranscriptToIsoform(Broadcast<String> bc) {
+    public MapTranscriptsToIsoforms(Broadcast<String> bc) {
         organism = bc.getValue();
     }
 

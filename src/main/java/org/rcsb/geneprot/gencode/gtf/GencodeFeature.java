@@ -70,21 +70,21 @@ public class GencodeFeature extends Feature {
     }
 
     /**
-     * TranscriptMapping Biotype
+     * TranscriptToUniProt Biotype
      */
     public String getTranscriptType() {
         return transcriptType;
     }
 
     /**
-     * TranscriptMapping status {KNOWN, NOVEL, PUTATIVE}
+     * TranscriptToUniProt status {KNOWN, NOVEL, PUTATIVE}
      */
     public String getTranscriptStatus() {
         return transcriptStatus;
     }
 
     /**
-     * TranscriptMapping name
+     * TranscriptToUniProt name
      */
     public String getTranscriptName() {
         return transcriptName;
