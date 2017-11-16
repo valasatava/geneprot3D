@@ -1,16 +1,19 @@
 package org.rcsb.geneprot.genomemapping.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Yana Valasatava on 11/15/17.
  */
-public class IsoformToPDB {
+public class EntityToIsoform implements Serializable {
 
     private String uniProtId;
     private String moleculeId;
+
     private String entryId;
+    private String entityId;
     private String chainId;
 
     private List<CoordinatesRange> isoformCoordinates = new ArrayList<>();
@@ -38,6 +41,14 @@ public class IsoformToPDB {
 
     public void setEntryId(String entryId) {
         this.entryId = entryId;
+    }
+
+    public String getEntityId() {
+        return entityId;
+    }
+
+    public void setEntityId(String entityId) {
+        this.entityId = entityId;
     }
 
     public String getChainId() {

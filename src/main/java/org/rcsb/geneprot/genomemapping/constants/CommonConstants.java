@@ -60,6 +60,7 @@ public class CommonConstants {
     public static final String COL_MOLECULE_ID = "moleculeId";
     public static final String COL_ISOFORM_ID = "isoformId";
 
+    public static final String COL_ISOFORMS = "isoforms";
     public static final String COL_COORDINATES_ISOFORM = "isoformCoordinates";
 
     public static final String COL_MATCH = "match";
@@ -93,4 +94,8 @@ public class CommonConstants {
     public static final String FIELD_SEPARATOR = Pattern.quote("\t");
     public static final String EXONS_FIELD_SEPARATOR = Pattern.quote(",");
 
+
+    public static final String COL_ENTRY_ID = "entryId";
+    public static final String COL_ENTITY_ID = "entityId";
+    public static final String COL_CHAIN_ID = "chainId";
 }
