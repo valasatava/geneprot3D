@@ -84,6 +84,11 @@ public class CommonConstants {
     public static final String COL_START = "start";
     public static final String COL_END = "end";
 
+    public static final String COL_START_UNP = "startUNP";
+    public static final String COL_END_UNP = "endUNP";
+    public static final String COL_START_PDB = "startPDB";
+    public static final String COL_END_PDB = "endPDB";
+
     public static final String COL_SINGLE_AMINO_ACID = "singleAminoAcid";
     public static final String COL_SINGLE_AMINO_ACID_VARIATION = "singleAminoAcidVariation";
     public static final String COL_POSITION = "position";

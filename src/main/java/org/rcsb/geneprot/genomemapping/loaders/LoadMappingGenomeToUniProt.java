@@ -193,7 +193,7 @@ public class LoadMappingGenomeToUniProt extends AbstractLoader {
         List<GeneToUniProt> list = createMapping(transcripts);
 
         logger.info("Writing mapping to a database");
-        String collectionName = MongoCollections.COLL_CORE_MAPPING_UP + "_" + getTaxonomyId();
+        String collectionName = MongoCollections.COLL_MAPPING_TRANSCRIPTS_TO_ISOFORMS + "_" + getTaxonomyId();
         ExternalDBUtils.writeListToMongo(list, collectionName);
 
         long timeE = System.currentTimeMillis();

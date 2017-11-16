@@ -3,28 +3,35 @@ package org.rcsb.geneprot.genomemapping.functions;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
-import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.sql.Row;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
+import org.rcsb.geneprot.genomemapping.model.CoordinatesRange;
 import org.rcsb.geneprot.genomemapping.model.EntityToIsoform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by Yana Valasatava on 11/15/17.
  */
-public class MapEntityToIsoform implements Function<Row, EntityToIsoform> {
+public class MapEntityToIsoform implements FlatMapFunction<Row, EntityToIsoform> {
 
-    public static JSONArray getIsoformsCoordinates(String entryId) throws Exception {
+    private static final Logger logger = LoggerFactory.getLogger(MapEntityToIsoform.class);
+
+    public static Iterator<EntityToIsoform> getIsoformsCoordinates(String entryId) throws Exception {
 
         HttpResponse<JsonNode> response = Unirest.get("https://www.ebi.ac.uk/pdbe/api/mappings/all_isoforms/{id}")
                 .routeParam("id", entryId).asJson();
 
-        JSONArray results = new JSONArray();
         if (response.getStatus() != 200)
-            return results;
+            return new ArrayList<EntityToIsoform>().iterator();
 
         JsonNode body = response.getBody();
         JSONObject obj = body.getObject()
@@ -32,63 +39,45 @@ public class MapEntityToIsoform implements Function<Row, EntityToIsoform> {
                     .getJSONObject("UniProt");
         
         Iterator<String> it = obj.keys();
+        Map<String, EntityToIsoform> map = new HashMap<>();
         while (it.hasNext()) {
+
             String id = it.next();
             JSONArray mappings = obj.getJSONObject(id).getJSONArray("mappings");
 
-        }
+            String moleculeId = id;
+            if (!moleculeId.contains("-"))
+                moleculeId += "-1";
 
-        return null;
+            for (int j=0; j<mappings.length();j++) {
+
+                JSONObject m = mappings.getJSONObject(j);
+                int entityId = m.getInt("entity_id");
+                String chainId = m.getString("chain_id");
+                String key = entryId + CommonConstants.KEY_SEPARATOR + entityId + CommonConstants.KEY_SEPARATOR + moleculeId;
+
+                if (!map.keySet().contains(key)) {
+                    EntityToIsoform isoform = new EntityToIsoform();
+                    isoform.setEntryId(entryId);
+                    isoform.setEntityId(Integer.toString(entityId));
+                    isoform.setChainId(chainId);
+                    isoform.setMoleculeId(moleculeId);
+                    map.put(key, isoform);
+                }
+                map.get(key).getIsoformCoordinates()
+                        .add(new CoordinatesRange(m.getInt("unp_start"), m.getInt("unp_end")));
+                map.get(key).getIsoformCoordinates()
+                        .add(new CoordinatesRange(m.getInt("pdb_start"), m.getInt("pdb_end")));
+            }
+        }
+        return map.values().iterator();
     }
 
     @Override
-    public EntityToIsoform call(Row row) throws Exception {
+    public Iterator<EntityToIsoform> call(Row row) throws Exception {
 
         String entryId = row.getString(row.fieldIndex(CommonConstants.COL_ENTRY_ID));
-
-
-        JSONArray mapping = getIsoformsCoordinates(entryId);
-
-//        RangeConverter converter = new RangeConverter();
-//
-//        List<Row> isoforms = row.getList(row.fieldIndex(CommonConstants.COL_ISOFORMS));
-//        for (Row iRow : isoforms) {
-//
-//            EntityToIsoform iso = new EntityToIsoform();
-//            iso.setMoleculeId(iRow.getString(iRow.fieldIndex(CommonConstants.COL_MOLECULE_ID)));
-//
-//            JSONArray map = mapping.get(iso.getMoleculeId());
-//
-//            List<Object> isoCoords = iRow.getList(iRow.fieldIndex(CommonConstants.COL_COORDINATES_ISOFORM));
-//
-//            for (int j=0; j<map.length(); j++) {
-//
-//                JSONObject range = map.getJSONObject(j);
-//                converter.set(range.getInt("unp_start"), range.getInt("unp_end"), range.getInt("pdb_start"), range.getInt("pdb_end"));
-//
-//                for (Object o : isoCoords) {
-//
-//                    Row r = (Row) o;
-//
-//                    int unp_start = r.getInt(r.fieldIndex(CommonConstants.COL_START));
-//                    int unp_end = r.getInt(r.fieldIndex(CommonConstants.COL_END));
-//                    int[] pdb = converter.convert1to2(unp_start, unp_end);
-//
-//                    if (pdb[0] == -1 && pdb[1] != -1)
-//                        unp_start = converter.s1;
-//                    if (pdb[1] == -1 && pdb[0] != -1)
-//                        unp_end = converter.e1;
-//
-//                    iso.getIsoformCoordinates().add(new CoordinatesRange(unp_start, unp_end));
-//                    iso.getStructureCoordinates().add(new CoordinatesRange(pdb[0], pdb[1]));
-//
-//                }
-//            }
-//
-//        }
-
-
-
-        return null;
+        logger.info("Getting isoforms mapping for {}", entryId);
+        return getIsoformsCoordinates(entryId);
     }
 }

@@ -10,8 +10,10 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.bson.Document;
+import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
+import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
 import org.rcsb.geneprot.genomemapping.functions.MapEntityToIsoform;
 import org.rcsb.geneprot.genomemapping.model.EntityToIsoform;
 import org.rcsb.redwood.util.DBConnectionUtils;
@@ -51,26 +53,26 @@ public class LoadMappingEntityToIsoform extends AbstractLoader {
         return df;
     }
 
-    public static Dataset<Row> get() {
+    public static List<EntityToIsoform> getEntityToIsoformMapping() {
 
         Dataset<Row> df = getCurrentEntryIds();
         JavaRDD<EntityToIsoform> rdd = df
                 .toJavaRDD()
-                .map(new MapEntityToIsoform());
-
+                .repartition(4000)
+                .flatMap(new MapEntityToIsoform());
         List<EntityToIsoform> list = rdd.collect();
 
-        return null;
+        return list;
     }
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws Exception {
 
         logger.info("Started loading PDB to isoforms mapping...");
         long timeS = System.currentTimeMillis();
 
         setArguments(args);
-
-        Dataset<Row> df = get();
-        df.show();
+        List<EntityToIsoform> list = getEntityToIsoformMapping();
+        ExternalDBUtils.writeListToMongo(list, MongoCollections.COLL_MAPPING_ISOFORMS_TO_ENTITIES);
 
         long timeE = System.currentTimeMillis();
         logger.info("Completed. Time taken: " + DurationFormatUtils.formatPeriod(timeS, timeE, "HH:mm:ss:SS"));

@@ -7,8 +7,10 @@ public class MongoCollections {
 
     // CORE collections
     public static final String COLL_CORE_TRANSCRIPTS = "core_transcripts";
-    public static final String COLL_CORE_MAPPING_UP = "core_mapping_genome_to_up";
-    public static final String COLL_CORE_MAPPING_PDB = "core_mapping_up_to_pdb";
+
+    // MAPPING collections
+    public static final String COLL_MAPPING_TRANSCRIPTS_TO_ISOFORMS = "mapping_transcripts_to_isoforms";
+    public static final String COLL_MAPPING_ISOFORMS_TO_ENTITIES = "mapping_isoforms_to_entities";
 
     // VIEW collections
     public static final String COLL_VIEW_COORDINATES = "view_on_coordinates";

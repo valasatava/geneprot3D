@@ -33,7 +33,7 @@ public class LoadMappingUniProtToPDB extends AbstractLoader {
 
     public static Dataset<Row> getTranscriptsToUniProtMapping() {
 
-        mongoDBOptions.put("spark.mongodb.input.collection", MongoCollections.COLL_CORE_MAPPING_UP + "_" + getTaxonomyId());
+        mongoDBOptions.put("spark.mongodb.input.collection", MongoCollections.COLL_MAPPING_TRANSCRIPTS_TO_ISOFORMS + "_" + getTaxonomyId());
         JavaMongoRDD<Document> rdd = MongoSpark
                 .load(new JavaSparkContext(sparkSession.sparkContext()), ReadConfig.create(sparkSession)
                         .withOptions(mongoDBOptions));
