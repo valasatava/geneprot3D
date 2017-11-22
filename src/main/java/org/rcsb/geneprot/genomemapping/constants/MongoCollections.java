@@ -10,7 +10,7 @@ public class MongoCollections {
 
     // MAPPING collections
     public static final String COLL_MAPPING_TRANSCRIPTS_TO_ISOFORMS = "mapping_transcripts_to_isoforms";
-    public static final String COLL_MAPPING_ISOFORMS_TO_ENTITIES = "mapping_isoforms_to_entities";
+    public static final String COLL_MAPPING_ENTITIES_TO_ISOFORMS = "mapping_entities_to_isoforms";
 
     // VIEW collections
     public static final String COLL_VIEW_COORDINATES = "view_on_coordinates";

@@ -29,9 +29,9 @@ import static org.apache.spark.sql.functions.col;
 /**
  * Created by Yana Valasatava on 11/15/17.
  */
-public class LoadMappingEntityToIsoform extends AbstractLoader {
+public class LoadMappingEntitiesToIsoforms extends AbstractLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoadMappingUniProtToPDB.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoadViewOnCoordinates.class);
 
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
     private static Map<String, String> mongoDBOptions = DBConnectionUtils.getMongoDBOptions();
@@ -58,7 +58,7 @@ public class LoadMappingEntityToIsoform extends AbstractLoader {
         Dataset<Row> df = getCurrentEntryIds();
         JavaRDD<EntityToIsoform> rdd = df
                 .toJavaRDD()
-                .repartition(4000)
+                .repartition(8000)
                 .flatMap(new MapEntityToIsoform());
         List<EntityToIsoform> list = rdd.collect();
 
@@ -72,7 +72,7 @@ public class LoadMappingEntityToIsoform extends AbstractLoader {
 
         setArguments(args);
         List<EntityToIsoform> list = getEntityToIsoformMapping();
-        ExternalDBUtils.writeListToMongo(list, MongoCollections.COLL_MAPPING_ISOFORMS_TO_ENTITIES);
+        ExternalDBUtils.writeListToMongo(list, MongoCollections.COLL_MAPPING_ENTITIES_TO_ISOFORMS +"_"+getTaxonomyId());
 
         long timeE = System.currentTimeMillis();
         logger.info("Completed. Time taken: " + DurationFormatUtils.formatPeriod(timeS, timeE, "HH:mm:ss:SS"));

@@ -34,7 +34,7 @@ public class CommonConstants {
     public static final String COL_TRANSCRIPT = "transcript";
     public static final String COL_TRANSCRIPT_NAME = "transcriptName";
     public static final String COL_TRANSCRIPT_ID = "transcriptId";
-    public static final String COL_TRANSCRIPTS = "transcripts";
+    public static final String COL_TRANSCRIPTS = "isoforms";
 
     public static final String COL_TRANSCRIPTION = "transcription";
     public static final String COL_UNTRANSLATED = "untranslated";

@@ -7,6 +7,7 @@ import java.io.Serializable;
  */
 public class CoordinatesRange implements Serializable {
 
+    private int id;
     private int start;
     private int end;
 
@@ -15,6 +16,20 @@ public class CoordinatesRange implements Serializable {
     public CoordinatesRange(int start, int end) {
         this.start = start;
         this.end = end;
+    }
+
+    public CoordinatesRange(int id, int start, int end) {
+        this.id = id;
+        this.start = start;
+        this.end = end;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public int getStart() {

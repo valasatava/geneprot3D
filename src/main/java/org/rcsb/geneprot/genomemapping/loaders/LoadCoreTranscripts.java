@@ -24,15 +24,15 @@ import scala.Tuple2;
 import java.util.IllegalFormatException;
 import java.util.List;
 
-/** This loader process transcripts annotation file (in GTF format).
- *  This includes annotating alternative transcripts.
+/** This loader process isoforms annotation file (in GTF format).
+ *  This includes annotating alternative isoforms.
  *
  * Created by Yana Valasatava on 11/7/17.
  */
-public class LoadTranscripts extends AbstractLoader {
+public class LoadCoreTranscripts extends AbstractLoader {
 
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
-    private static final Logger logger = LoggerFactory.getLogger(LoadTranscripts.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoadCoreTranscripts.class);
 
     public static Dataset<Row> parseAnnotationFile(String filePath) throws IllegalFormatException {
 
@@ -82,7 +82,7 @@ public class LoadTranscripts extends AbstractLoader {
             logger.error("This format is not supported {}", getFormat());
 
         } catch (Exception e) {
-            logger.error("Exiting: fatal error has occurred while building transcripts {} : {}", e.getCause(), e.getMessage());
+            logger.error("Exiting: fatal error has occurred while building isoforms {} : {}", e.getCause(), e.getMessage());
         }
         return null;
     }
@@ -102,14 +102,14 @@ public class LoadTranscripts extends AbstractLoader {
             return sparkSession.createDataFrame(list, list.get(0).schema());
 
         } catch (Exception e) {
-            logger.error("Exiting: fatal error has occurred while processing transcripts {} : {} {}", e.getCause(), e.getMessage(), e.fillInStackTrace());
+            logger.error("Exiting: fatal error has occurred while processing isoforms {} : {} {}", e.getCause(), e.getMessage(), e.fillInStackTrace());
         }
         return null;
     }
 
     public static void main(String[] args) {
 
-        logger.info("Started loading transcripts...");
+        logger.info("Started loading isoforms...");
         long timeS = System.currentTimeMillis();
 
         setArguments(args);

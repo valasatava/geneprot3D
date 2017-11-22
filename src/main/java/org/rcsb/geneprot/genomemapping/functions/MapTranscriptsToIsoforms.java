@@ -142,13 +142,13 @@ public class MapTranscriptsToIsoforms implements FlatMapFunction<Tuple2<String, 
     @Override
     public Iterator<Row> call(Tuple2<String, Iterable<Row>> t) throws Exception {
 
-        String uniProtId = t._1.split(CommonConstants.KEY_SEPARATOR)[4];
+        String uniProtId = t._1.split(CommonConstants.KEY_SEPARATOR)[3];
         Iterable<Row> it = t._2;
 
         JSONArray isoforms = getUniProtIsoforms(uniProtId);
         if (isoforms.length() == 0) {
-            logger.error("Could not get data for {}", uniProtId);
-            return null;
+            logger.error("UniProt data for {} is not available", uniProtId);
+            return new ArrayList<Row>().iterator();
         }
 
         Map<String, JSONObject> txptsMap = getTranscriptsMap(isoforms);

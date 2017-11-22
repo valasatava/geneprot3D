@@ -15,7 +15,7 @@ public class GeneToUniProt implements Serializable {
     protected String orientation;
     protected String uniProtId;
 
-    protected List<TranscriptToUniProt> transcripts = new ArrayList<>();
+    protected List<TranscriptToIsoform> isoforms = new ArrayList<>();
 
     public String getChromosome() {
         return chromosome;
@@ -57,11 +57,11 @@ public class GeneToUniProt implements Serializable {
         this.uniProtId = uniProtId;
     }
 
-    public List<TranscriptToUniProt> getTranscripts() {
-        return transcripts;
+    public List<TranscriptToIsoform> getIsoforms() {
+        return isoforms;
     }
 
-    public void setTranscripts(List<TranscriptToUniProt> transcripts) {
-        this.transcripts = transcripts;
+    public void setIsoforms(List<TranscriptToIsoform> isoforms) {
+        this.isoforms = isoforms;
     }
 }

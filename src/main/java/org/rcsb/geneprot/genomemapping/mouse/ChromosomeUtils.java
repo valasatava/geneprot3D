@@ -1,4 +1,4 @@
-package org.rcsb.geneprot.genomemapping.utils;
+package org.rcsb.geneprot.genomemapping.mouse;
 
 import org.biojava.nbio.genome.parsers.genename.GeneChromosomePosition;
 import org.slf4j.Logger;
@@ -15,8 +15,6 @@ import java.util.Map;
 public class ChromosomeUtils {
 
     private static final Logger PdbLogger = LoggerFactory.getLogger(org.rcsb.util.ChromosomeUtils.class);
-    public static final int MAX_DNA_LENGTH = 39999;
-    public static enum mappingStatus  {UTR, CODING, NONCODING};
 
     public  Map<Integer, Integer> getExonPositions(GeneChromosomePosition chromosomePosition) {
 

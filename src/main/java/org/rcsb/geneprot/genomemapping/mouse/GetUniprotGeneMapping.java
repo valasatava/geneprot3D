@@ -11,7 +11,6 @@ import org.biojava.nbio.genome.util.ProteinMappingTools;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
 import org.rcsb.geneprot.common.utils.CommonUtils;
 import org.rcsb.geneprot.gencode.dao.MetadataDAO;
-import org.rcsb.geneprot.genomemapping.utils.ChromosomeUtils;
 import org.rcsb.humangenome.function.SparkGeneChromosomePosition;
 import org.rcsb.uniprot.auto.Uniprot;
 import org.rcsb.uniprot.auto.dao.UniprotDAO;
@@ -41,6 +40,8 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
     private static Map<String, String> genes;
     private static Map<String, String> uniprotIds;
     private static UniprotDAO uniprotDAO;
+
+    public static final int MAX_DNA_LENGTH = 39999;
 
     public GetUniprotGeneMapping()  throws Exception
     {
@@ -109,8 +110,8 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
         try {
             ChromosomeMappingTools.setCoordinateSystem(0);
             int dnaLength = ChromosomeMappingTools.getCDSLength(chromosomePosition.getOrig());
-            ChromosomeUtils cu = new ChromosomeUtils();
-            if (dnaLength > ChromosomeUtils.MAX_DNA_LENGTH) {
+
+            if (dnaLength > MAX_DNA_LENGTH) {
                 // to prevent out of memory for the Isoform mapping, we skip too long genes
                 PdbLogger.warn("Gene "+ geneSymbol+ " has  " + dnaLength + " bp. We will skip the mapping to prevent out of memory errors");
                 return results;
@@ -191,6 +192,7 @@ public class GetUniprotGeneMapping implements PairFlatMapFunction<Tuple2<String,
             // so we can project across
             isomapper = new IsoformMapper(isoforms[0], correctIsoform);
 
+            ChromosomeUtils cu = new ChromosomeUtils();
             Map<Integer, Integer> exonMap = cu.getExonPositions(chromosomePosition.getOrig());
 
             int transcriptionStart = chromosomePosition.getTranscriptionStart();

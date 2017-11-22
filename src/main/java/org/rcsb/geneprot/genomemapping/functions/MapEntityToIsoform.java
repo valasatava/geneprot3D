@@ -48,25 +48,26 @@ public class MapEntityToIsoform implements FlatMapFunction<Row, EntityToIsoform>
             String moleculeId = id;
             if (!moleculeId.contains("-"))
                 moleculeId += "-1";
+            String uniProtId = moleculeId.split("-")[0];
 
-            for (int j=0; j<mappings.length();j++) {
+            for (int j=0; j < mappings.length();j++) {
 
                 JSONObject m = mappings.getJSONObject(j);
                 int entityId = m.getInt("entity_id");
                 String chainId = m.getString("chain_id");
-                String key = entryId + CommonConstants.KEY_SEPARATOR + entityId + CommonConstants.KEY_SEPARATOR + moleculeId;
-
+                String key = entryId + CommonConstants.KEY_SEPARATOR + chainId + CommonConstants.KEY_SEPARATOR + moleculeId;
                 if (!map.keySet().contains(key)) {
                     EntityToIsoform isoform = new EntityToIsoform();
                     isoform.setEntryId(entryId);
                     isoform.setEntityId(Integer.toString(entityId));
                     isoform.setChainId(chainId);
+                    isoform.setUniProtId(uniProtId);
                     isoform.setMoleculeId(moleculeId);
                     map.put(key, isoform);
                 }
                 map.get(key).getIsoformCoordinates()
                         .add(new CoordinatesRange(m.getInt("unp_start"), m.getInt("unp_end")));
-                map.get(key).getIsoformCoordinates()
+                map.get(key).getStructureCoordinates()
                         .add(new CoordinatesRange(m.getInt("pdb_start"), m.getInt("pdb_end")));
             }
         }
