@@ -8,8 +8,8 @@ import org.apache.spark.sql.Row;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
-import org.rcsb.geneprot.genomemapping.models.CoordinatesRange;
-import org.rcsb.geneprot.genomemapping.mappers.EntityToIsoform;
+import org.rcsb.mojave.genomemapping.mappers.EntityToIsoform;
+import org.rcsb.mojave.genomemapping.models.CoordinatesRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

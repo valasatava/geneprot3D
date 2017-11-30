@@ -15,7 +15,7 @@ import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
 import org.rcsb.geneprot.genomemapping.functions.MapEntityToIsoform;
-import org.rcsb.geneprot.genomemapping.mappers.EntityToIsoform;
+import org.rcsb.mojave.genomemapping.mappers.EntityToIsoform;
 import org.rcsb.redwood.util.DBConnectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

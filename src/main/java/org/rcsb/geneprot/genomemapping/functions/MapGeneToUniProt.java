@@ -3,9 +3,9 @@ package org.rcsb.geneprot.genomemapping.functions;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
-import org.rcsb.geneprot.genomemapping.models.CoordinatesRange;
-import org.rcsb.geneprot.genomemapping.mappers.TranscriptToIsoform;
-import org.rcsb.geneprot.genomemapping.mappers.GeneToUniProt;
+import org.rcsb.mojave.genomemapping.mappers.GeneToUniProt;
+import org.rcsb.mojave.genomemapping.mappers.TranscriptToIsoform;
+import org.rcsb.mojave.genomemapping.models.CoordinatesRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

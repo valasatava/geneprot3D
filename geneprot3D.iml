@@ -37,9 +37,9 @@
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpasyncclient:4.0.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore-nio:4.3.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpmime:4.3.6" level="project" />
-    <orderEntry type="library" name="Maven: org.rcsb:rcsb-redwood:3.0.1-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.rcsb:rcsb-mojave:3.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: org.rcsb:rcsb-mojave:3.1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.2" level="project" />
+    <orderEntry type="library" name="Maven: org.rcsb:rcsb-redwood:3.0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.rcsb:rcsb-util:1.2.0" level="project" />
     <orderEntry type="library" name="Maven: mysql:mysql-connector-java:5.1.44" level="project" />
     <orderEntry type="library" name="Maven: org.mongodb:mongo-java-driver:3.4.3" level="project" />

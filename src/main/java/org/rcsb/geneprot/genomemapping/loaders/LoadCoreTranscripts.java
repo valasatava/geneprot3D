@@ -8,14 +8,13 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.rcsb.geneprot.common.io.DataLocationProvider;
-import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
-import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
 import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.gencode.gtf.GTFParser;
+import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.constants.DatasetSchemas;
+import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
 import org.rcsb.geneprot.genomemapping.functions.AnnotateAlternativeEvents;
 import org.rcsb.geneprot.genomemapping.parsers.ParseGTFRecords;
-import org.rcsb.geneprot.genomemapping.parsers.ParseRefFlatRecords;
 import org.rcsb.redwood.util.DerivedDataLoadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +23,8 @@ import scala.Tuple2;
 import java.util.IllegalFormatException;
 import java.util.List;
 
-/** This loader process isoforms annotation file (in GTF format).
- *  This includes annotating alternative isoforms.
+/** This loader process genome annotation file (in GTF format).
+ *  This includes annotating alternative transcripts.
  *
  * Created by Yana Valasatava on 11/7/17.
  */
@@ -44,15 +43,7 @@ public class LoadCoreTranscripts extends AbstractLoader {
                 .textFile(filename, 200)
                 .toJavaRDD();
 
-        if (getFormat().equals("refFlat")) {
-            JavaRDD<Row> rdd = records.map(new ParseRefFlatRecords())
-                    .filter(r -> ! (r.getString(r.fieldIndex(CommonConstants.COL_CDS_START))
-                            .equals(r.getString(r.fieldIndex(CommonConstants.COL_CDS_END)))));
-
-            Dataset<Row> df = sparkSession.createDataFrame(rdd, DatasetSchemas.GENOME_ANNOTATION_SCHEMA);
-            return df;
-
-        } else if (getFormat().equals("gtf")) {
+        if (getFormat().equals("gtf")) {
             GTFParser parser = new GTFParser();
             JavaRDD<Row> rdd = records
                     .map(line -> parser.parseLine(line))
@@ -107,7 +98,7 @@ public class LoadCoreTranscripts extends AbstractLoader {
         return null;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         logger.info("Started loading isoforms...");
         long timeS = System.currentTimeMillis();
@@ -115,12 +106,16 @@ public class LoadCoreTranscripts extends AbstractLoader {
         setArguments(args);
 
         Dataset<Row> transcripts = buildTranscripts();
-        if (transcripts == null)
-            System.exit(1);
+        if (transcripts == null) {
+            logger.error("ERROR: couldn't build transcripts");
+            throw new Exception();
+        }
 
         transcripts = processTranscripts(transcripts);
-        if (transcripts == null)
-            System.exit(1);
+        if (transcripts == null) {
+            logger.error("ERROR: couldn't process transcripts");
+            throw new Exception();
+        }
 
         logger.info("Writing mapping to a database");
         String collectionName = MongoCollections.COLL_CORE_TRANSCRIPTS +"_"+ String.valueOf(getTaxonomyId());

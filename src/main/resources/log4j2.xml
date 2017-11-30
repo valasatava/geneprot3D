@@ -25,11 +25,6 @@
 			<appender-ref ref="file"/>
 		</root>
 
-		<root level="info">
-			<appender-ref ref="console"/>
-			<appender-ref ref="file"/>
-		</root>
-
 		<Logger name="org.rcsb.redwood.util.DBUtils" level="error" additivity="false">
 			<appender-ref ref="console"/>
 			<appender-ref ref="file"/>
