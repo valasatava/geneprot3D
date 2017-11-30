@@ -1,4 +1,4 @@
-package org.rcsb.geneprot.genomemapping.mappers;
+package org.rcsb.geneprot.genomemapping.tools;
 
 /**
  * Created by Yana Valasatava on 11/15/17.

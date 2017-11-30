@@ -1,4 +1,4 @@
-package org.rcsb.geneprot.genomemapping.model;
+package org.rcsb.geneprot.genomemapping.models;
 
 import java.io.Serializable;
 

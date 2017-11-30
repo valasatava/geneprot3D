@@ -24,13 +24,13 @@ public class MapToBestStructure implements Function<Tuple2<String, Iterable<Row>
 
         // select best coverage
         int max_pdb_coverage = MapUtils.getBestCoverageValue(map, "pdb");
-        int max_model_coverage = MapUtils.getBestCoverageValue(map, "model");
+        int max_model_coverage = MapUtils.getBestCoverageValue(map, "models");
 
         // select based on resolution for the PDB structure
         String key="pdb";
         int max_coverage = max_pdb_coverage;
         if ( max_model_coverage - max_pdb_coverage >= 1 || max_pdb_coverage == 0 ) {
-            key="model";
+            key="models";
             max_coverage = max_model_coverage;
         }
 

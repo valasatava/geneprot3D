@@ -201,7 +201,7 @@ public class GTF2RefFlat {
         } catch (IOException e) {
             throw new RuntimeException("Failed to read gene modle file", e);
         } catch (GTFParseException e) {
-            throw new RuntimeException("Failed to parse gene model file", e);
+            throw new RuntimeException("Failed to parse gene models file", e);
         }
     }
 

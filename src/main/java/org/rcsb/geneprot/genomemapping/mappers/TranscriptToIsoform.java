@@ -1,4 +1,6 @@
-package org.rcsb.geneprot.genomemapping.model;
+package org.rcsb.geneprot.genomemapping.mappers;
+
+import org.rcsb.geneprot.genomemapping.models.CoordinatesRange;
 
 import java.io.Serializable;
 import java.util.ArrayList;

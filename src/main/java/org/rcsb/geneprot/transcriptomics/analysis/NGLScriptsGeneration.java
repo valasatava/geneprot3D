@@ -79,10 +79,10 @@ public class NGLScriptsGeneration {
         catch (JAXBException e) {
             e.printStackTrace(); }
 
-        /* Create a data-model for exons */
+        /* Create a data-models for exons */
         Map model = PeptideRangeTool.getModelForPeptidePair(pair);
 
-        /* Merge data-model with template */
+        /* Merge data-models with template */
         TemplatesGenerationTool templateTool = null;
         try { templateTool = new TemplatesGenerationTool();
 

@@ -44,7 +44,7 @@ public class TemplatesGenerationTool {
 
     public static void main(String[] args) throws Exception {
 
-        /* Create a data-model */
+        /* Create a data-models */
         Map model = new HashMap();
         model.put("source", "rcsb://1ZD3.mmtf");
         model.put("chain", "A");
@@ -55,7 +55,7 @@ public class TemplatesGenerationTool {
         model.put("resn1", 294);
         model.put("resn2", 418);
 
-        /* Merge data-model with template */
+        /* Merge data-models with template */
         TemplatesGenerationTool templateTool = new TemplatesGenerationTool();
         String path = DataLocationProvider.getProjectsHome() + "/test.js";
         Template template = templateTool.getNGLtemplate();

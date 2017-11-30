@@ -21,7 +21,7 @@ import org.rcsb.geneprot.genomemapping.constants.DatasetSchemas;
 import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
 import org.rcsb.geneprot.genomemapping.functions.MapGeneToUniProt;
 import org.rcsb.geneprot.genomemapping.functions.MapTranscriptsToIsoforms;
-import org.rcsb.geneprot.genomemapping.model.GeneToUniProt;
+import org.rcsb.geneprot.genomemapping.mappers.GeneToUniProt;
 import org.rcsb.geneprot.genomemapping.utils.FTPDownloadFile;
 import org.rcsb.geneprot.genomemapping.utils.UniProtConnection;
 import org.rcsb.redwood.util.DBConnectionUtils;

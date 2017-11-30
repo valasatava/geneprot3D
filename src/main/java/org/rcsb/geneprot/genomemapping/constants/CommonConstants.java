@@ -71,6 +71,7 @@ public class CommonConstants {
     public static final String COL_ALTERNATIVE_EXONS = "alternativeExons";
     public static final String COL_HAS_ALTERNATIVE_EXONS = "hasAlternativeExons";
 
+    public static final String COL_SEQUENCE = "sequence";
     public static final String COL_SEQUENCE_STATUS = "sequenceStatus";
     public static final String COL_PROTEIN_SEQUENCE = "proteinSequence";
     public static final String COL_SEQUENCE_TYPE = "sequenceType";
@@ -99,8 +100,11 @@ public class CommonConstants {
     public static final String FIELD_SEPARATOR = Pattern.quote("\t");
     public static final String EXONS_FIELD_SEPARATOR = Pattern.quote(",");
 
-
     public static final String COL_ENTRY_ID = "entryId";
     public static final String COL_ENTITY_ID = "entityId";
     public static final String COL_CHAIN_ID = "chainId";
+
+    public static final String COL_CODING_COORDINATES = "codingCoordinates";
+    public static final String COL_ISOFORM_COORDINATES = "isoformCoordinates";
+    public static final String COL_STRUCTURE_COORDINATES = "structureCoordinates";
 }

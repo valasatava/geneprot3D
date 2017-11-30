@@ -15,7 +15,7 @@ import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
 import org.rcsb.geneprot.genomemapping.functions.MapEntityToIsoform;
-import org.rcsb.geneprot.genomemapping.model.EntityToIsoform;
+import org.rcsb.geneprot.genomemapping.mappers.EntityToIsoform;
 import org.rcsb.redwood.util.DBConnectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ import static org.apache.spark.sql.functions.col;
 /**
  * Created by Yana Valasatava on 11/15/17.
  */
-public class LoadMappingEntitiesToIsoforms extends AbstractLoader {
+public class LoadMappingIsoformsToEntities extends AbstractLoader {
 
     private static final Logger logger = LoggerFactory.getLogger(LoadViewOnCoordinates.class);
 
