@@ -19,8 +19,8 @@ import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.constants.DatasetSchemas;
 import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
-import org.rcsb.geneprot.genomemapping.functions.MapGeneToUniProt;
-import org.rcsb.geneprot.genomemapping.functions.MapTranscriptsToIsoforms;
+import org.rcsb.geneprot.genomemapping.functions.MapGenomicToUniProtCoordinates;
+import org.rcsb.geneprot.genomemapping.functions.MapGeneTranscriptsToProteinIsoforms;
 import org.rcsb.geneprot.genomemapping.utils.FTPDownloadFile;
 import org.rcsb.geneprot.genomemapping.utils.UniProtConnection;
 import org.rcsb.mojave.genomemapping.mappers.GeneToUniProt;
@@ -125,7 +125,7 @@ public class LoadMappingTranscriptsToIsoforms extends AbstractLoader {
                                                  e.getString(e.fieldIndex(CommonConstants.COL_ORIENTATION)) + CommonConstants.KEY_SEPARATOR +
                                                  e.getString(e.fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)), e))
                 .groupByKey()
-                .flatMap(new MapTranscriptsToIsoforms(bc));
+                .flatMap(new MapGeneTranscriptsToProteinIsoforms(bc));
 
         List<Row> list = rdd.filter( e -> e !=null ).collect();
         StructType schema = list.get(0).schema();
@@ -158,7 +158,7 @@ public class LoadMappingTranscriptsToIsoforms extends AbstractLoader {
         JavaRDD<GeneToUniProt> rdd = transcripts
                 .toJavaRDD()
                 .repartition(800)
-                .map(new MapGeneToUniProt());
+                .map(new MapGenomicToUniProtCoordinates());
         List<GeneToUniProt> list = rdd.filter(e->e!=null).collect();
         return list;
     }

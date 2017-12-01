@@ -14,8 +14,8 @@ import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
-import org.rcsb.geneprot.genomemapping.functions.MapEntityToIsoform;
-import org.rcsb.mojave.genomemapping.mappers.EntityToIsoform;
+import org.rcsb.geneprot.genomemapping.functions.MapStructureToProteinIsoformsCoordinates;
+import org.rcsb.mojave.genomemapping.mappers.StructureSeqLocationMap;
 import org.rcsb.redwood.util.DBConnectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +29,9 @@ import static org.apache.spark.sql.functions.col;
 /**
  * Created by Yana Valasatava on 11/15/17.
  */
-public class LoadMappingIsoformsToEntities extends AbstractLoader {
+public class LoadMappingStructuresToProteinIsoforms extends AbstractLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoadViewOnCoordinates.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoadViewOnStructureToGenomicCoordinates.class);
 
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
     private static Map<String, String> mongoDBOptions = DBConnectionUtils.getMongoDBOptions();
@@ -53,25 +53,26 @@ public class LoadMappingIsoformsToEntities extends AbstractLoader {
         return df;
     }
 
-    public static List<EntityToIsoform> getEntityToIsoformMapping() {
+    public static List<StructureSeqLocationMap> getEntityToIsoformMapping() {
 
         Dataset<Row> df = getCurrentEntryIds();
-        JavaRDD<EntityToIsoform> rdd = df
+        JavaRDD<StructureSeqLocationMap> rdd = df
                 .toJavaRDD()
                 .repartition(8000)
-                .flatMap(new MapEntityToIsoform());
-        List<EntityToIsoform> list = rdd.collect();
+                .flatMap(new MapStructureToProteinIsoformsCoordinates());
+        List<StructureSeqLocationMap> list = rdd.collect();
 
         return list;
     }
 
     public static void main(String[] args) throws Exception {
 
-        logger.info("Started loading PDB to isoforms mapping...");
+        logger.info("Started loading PDB structures to UniProt isoforms mapping...");
         long timeS = System.currentTimeMillis();
 
         setArguments(args);
-        List<EntityToIsoform> list = getEntityToIsoformMapping();
+
+        List<StructureSeqLocationMap> list = getEntityToIsoformMapping();
         ExternalDBUtils.writeListToMongo(list, MongoCollections.COLL_MAPPING_ENTITIES_TO_ISOFORMS +"_"+getTaxonomyId());
 
         long timeE = System.currentTimeMillis();

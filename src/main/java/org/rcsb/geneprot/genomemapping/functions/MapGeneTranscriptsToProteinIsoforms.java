@@ -22,12 +22,12 @@ import java.util.*;
 /**
  * Created by Yana Valasatava on 10/20/17.
  */
-public class MapTranscriptsToIsoforms implements FlatMapFunction<Tuple2<String, Iterable<Row>>, Row> {
+public class MapGeneTranscriptsToProteinIsoforms implements FlatMapFunction<Tuple2<String, Iterable<Row>>, Row> {
 
-    private static final Logger logger = LoggerFactory.getLogger(MapTranscriptsToIsoforms.class);
+    private static final Logger logger = LoggerFactory.getLogger(MapGeneTranscriptsToProteinIsoforms.class);
 
     public static String organism;
-    public MapTranscriptsToIsoforms(Broadcast<String> bc) {
+    public MapGeneTranscriptsToProteinIsoforms(Broadcast<String> bc) {
         organism = bc.getValue();
     }
 

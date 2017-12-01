@@ -24,9 +24,9 @@ import static org.apache.spark.sql.functions.col;
 /**
  * Created by Yana Valasatava on 11/15/17.
  */
-public class LoadViewOnCoordinates extends AbstractLoader {
+public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoadViewOnCoordinates.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoadViewOnStructureToGenomicCoordinates.class);
 
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
     private static Map<String, String> mongoDBOptions = DBConnectionUtils.getMongoDBOptions();

@@ -14,9 +14,9 @@ import java.util.List;
 /**
  * Created by Yana Valasatava on 10/2/17.
  */
-public class MapGeneToUniProt implements Function<Row, GeneToUniProt> {
+public class MapGenomicToUniProtCoordinates implements Function<Row, GeneToUniProt> {
 
-    private static final Logger logger = LoggerFactory.getLogger(MapGeneToUniProt.class);
+    private static final Logger logger = LoggerFactory.getLogger(MapGenomicToUniProtCoordinates.class);
 
     private static CoordinatesRange getCoordinates(Row r) {
 
