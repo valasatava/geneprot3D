@@ -4,19 +4,24 @@ import com.mongodb.spark.MongoSpark;
 import com.mongodb.spark.config.ReadConfig;
 import com.mongodb.spark.rdd.api.java.JavaMongoRDD;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.bson.Document;
+import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
+import org.rcsb.geneprot.genomemapping.functions.MapGeneticToStructure;
+import org.rcsb.mojave.genomemapping.GenomicToStructureMapping;
 import org.rcsb.redwood.util.DBConnectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.spark.sql.functions.col;
@@ -38,20 +43,32 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
                 .load(new JavaSparkContext(sparkSession.sparkContext()), ReadConfig.create(sparkSession)
                         .withOptions(mongoDBOptions));
 
-        Dataset<Row> df = rdd.withPipeline(
+
+        Dataset<Row> mapping = rdd.withPipeline(
                 Arrays.asList(Document.parse("{ $project: { "+
-                        CommonConstants.COL_UNIPROT_ACCESSION + ": \"$" + CommonConstants.COL_UNIPROT_ACCESSION + "\", " +
-                        CommonConstants.COL_ISOFORMS+ ": \"$" + CommonConstants.COL_TRANSCRIPTS + "\" " +
+                        CommonConstants.COL_CHROMOSOME + ": \"$" + CommonConstants.COL_CHROMOSOME + "\", " +
+                        CommonConstants.COL_ORIENTATION + ": \"$" + CommonConstants.COL_ORIENTATION + "\" " +
+                        CommonConstants.COL_GENE_ID + ": \"$" + CommonConstants.COL_GENE_ID + "\" " +
+                        CommonConstants.COL_GENE_NAME + ": \"$" + CommonConstants.COL_GENE_NAME + "\" " +
+                        CommonConstants.COL_TRANSCRIPT_ID + ": \"$" + CommonConstants.COL_TRANSCRIPT_ID + "\" " +
+                        CommonConstants.COL_TRANSCRIPT_NAME + ": \"$" + CommonConstants.COL_TRANSCRIPT_NAME + "\" " +
+                        CommonConstants.COL_UNIPROT_ACCESSION + ": \"$" + CommonConstants.COL_UNIPROT_ACCESSION + "\" " +
+                        CommonConstants.COL_MOLECULE_ID + ": \"$" + CommonConstants.COL_MOLECULE_ID + "\" " +
+                        CommonConstants.COL_CANONICAL + ": \"$" + CommonConstants.COL_CANONICAL + "\" " +
+                        "coordinatesMapping" + ": \"$" + "coordinatesMapping" + "\" " +
                         " } }")))
                 .toDF()
                 .drop(col("_id"));
 
-        return df;
+        // {"transcriptName":"BIN1-202", moleculeId:"O00499-1"}
+        //mapping = mapping.filter(col(CommonConstants.COL_TRANSCRIPT_NAME).equalTo("BIN1-202").and(col(CommonConstants.COL_MOLECULE_ID).equalTo("O00499-1")));
+
+        return mapping;
     }
 
     public static Dataset<Row> getEntityToUniProtMapping() {
 
-        mongoDBOptions.put("spark.mongodb.input.collection", org.rcsb.mojave.util.MongoCollections.COLL_ENTITY_TO_UNIPROT_MAPPING);
+        mongoDBOptions.put("spark.mongodb.input.collection", MongoCollections.COLL_MAPPING_ENTITIES_TO_ISOFORMS + "_" + getTaxonomyId());
         JavaMongoRDD<Document> rdd = MongoSpark
                 .load(new JavaSparkContext(sparkSession.sparkContext()), ReadConfig.create(sparkSession)
                         .withOptions(mongoDBOptions));
@@ -59,50 +76,55 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
         Dataset<Row> mapping = rdd.withPipeline(
                 Arrays.asList(
                         Document.parse("{ $project: { "+
-                                org.rcsb.mojave.util.CommonConstants.COL_ENTRY_ID + ": \"$" + org.rcsb.mojave.util.CommonConstants.COL_ENTRY_ID + "\", " +
-                                org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION + ": { \"$setUnion\": [ \"$" + org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_TO_PDB_MAPPING
-                                + "." + org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION + "\", [] ] }"+
+                                CommonConstants.COL_ENTRY_ID + ": \"$" + CommonConstants.COL_ENTRY_ID + "\", " +
+                                CommonConstants.COL_ENTITY_ID + ": \"$" + CommonConstants.COL_ENTITY_ID + "\", " +
+                                CommonConstants.COL_CHAIN_ID + ": \"$" + CommonConstants.COL_CHAIN_ID + "\", " +
+                                CommonConstants.COL_MOLECULE_ID + ": \"$" + CommonConstants.COL_MOLECULE_ID + "\", " +
+                                "coordinatesMapping" + ": \"$" + "coordinatesMapping" + "\" " +
                                 " } }")
-                        ,  Document.parse("{ $unwind: { path:" + " \"$" + org.rcsb.mojave.util.CommonConstants.COL_UNIPROT_ACCESSION +"\", "+
-                                "preserveNullAndEmptyArrays : true" +
-                                " } }")))
+                        ))
                 .toDF()
-                .drop(col("_id"))
-                .dropDuplicates();
+                .drop(col("_id"));
+
+        // {entryId:"1MV3", moleculeId:"O00499-1"}
+        //mapping = mapping.filter(col(CommonConstants.COL_ENTRY_ID).equalTo("1MV3").and(col(CommonConstants.COL_MOLECULE_ID).equalTo("O00499-1")));
 
         return mapping;
     }
 
-    public static Dataset<Row> getTranscriptsToEntityView() {
+    public static List<GenomicToStructureMapping> getTranscriptsToEntityView() {
 
-        Dataset<Row> df1 = getEntityToUniProtMapping();
-        Dataset<Row> df2 = getTranscriptsToUniProtMapping();
+        Dataset<Row> df1 = getEntityToUniProtMapping()
+                .withColumnRenamed("coordinatesMapping", "coordinatesMappingEntity");
+
+        Dataset<Row> df2 = getTranscriptsToUniProtMapping()
+                .withColumnRenamed("coordinatesMapping", "coordinatesMappingGenomic");
 
         Dataset<Row> df = df2
-                .join(df1
-                    , df2.col(CommonConstants.COL_UNIPROT_ACCESSION)
-                                .equalTo(df1.col(CommonConstants.COL_UNIPROT_ACCESSION))
-                    , "inner")
-                .drop(df1.col(CommonConstants.COL_UNIPROT_ACCESSION));
-        return df;
+                .join(df1, df2.col(CommonConstants.COL_MOLECULE_ID).equalTo(df1.col(CommonConstants.COL_MOLECULE_ID)), "inner")
+                .drop(df1.col(CommonConstants.COL_MOLECULE_ID));
+
+        JavaRDD<GenomicToStructureMapping> rdd = df
+                .toJavaRDD()
+                .map(new MapGeneticToStructure())
+                .filter(e -> e.getCoordinatesMapping().size()>0);
+        List<GenomicToStructureMapping> results = rdd.collect();
+
+        return results;
     }
 
-    public static Dataset<Row> mapToPdbCoordinates(Dataset<Row> df) {
-
-
-        return null;
-    }
-    
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         logger.info("Started loading genome to uniprot mapping...");
         long timeS = System.currentTimeMillis();
 
         setArguments(args);
 
-        Dataset<Row> df = getTranscriptsToEntityView();
-        df = mapToPdbCoordinates(df);
-        df.show();
+        logger.info("About to drop collection " + MongoCollections.VIEW_ON_GENOMIC_TO_STRUCTURE_MAPPING +"_"+getTaxonomyId());
+        ExternalDBUtils.dropCollection(MongoCollections.VIEW_ON_GENOMIC_TO_STRUCTURE_MAPPING +"_"+getTaxonomyId());
+
+        List<GenomicToStructureMapping> results = getTranscriptsToEntityView();
+        ExternalDBUtils.writeListToMongo(results, MongoCollections.VIEW_ON_GENOMIC_TO_STRUCTURE_MAPPING +"_"+getTaxonomyId());
 
         long timeE = System.currentTimeMillis();
         logger.info("Completed. Time taken: " + DurationFormatUtils.formatPeriod(timeS, timeE, "HH:mm:ss:SS"));

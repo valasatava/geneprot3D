@@ -13,5 +13,5 @@ public class MongoCollections {
     public static final String COLL_MAPPING_ENTITIES_TO_ISOFORMS = "mapping_entities_to_isoforms";
 
     // VIEW collections
-    public static final String COLL_VIEW_COORDINATES = "view_on_coordinates";
+    public static final String VIEW_ON_GENOMIC_TO_STRUCTURE_MAPPING = "view_on_genomic_to_structure_mapping";
 }

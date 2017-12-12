@@ -8,7 +8,7 @@ import org.apache.spark.sql.Row;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
-import org.rcsb.mojave.genomemapping.mappers.StructureSeqLocationMap;
+import org.rcsb.mojave.genomemapping.ProteinSequenceToProteinStructure;
 import org.rcsb.mojave.mappers.PositionMapping;
 import org.rcsb.mojave.mappers.SegmentMapping;
 import org.slf4j.Logger;
@@ -22,11 +22,21 @@ import java.util.Map;
 /**
  * Created by Yana Valasatava on 11/15/17.
  */
-public class MapStructureToProteinIsoformsCoordinates implements FlatMapFunction<Row, StructureSeqLocationMap> {
+public class MapStructureToProteinIsoformsCoordinates implements FlatMapFunction<Row, ProteinSequenceToProteinStructure> {
 
     private static final Logger logger = LoggerFactory.getLogger(MapStructureToProteinIsoformsCoordinates.class);
 
-    public static Iterator<StructureSeqLocationMap> getCoordinatesForAllIsoforms(String entryId) throws Exception {
+    public static String getMoleculeId(String id) {
+        if (!id.contains("-"))
+            id += "-1";
+        return id;
+    }
+
+    public static String getUniProtId(String moleculeId) {
+        return moleculeId.split("-")[0];
+    }
+
+    public static Iterator<ProteinSequenceToProteinStructure> getCoordinatesForAllIsoforms(String entryId) throws Exception {
 
         HttpResponse<JsonNode> response = Unirest
                 .get("https://www.ebi.ac.uk/pdbe/api/mappings/all_isoforms/{id}")
@@ -34,64 +44,63 @@ public class MapStructureToProteinIsoformsCoordinates implements FlatMapFunction
                 .asJson();
 
         if (response.getStatus() != 200)
-            return new ArrayList<StructureSeqLocationMap>().iterator();
+            return new ArrayList<ProteinSequenceToProteinStructure>().iterator();
 
         JsonNode body = response.getBody();
         JSONObject obj = body.getObject()
                     .getJSONObject(entryId.toLowerCase())
                     .getJSONObject("UniProt");
-        
+
+        Map<String, ProteinSequenceToProteinStructure> map = new HashMap<>();
+
         Iterator<String> it = obj.keys();
-        Map<String, StructureSeqLocationMap> mapStructSeqLocation = new HashMap<>();
         while (it.hasNext()) {
 
             String id = it.next();
+            String moleculeId = getMoleculeId(id);
+            String uniProtId = getUniProtId(moleculeId);
+
             JSONArray mappings = obj.getJSONObject(id).getJSONArray("mappings");
-
-            String moleculeId = id;
-            if (!moleculeId.contains("-"))
-                moleculeId += "-1";
-            String uniProtId = moleculeId.split("-")[0];
-
             for (int j=0; j < mappings.length();j++) {
 
                 JSONObject m = mappings.getJSONObject(j);
                 int entityId = m.getInt("entity_id");
                 String chainId = m.getString("chain_id");
+
                 String key = entryId + CommonConstants.KEY_SEPARATOR + chainId + CommonConstants.KEY_SEPARATOR + moleculeId;
 
-                if (!mapStructSeqLocation.keySet().contains(key)) {
-                    StructureSeqLocationMap map = new StructureSeqLocationMap();
-                    map.setEntryId(entryId);
-                    map.setEntityId(Integer.toString(entityId));
-                    map.setChainId(chainId);
-                    map.setUniProtId(uniProtId);
-                    map.setMoleculeId(moleculeId);
-                    map.setSequenceLocation(new ArrayList<>());
-                    mapStructSeqLocation.put(key, map);
+                if ( !map.keySet().contains(key) ) {
+                    ProteinSequenceToProteinStructure mapper = new ProteinSequenceToProteinStructure();
+                    mapper.setEntryId(entryId);
+                    mapper.setEntityId(Integer.toString(entityId));
+                    mapper.setChainId(chainId);
+                    mapper.setUniProtId(uniProtId);
+                    mapper.setMoleculeId(moleculeId);
+                    mapper.setCoordinatesMapping(new ArrayList<>());
+                    map.put(key, mapper);
                 }
+
                 SegmentMapping segment = new SegmentMapping();
-                segment.setId(j+1);
+                segment.setId(map.get(key).getCoordinatesMapping().size()+1);
 
                 PositionMapping start = new PositionMapping();
-                start.setUniProtResNum(m.getInt("unp_start"));
-                start.setPdbSeqResNum(m.getInt("pdb_start"));
+                start.setUniProtPosition(m.getInt("unp_start"));
+                start.setSeqResPosition(m.getInt("pdb_start"));
                 segment.setStart(start);
 
                 PositionMapping end = new PositionMapping();
-                end.setUniProtResNum(m.getInt("unp_end"));
-                end.setPdbSeqResNum(m.getInt("pdb_end"));
+                end.setUniProtPosition(m.getInt("unp_end"));
+                end.setSeqResPosition(m.getInt("pdb_end"));
                 segment.setEnd(end);
 
-                mapStructSeqLocation.get(key)
-                        .getSequenceLocation().add(segment);
+                map.get(key).getCoordinatesMapping().add(segment);
             }
         }
-        return mapStructSeqLocation.values().iterator();
+        return map.values().iterator();
     }
 
     @Override
-    public Iterator<StructureSeqLocationMap> call(Row row) throws Exception {
+    public Iterator<ProteinSequenceToProteinStructure> call(Row row) throws Exception {
 
         String entryId = row.getString(row.fieldIndex(CommonConstants.COL_ENTRY_ID));
         logger.info("Getting isoforms mapping for {}", entryId);

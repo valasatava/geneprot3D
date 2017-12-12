@@ -276,8 +276,15 @@ public class ExternalDBUtils {
         return df;
     }
 
-    public static <T> void writeListToMongo(List<T> list, String collName) throws Exception
-    {
+    public static void dropCollection(String collName) {
+        MongoClient mongoClient = new MongoClient("132.249.213.154");
+        DB db = mongoClient.getDB("dw_v1");
+        DBCollection collection = db.getCollection(collName);
+        collection.drop();
+    }
+
+    public static <T> void writeListToMongo(List<T> list, String collName) throws Exception {
+
         int bulkSize = 10000;
         int count = 0;
 

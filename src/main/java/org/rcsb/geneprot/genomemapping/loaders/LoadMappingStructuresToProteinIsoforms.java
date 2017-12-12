@@ -15,7 +15,7 @@ import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
 import org.rcsb.geneprot.genomemapping.functions.MapStructureToProteinIsoformsCoordinates;
-import org.rcsb.mojave.genomemapping.mappers.StructureSeqLocationMap;
+import org.rcsb.mojave.genomemapping.ProteinSequenceToProteinStructure;
 import org.rcsb.redwood.util.DBConnectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,23 +44,20 @@ public class LoadMappingStructuresToProteinIsoforms extends AbstractLoader {
                         .withOptions(mongoDBOptions));
 
         Dataset<Row> df = rdd.withPipeline(
-                Arrays.asList(Document.parse("{ $project: { "+
-                        CommonConstants.COL_ENTRY_ID + ": \"$" + CommonConstants.COL_ENTRY_ID + "\" " +
-                        " } }")))
-                .toDF()
-                .drop(col("_id"));
+                Arrays.asList(Document.parse("{ $project: { "+ CommonConstants.COL_ENTRY_ID + ": \"$" + CommonConstants.COL_ENTRY_ID + "\" " + " } }")))
+                .toDF().drop(col("_id"));
 
         return df;
     }
 
-    public static List<StructureSeqLocationMap> getEntityToIsoformMapping() {
+    public static List<ProteinSequenceToProteinStructure> getStructureToProteinIsoformsMapping() {
 
         Dataset<Row> df = getCurrentEntryIds();
-        JavaRDD<StructureSeqLocationMap> rdd = df
+        JavaRDD<ProteinSequenceToProteinStructure> rdd = df
                 .toJavaRDD()
                 .repartition(8000)
                 .flatMap(new MapStructureToProteinIsoformsCoordinates());
-        List<StructureSeqLocationMap> list = rdd.collect();
+        List<ProteinSequenceToProteinStructure> list = rdd.collect();
 
         return list;
     }
@@ -72,7 +69,7 @@ public class LoadMappingStructuresToProteinIsoforms extends AbstractLoader {
 
         setArguments(args);
 
-        List<StructureSeqLocationMap> list = getEntityToIsoformMapping();
+        List<ProteinSequenceToProteinStructure> list = getStructureToProteinIsoformsMapping();
         ExternalDBUtils.writeListToMongo(list, MongoCollections.COLL_MAPPING_ENTITIES_TO_ISOFORMS +"_"+getTaxonomyId());
 
         long timeE = System.currentTimeMillis();

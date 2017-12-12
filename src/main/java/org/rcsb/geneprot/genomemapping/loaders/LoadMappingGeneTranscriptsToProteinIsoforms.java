@@ -19,11 +19,11 @@ import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.constants.DatasetSchemas;
 import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
-import org.rcsb.geneprot.genomemapping.functions.MapGenomicToUniProtCoordinates;
 import org.rcsb.geneprot.genomemapping.functions.MapGeneTranscriptsToProteinIsoforms;
+import org.rcsb.geneprot.genomemapping.functions.MapGenomicToUniProtCoordinates;
 import org.rcsb.geneprot.genomemapping.utils.FTPDownloadFile;
 import org.rcsb.geneprot.genomemapping.utils.UniProtConnection;
-import org.rcsb.mojave.genomemapping.mappers.GeneToUniProt;
+import org.rcsb.mojave.genomemapping.GeneTranscriptToProteinSequence;
 import org.rcsb.redwood.util.DBConnectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,15 +32,15 @@ import scala.Tuple2;
 import java.io.File;
 import java.util.*;
 
-import static org.apache.spark.sql.functions.*;
+import static org.apache.spark.sql.functions.col;
 
 /** This loader maps isoforms to UniProt isoform sequences.
  *
  * Created by Yana Valasatava on 11/7/17.
  */
-public class LoadMappingTranscriptsToIsoforms extends AbstractLoader {
+public class LoadMappingGeneTranscriptsToProteinIsoforms extends AbstractLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoadMappingTranscriptsToIsoforms.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoadMappingGeneTranscriptsToProteinIsoforms.class);
 
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
     private static Map<String, String> mongoDBOptions = DBConnectionUtils.getMongoDBOptions();
@@ -64,11 +64,13 @@ public class LoadMappingTranscriptsToIsoforms extends AbstractLoader {
                       " } }")))
                 .toDF()
                 .drop(col("_id"));
+
         return df;
     }
 
     public static Dataset<Row> getUniProtMapping() throws Exception {
 
+        // TODO refactor this
         String remote = UniProtConnection.getIdMappingLocation()+UniProtConnection.getHumanIdMappingFile();
         String download = "/Users/yana/Downloads/tmp.gz";
 
@@ -133,33 +135,13 @@ public class LoadMappingTranscriptsToIsoforms extends AbstractLoader {
         return sparkSession.createDataFrame(list, schema);
     }
 
-    public static Dataset<Row> assembleTranscriptsAsGenes(Dataset<Row> transcripts) {
+    public static List<GeneTranscriptToProteinSequence> createMapping(Dataset<Row> transcripts) {
 
-        try {
-            transcripts = transcripts
-                    .groupBy(col(CommonConstants.COL_CHROMOSOME), col(CommonConstants.COL_GENE_ID), col(CommonConstants.COL_GENE_NAME), col(CommonConstants.COL_ORIENTATION), col(CommonConstants.COL_UNIPROT_ACCESSION))
-                    .agg(collect_list(
-                            struct(   col(CommonConstants.COL_TRANSCRIPT_ID)
-                                    , col(CommonConstants.COL_TRANSCRIPT_NAME)
-                                    , col(CommonConstants.COL_CODING)
-                                    , col(CommonConstants.COL_MOLECULE_ID)
-                                    , col(CommonConstants.COL_PROTEIN_SEQUENCE)
-                                    , col(CommonConstants.COL_SEQUENCE_STATUS)
-                            )).as(CommonConstants.COL_TRANSCRIPTS))
-                    .sort(col(CommonConstants.COL_CHROMOSOME), col(CommonConstants.COL_GENE_NAME));
-        } catch (Exception e) {
-            logger.error("Error has occurred while assembling isoforms as genes {} : {}", e.getCause(), e.getMessage());
-        }
-        return transcripts;
-    }
-
-    public static List<GeneToUniProt> createMapping(Dataset<Row> transcripts) {
-
-        JavaRDD<GeneToUniProt> rdd = transcripts
+        JavaRDD<GeneTranscriptToProteinSequence> rdd = transcripts
                 .toJavaRDD()
                 .repartition(800)
                 .map(new MapGenomicToUniProtCoordinates());
-        List<GeneToUniProt> list = rdd.filter(e->e!=null).collect();
+        List<GeneTranscriptToProteinSequence> list = rdd.filter(e->e!=null).collect();
         return list;
     }
 
@@ -174,9 +156,7 @@ public class LoadMappingTranscriptsToIsoforms extends AbstractLoader {
         Dataset<Row> transcripts = mapTranscriptsToUniProtAccession(getTranscripts(collectionNameTranscripts));
 
         transcripts = processTranscripts(transcripts);
-        transcripts = assembleTranscriptsAsGenes(transcripts);
-
-        List<GeneToUniProt> list = createMapping(transcripts);
+        List<GeneTranscriptToProteinSequence> list = createMapping(transcripts);
 
         logger.info("Writing mapping to a database");
         String collectionName = MongoCollections.COLL_MAPPING_TRANSCRIPTS_TO_ISOFORMS + "_" + getTaxonomyId();

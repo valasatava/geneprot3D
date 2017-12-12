@@ -24,17 +24,20 @@ public class DatasetSchemas {
                     , DataTypes.createStructField(CommonConstants.COL_EXONS_START, DataTypes.createArrayType(DataTypes.IntegerType), false)
                     , DataTypes.createStructField(CommonConstants.COL_EXONS_END, DataTypes.createArrayType(DataTypes.IntegerType), false)
             });
+
     public static final StructType RANGE_SCHEMA = DataTypes
             .createStructType(new StructField[] {
                       DataTypes.createStructField(CommonConstants.COL_START, DataTypes.IntegerType, false)
                     , DataTypes.createStructField(CommonConstants.COL_END, DataTypes.IntegerType, false)
             });
+
     public static final StructType RANGE_SCHEMA_WITH_ID = DataTypes
             .createStructType(new StructField[] {
                       DataTypes.createStructField(CommonConstants.COL_ID, DataTypes.IntegerType, false)
                     , DataTypes.createStructField(CommonConstants.COL_START, DataTypes.IntegerType, false)
                     , DataTypes.createStructField(CommonConstants.COL_END, DataTypes.IntegerType, false)
             });
+
     public static final StructType GENCODE_TRANSCRIPT_SCHEMA = DataTypes
             .createStructType(new StructField[] {
                       DataTypes.createStructField(CommonConstants.COL_CHROMOSOME, DataTypes.StringType, false, Metadata.empty())
@@ -52,9 +55,23 @@ public class DatasetSchemas {
                     , DataTypes.createStructField(CommonConstants.COL_EXONS_COUNT, DataTypes.IntegerType, false, Metadata.empty())
                     , DataTypes.createStructField(CommonConstants.COL_EXONS, DataTypes.createArrayType(RANGE_SCHEMA_WITH_ID), false, Metadata.empty())
             });
+
     public static final StructType UNIPROT_TO_TRANSCRIPT_SCHEMA = DataTypes
             .createStructType(new StructField[]{
                     DataTypes.createStructField(CommonConstants.COL_UNIPROT_ACCESSION, DataTypes.StringType, true)
                     , DataTypes.createStructField(CommonConstants.COL_TRANSCRIPT_ID, DataTypes.StringType, true)
+            });
+
+    public static final StructType TRANSCRIPT_TO_ISOFORM_MAPPING_SCHEMA = DataTypes
+            .createStructType(new StructField[] {
+                      DataTypes.createStructField(CommonConstants.COL_CHROMOSOME, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(CommonConstants.COL_ORIENTATION, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(CommonConstants.COL_GENE_ID, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(CommonConstants.COL_GENE_NAME, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(CommonConstants.COL_TRANSCRIPT_ID, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(CommonConstants.COL_TRANSCRIPT_NAME, DataTypes.StringType, false, Metadata.empty())
+                    , DataTypes.createStructField(CommonConstants.COL_UNIPROT_ACCESSION, DataTypes.StringType, true, Metadata.empty())
+                    , DataTypes.createStructField(CommonConstants.COL_MOLECULE_ID, DataTypes.StringType, true, Metadata.empty())
+
             });
 }

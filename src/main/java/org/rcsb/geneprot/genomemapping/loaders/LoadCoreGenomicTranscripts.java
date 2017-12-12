@@ -28,10 +28,10 @@ import java.util.List;
  *
  * Created by Yana Valasatava on 11/7/17.
  */
-public class LoadCoreTranscripts extends AbstractLoader {
+public class LoadCoreGenomicTranscripts extends AbstractLoader {
 
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
-    private static final Logger logger = LoggerFactory.getLogger(LoadCoreTranscripts.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoadCoreGenomicTranscripts.class);
 
     public static Dataset<Row> parseAnnotationFile(String filePath) throws IllegalFormatException {
 
