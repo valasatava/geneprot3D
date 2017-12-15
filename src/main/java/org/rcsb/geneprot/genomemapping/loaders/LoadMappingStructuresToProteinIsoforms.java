@@ -15,7 +15,7 @@ import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
 import org.rcsb.geneprot.genomemapping.functions.MapStructureToProteinIsoformsCoordinates;
-import org.rcsb.mojave.genomemapping.ProteinSequenceToProteinStructure;
+import org.rcsb.mojave.genomemapping.SequenceToStructureFeaturesMap;
 import org.rcsb.redwood.util.DBConnectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,14 +50,14 @@ public class LoadMappingStructuresToProteinIsoforms extends AbstractLoader {
         return df;
     }
 
-    public static List<ProteinSequenceToProteinStructure> getStructureToProteinIsoformsMapping() {
+    public static List<SequenceToStructureFeaturesMap> getStructureToProteinIsoformsMapping() {
 
         Dataset<Row> df = getCurrentEntryIds();
-        JavaRDD<ProteinSequenceToProteinStructure> rdd = df
+        JavaRDD<SequenceToStructureFeaturesMap> rdd = df
                 .toJavaRDD()
                 .repartition(8000)
                 .flatMap(new MapStructureToProteinIsoformsCoordinates());
-        List<ProteinSequenceToProteinStructure> list = rdd.collect();
+        List<SequenceToStructureFeaturesMap> list = rdd.collect();
 
         return list;
     }
@@ -69,7 +69,7 @@ public class LoadMappingStructuresToProteinIsoforms extends AbstractLoader {
 
         setArguments(args);
 
-        List<ProteinSequenceToProteinStructure> list = getStructureToProteinIsoformsMapping();
+        List<SequenceToStructureFeaturesMap> list = getStructureToProteinIsoformsMapping();
         ExternalDBUtils.writeListToMongo(list, MongoCollections.COLL_MAPPING_ENTITIES_TO_ISOFORMS +"_"+getTaxonomyId());
 
         long timeE = System.currentTimeMillis();

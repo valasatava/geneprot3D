@@ -23,7 +23,7 @@ import org.rcsb.geneprot.genomemapping.functions.MapGeneTranscriptsToProteinIsof
 import org.rcsb.geneprot.genomemapping.functions.MapGenomicToUniProtCoordinates;
 import org.rcsb.geneprot.genomemapping.utils.FTPDownloadFile;
 import org.rcsb.geneprot.genomemapping.utils.UniProtConnection;
-import org.rcsb.mojave.genomemapping.GeneTranscriptToProteinSequence;
+import org.rcsb.mojave.genomemapping.TranscriptToSequenceFeaturesMap;
 import org.rcsb.redwood.util.DBConnectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,13 +135,13 @@ public class LoadMappingGeneTranscriptsToProteinIsoforms extends AbstractLoader 
         return sparkSession.createDataFrame(list, schema);
     }
 
-    public static List<GeneTranscriptToProteinSequence> createMapping(Dataset<Row> transcripts) {
+    public static List<TranscriptToSequenceFeaturesMap> createMapping(Dataset<Row> transcripts) {
 
-        JavaRDD<GeneTranscriptToProteinSequence> rdd = transcripts
+        JavaRDD<TranscriptToSequenceFeaturesMap> rdd = transcripts
                 .toJavaRDD()
                 .repartition(800)
                 .map(new MapGenomicToUniProtCoordinates());
-        List<GeneTranscriptToProteinSequence> list = rdd.filter(e->e!=null).collect();
+        List<TranscriptToSequenceFeaturesMap> list = rdd.filter(e->e!=null).collect();
         return list;
     }
 
@@ -156,7 +156,7 @@ public class LoadMappingGeneTranscriptsToProteinIsoforms extends AbstractLoader 
         Dataset<Row> transcripts = mapTranscriptsToUniProtAccession(getTranscripts(collectionNameTranscripts));
 
         transcripts = processTranscripts(transcripts);
-        List<GeneTranscriptToProteinSequence> list = createMapping(transcripts);
+        List<TranscriptToSequenceFeaturesMap> list = createMapping(transcripts);
 
         logger.info("Writing mapping to a database");
         String collectionName = MongoCollections.COLL_MAPPING_TRANSCRIPTS_TO_ISOFORMS + "_" + getTaxonomyId();

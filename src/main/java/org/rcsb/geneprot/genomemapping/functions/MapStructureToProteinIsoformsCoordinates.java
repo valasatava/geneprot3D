@@ -8,7 +8,7 @@ import org.apache.spark.sql.Row;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
-import org.rcsb.mojave.genomemapping.ProteinSequenceToProteinStructure;
+import org.rcsb.mojave.genomemapping.SequenceToStructureFeaturesMap;
 import org.rcsb.mojave.mappers.PositionMapping;
 import org.rcsb.mojave.mappers.SegmentMapping;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * Created by Yana Valasatava on 11/15/17.
  */
-public class MapStructureToProteinIsoformsCoordinates implements FlatMapFunction<Row, ProteinSequenceToProteinStructure> {
+public class MapStructureToProteinIsoformsCoordinates implements FlatMapFunction<Row, SequenceToStructureFeaturesMap> {
 
     private static final Logger logger = LoggerFactory.getLogger(MapStructureToProteinIsoformsCoordinates.class);
 
@@ -36,7 +36,7 @@ public class MapStructureToProteinIsoformsCoordinates implements FlatMapFunction
         return moleculeId.split("-")[0];
     }
 
-    public static Iterator<ProteinSequenceToProteinStructure> getCoordinatesForAllIsoforms(String entryId) throws Exception {
+    public static Iterator<SequenceToStructureFeaturesMap> getCoordinatesForAllIsoforms(String entryId) throws Exception {
 
         HttpResponse<JsonNode> response = Unirest
                 .get("https://www.ebi.ac.uk/pdbe/api/mappings/all_isoforms/{id}")
@@ -44,14 +44,14 @@ public class MapStructureToProteinIsoformsCoordinates implements FlatMapFunction
                 .asJson();
 
         if (response.getStatus() != 200)
-            return new ArrayList<ProteinSequenceToProteinStructure>().iterator();
+            return new ArrayList<SequenceToStructureFeaturesMap>().iterator();
 
         JsonNode body = response.getBody();
         JSONObject obj = body.getObject()
                     .getJSONObject(entryId.toLowerCase())
                     .getJSONObject("UniProt");
 
-        Map<String, ProteinSequenceToProteinStructure> map = new HashMap<>();
+        Map<String, SequenceToStructureFeaturesMap> map = new HashMap<>();
 
         Iterator<String> it = obj.keys();
         while (it.hasNext()) {
@@ -70,18 +70,18 @@ public class MapStructureToProteinIsoformsCoordinates implements FlatMapFunction
                 String key = entryId + CommonConstants.KEY_SEPARATOR + chainId + CommonConstants.KEY_SEPARATOR + moleculeId;
 
                 if ( !map.keySet().contains(key) ) {
-                    ProteinSequenceToProteinStructure mapper = new ProteinSequenceToProteinStructure();
+                    SequenceToStructureFeaturesMap mapper = new SequenceToStructureFeaturesMap();
                     mapper.setEntryId(entryId);
                     mapper.setEntityId(Integer.toString(entityId));
                     mapper.setChainId(chainId);
                     mapper.setUniProtId(uniProtId);
                     mapper.setMoleculeId(moleculeId);
-                    mapper.setCoordinatesMapping(new ArrayList<>());
+                    mapper.setCoordinates(new ArrayList<>());
                     map.put(key, mapper);
                 }
 
                 SegmentMapping segment = new SegmentMapping();
-                segment.setId(map.get(key).getCoordinatesMapping().size()+1);
+                segment.setId(map.get(key).getCoordinates().size()+1);
 
                 PositionMapping start = new PositionMapping();
                 start.setUniProtPosition(m.getInt("unp_start"));
@@ -93,14 +93,14 @@ public class MapStructureToProteinIsoformsCoordinates implements FlatMapFunction
                 end.setSeqResPosition(m.getInt("pdb_end"));
                 segment.setEnd(end);
 
-                map.get(key).getCoordinatesMapping().add(segment);
+                map.get(key).getCoordinates().add(segment);
             }
         }
         return map.values().iterator();
     }
 
     @Override
-    public Iterator<ProteinSequenceToProteinStructure> call(Row row) throws Exception {
+    public Iterator<SequenceToStructureFeaturesMap> call(Row row) throws Exception {
 
         String entryId = row.getString(row.fieldIndex(CommonConstants.COL_ENTRY_ID));
         logger.info("Getting isoforms mapping for {}", entryId);

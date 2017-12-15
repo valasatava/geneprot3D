@@ -15,7 +15,7 @@ import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
 import org.rcsb.geneprot.genomemapping.functions.MapGeneticToStructure;
-import org.rcsb.mojave.genomemapping.GenomicToStructureMapping;
+import org.rcsb.mojave.genomemapping.MultipleFeaturesMap;
 import org.rcsb.redwood.util.DBConnectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +92,7 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
         return mapping;
     }
 
-    public static List<GenomicToStructureMapping> getTranscriptsToEntityView() {
+    public static List<MultipleFeaturesMap> getTranscriptsToEntityView() {
 
         Dataset<Row> df1 = getEntityToUniProtMapping()
                 .withColumnRenamed("coordinatesMapping", "coordinatesMappingEntity");
@@ -104,11 +104,11 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
                 .join(df1, df2.col(CommonConstants.COL_MOLECULE_ID).equalTo(df1.col(CommonConstants.COL_MOLECULE_ID)), "inner")
                 .drop(df1.col(CommonConstants.COL_MOLECULE_ID));
 
-        JavaRDD<GenomicToStructureMapping> rdd = df
+        JavaRDD<MultipleFeaturesMap> rdd = df
                 .toJavaRDD()
                 .map(new MapGeneticToStructure())
-                .filter(e -> e.getCoordinatesMapping().size()>0);
-        List<GenomicToStructureMapping> results = rdd.collect();
+                .filter(e -> e.getCoordinates().size()>0);
+        List<MultipleFeaturesMap> results = rdd.collect();
 
         return results;
     }
@@ -120,11 +120,11 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
 
         setArguments(args);
 
-        logger.info("About to drop collection " + MongoCollections.VIEW_ON_GENOMIC_TO_STRUCTURE_MAPPING +"_"+getTaxonomyId());
-        ExternalDBUtils.dropCollection(MongoCollections.VIEW_ON_GENOMIC_TO_STRUCTURE_MAPPING +"_"+getTaxonomyId());
+        logger.info("About to drop collection " + MongoCollections.VIEW_ON_EXONS_IN_3D +"_"+getTaxonomyId());
+        ExternalDBUtils.dropCollection(MongoCollections.VIEW_ON_EXONS_IN_3D +"_"+getTaxonomyId());
 
-        List<GenomicToStructureMapping> results = getTranscriptsToEntityView();
-        ExternalDBUtils.writeListToMongo(results, MongoCollections.VIEW_ON_GENOMIC_TO_STRUCTURE_MAPPING +"_"+getTaxonomyId());
+        List<MultipleFeaturesMap> results = getTranscriptsToEntityView();
+        ExternalDBUtils.writeListToMongo(results, MongoCollections.VIEW_ON_EXONS_IN_3D +"_"+getTaxonomyId());
 
         long timeE = System.currentTimeMillis();
         logger.info("Completed. Time taken: " + DurationFormatUtils.formatPeriod(timeS, timeE, "HH:mm:ss:SS"));

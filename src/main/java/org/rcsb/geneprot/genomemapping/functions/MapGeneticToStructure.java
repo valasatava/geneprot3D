@@ -3,7 +3,7 @@ package org.rcsb.geneprot.genomemapping.functions;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
-import org.rcsb.mojave.genomemapping.GenomicToStructureMapping;
+import org.rcsb.mojave.genomemapping.MultipleFeaturesMap;
 import org.rcsb.mojave.mappers.PositionMapping;
 import org.rcsb.mojave.mappers.SegmentMapping;
 
@@ -14,32 +14,32 @@ import java.util.stream.Collectors;
 /**
  * Created by Yana Valasatava on 12/11/17.
  */
-public class MapGeneticToStructure implements Function<Row, GenomicToStructureMapping> {
+public class MapGeneticToStructure implements Function<Row, MultipleFeaturesMap> {
 
     @Override
-    public GenomicToStructureMapping call(Row row) throws Exception {
+    public MultipleFeaturesMap call(Row row) throws Exception {
 
-        GenomicToStructureMapping gsm = new GenomicToStructureMapping();
+        MultipleFeaturesMap featuresMap = new MultipleFeaturesMap();
 
-        gsm.setChromosome(row.getString(row.fieldIndex(CommonConstants.COL_CHROMOSOME)));
-        gsm.setOrientation(row.getString(row.fieldIndex(CommonConstants.COL_ORIENTATION)));
-        gsm.setGeneId(row.getString(row.fieldIndex(CommonConstants.COL_GENE_ID)));
-        gsm.setGeneName(row.getString(row.fieldIndex(CommonConstants.COL_GENE_NAME)));
-        gsm.setTranscriptId(row.getString(row.fieldIndex(CommonConstants.COL_TRANSCRIPT_ID)));
-        gsm.setTranscriptName(row.getString(row.fieldIndex(CommonConstants.COL_TRANSCRIPT_NAME)));
-        gsm.setUniProtId(row.getString(row.fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)));
-        gsm.setMoleculeId(row.getString(row.fieldIndex(CommonConstants.COL_MOLECULE_ID)));
-        gsm.setCanonical(row.getBoolean(row.fieldIndex(CommonConstants.COL_CANONICAL)));
-        gsm.setEntryId(row.getString(row.fieldIndex(CommonConstants.COL_ENTRY_ID)));
-        gsm.setEntityId(row.getString(row.fieldIndex(CommonConstants.COL_ENTITY_ID)));
-        gsm.setChainId(row.getString(row.fieldIndex(CommonConstants.COL_CHAIN_ID)));
+        featuresMap.setChromosome(row.getString(row.fieldIndex(CommonConstants.COL_CHROMOSOME)));
+        featuresMap.setOrientation(row.getString(row.fieldIndex(CommonConstants.COL_ORIENTATION)));
+        featuresMap.setGeneId(row.getString(row.fieldIndex(CommonConstants.COL_GENE_ID)));
+        featuresMap.setGeneName(row.getString(row.fieldIndex(CommonConstants.COL_GENE_NAME)));
+        featuresMap.setTranscriptId(row.getString(row.fieldIndex(CommonConstants.COL_TRANSCRIPT_ID)));
+        featuresMap.setTranscriptName(row.getString(row.fieldIndex(CommonConstants.COL_TRANSCRIPT_NAME)));
+        featuresMap.setUniProtId(row.getString(row.fieldIndex(CommonConstants.COL_UNIPROT_ACCESSION)));
+        featuresMap.setMoleculeId(row.getString(row.fieldIndex(CommonConstants.COL_MOLECULE_ID)));
+        featuresMap.setCanonical(row.getBoolean(row.fieldIndex(CommonConstants.COL_CANONICAL)));
+        featuresMap.setEntryId(row.getString(row.fieldIndex(CommonConstants.COL_ENTRY_ID)));
+        featuresMap.setEntityId(row.getString(row.fieldIndex(CommonConstants.COL_ENTITY_ID)));
+        featuresMap.setChainId(row.getString(row.fieldIndex(CommonConstants.COL_CHAIN_ID)));
 
         List<Row> mappingGenomic = row.getList(row.fieldIndex("coordinatesMappingGenomic"))
                 .stream().map(v -> (Row) v).collect(Collectors.toList());
         List<Row> mappingEntity = row.getList(row.fieldIndex("coordinatesMappingEntity"))
                 .stream().map(v -> (Row) v).collect(Collectors.toList());
 
-        List<SegmentMapping> mapping = new ArrayList<>();
+        List<SegmentMapping> coordinates = new ArrayList<>();
 
         for (Row r : mappingGenomic) {
 
@@ -93,13 +93,12 @@ public class MapGeneticToStructure implements Function<Row, GenomicToStructureMa
                 segment.setId(r.getInt(r.fieldIndex("id")));
                 segment.setStart(pStart);
                 segment.setEnd(pEnd);
-                mapping.add(segment);
-
+                coordinates.add(segment);
             }
         }
 
-        gsm.setCoordinatesMapping(mapping);
+        featuresMap.setCoordinates(coordinates);
 
-        return gsm;
+        return featuresMap;
     }
 }

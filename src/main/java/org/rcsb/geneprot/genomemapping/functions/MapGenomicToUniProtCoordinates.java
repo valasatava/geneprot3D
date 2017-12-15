@@ -3,7 +3,7 @@ package org.rcsb.geneprot.genomemapping.functions;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.sql.Row;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
-import org.rcsb.mojave.genomemapping.GeneTranscriptToProteinSequence;
+import org.rcsb.mojave.genomemapping.TranscriptToSequenceFeaturesMap;
 import org.rcsb.mojave.mappers.PositionMapping;
 import org.rcsb.mojave.mappers.SegmentMapping;
 import org.slf4j.Logger;
@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Created by Yana Valasatava on 10/2/17.
  */
-public class MapGenomicToUniProtCoordinates implements Function<Row, GeneTranscriptToProteinSequence> {
+public class MapGenomicToUniProtCoordinates implements Function<Row, TranscriptToSequenceFeaturesMap> {
 
     private static final Logger logger = LoggerFactory.getLogger(MapGenomicToUniProtCoordinates.class);
 
@@ -57,9 +57,9 @@ public class MapGenomicToUniProtCoordinates implements Function<Row, GeneTranscr
     }
 
     @Override
-    public GeneTranscriptToProteinSequence call(Row row) throws Exception {
+    public TranscriptToSequenceFeaturesMap call(Row row) throws Exception {
 
-        GeneTranscriptToProteinSequence m = new GeneTranscriptToProteinSequence();
+        TranscriptToSequenceFeaturesMap m = new TranscriptToSequenceFeaturesMap();
 
         m.setChromosome(row.getString(row.fieldIndex(CommonConstants.COL_CHROMOSOME)));
         m.setGeneId(row.getString(row.fieldIndex(CommonConstants.COL_GENE_ID)));
@@ -80,7 +80,7 @@ public class MapGenomicToUniProtCoordinates implements Function<Row, GeneTranscr
             coordinates.add(getGenomicCoordinates((Row) o));
         coordinates = setProteinCoordinates(coordinates);
 
-        m.setCoordinatesMapping(coordinates);
+        m.setCoordinates(coordinates);
 
         return m;
     }
