@@ -55,13 +55,10 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
                         CommonConstants.COL_UNIPROT_ACCESSION + ": \"$" + CommonConstants.COL_UNIPROT_ACCESSION + "\" " +
                         CommonConstants.COL_MOLECULE_ID + ": \"$" + CommonConstants.COL_MOLECULE_ID + "\" " +
                         CommonConstants.COL_CANONICAL + ": \"$" + CommonConstants.COL_CANONICAL + "\" " +
-                        "coordinatesMapping" + ": \"$" + "coordinatesMapping" + "\" " +
+                        CommonConstants.COL_COORDINATES + ": \"$" + CommonConstants.COL_COORDINATES + "\" " +
                         " } }")))
                 .toDF()
                 .drop(col("_id"));
-
-        // {"transcriptName":"BIN1-202", moleculeId:"O00499-1"}
-        //mapping = mapping.filter(col(CommonConstants.COL_TRANSCRIPT_NAME).equalTo("BIN1-202").and(col(CommonConstants.COL_MOLECULE_ID).equalTo("O00499-1")));
 
         return mapping;
     }
@@ -80,14 +77,11 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
                                 CommonConstants.COL_ENTITY_ID + ": \"$" + CommonConstants.COL_ENTITY_ID + "\", " +
                                 CommonConstants.COL_CHAIN_ID + ": \"$" + CommonConstants.COL_CHAIN_ID + "\", " +
                                 CommonConstants.COL_MOLECULE_ID + ": \"$" + CommonConstants.COL_MOLECULE_ID + "\", " +
-                                "coordinatesMapping" + ": \"$" + "coordinatesMapping" + "\" " +
+                                CommonConstants.COL_COORDINATES + ": \"$" + CommonConstants.COL_COORDINATES + "\" " +
                                 " } }")
                         ))
                 .toDF()
                 .drop(col("_id"));
-
-        // {entryId:"1MV3", moleculeId:"O00499-1"}
-        //mapping = mapping.filter(col(CommonConstants.COL_ENTRY_ID).equalTo("1MV3").and(col(CommonConstants.COL_MOLECULE_ID).equalTo("O00499-1")));
 
         return mapping;
     }
@@ -95,10 +89,10 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
     public static List<MultipleFeaturesMap> getTranscriptsToEntityView() {
 
         Dataset<Row> df1 = getEntityToUniProtMapping()
-                .withColumnRenamed("coordinatesMapping", "coordinatesMappingEntity");
+                .withColumnRenamed(CommonConstants.COL_COORDINATES, "coordinatesMappingEntity");
 
         Dataset<Row> df2 = getTranscriptsToUniProtMapping()
-                .withColumnRenamed("coordinatesMapping", "coordinatesMappingGenomic");
+                .withColumnRenamed(CommonConstants.COL_COORDINATES, "coordinatesMappingGenomic");
 
         Dataset<Row> df = df2
                 .join(df1, df2.col(CommonConstants.COL_MOLECULE_ID).equalTo(df1.col(CommonConstants.COL_MOLECULE_ID)), "inner")

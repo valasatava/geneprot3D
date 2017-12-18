@@ -68,9 +68,12 @@ public class LoadMappingStructuresToProteinIsoforms extends AbstractLoader {
         long timeS = System.currentTimeMillis();
 
         setArguments(args);
-
         List<SequenceToStructureFeaturesMap> list = getStructureToProteinIsoformsMapping();
-        ExternalDBUtils.writeListToMongo(list, MongoCollections.COLL_MAPPING_ENTITIES_TO_ISOFORMS +"_"+getTaxonomyId());
+
+        logger.info("Writing mapping to a database");
+        String collectionName = MongoCollections.COLL_MAPPING_ENTITIES_TO_ISOFORMS + "_" + getTaxonomyId();
+        ExternalDBUtils.dropCollection(collectionName);
+        ExternalDBUtils.writeListToMongo(list, collectionName);
 
         long timeE = System.currentTimeMillis();
         logger.info("Completed. Time taken: " + DurationFormatUtils.formatPeriod(timeS, timeE, "HH:mm:ss:SS"));

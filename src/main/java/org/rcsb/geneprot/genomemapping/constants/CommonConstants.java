@@ -106,7 +106,7 @@ public class CommonConstants {
 
     public static final String COL_CODING_COORDINATES = "codingCoordinates";
     public static final String COL_ISOFORM_COORDINATES = "isoformCoordinates";
-    public static final String COL_STRUCTURE_COORDINATES = "structureCoordinates";
 
+    public static final String COL_COORDINATES = "coordinates";
     public static final String COL_CANONICAL = "canonical";
 }
