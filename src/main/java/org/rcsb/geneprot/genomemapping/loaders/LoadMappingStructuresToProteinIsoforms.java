@@ -31,7 +31,7 @@ import static org.apache.spark.sql.functions.col;
  */
 public class LoadMappingStructuresToProteinIsoforms extends AbstractLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoadViewOnStructureToGenomicCoordinates.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoadViewOnCoordinatesStructureCentric.class);
 
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
     private static Map<String, String> mongoDBOptions = DBConnectionUtils.getMongoDBOptions();
@@ -71,7 +71,7 @@ public class LoadMappingStructuresToProteinIsoforms extends AbstractLoader {
         List<SequenceToStructureFeaturesMap> list = getStructureToProteinIsoformsMapping();
 
         logger.info("Writing mapping to a database");
-        String collectionName = MongoCollections.COLL_MAPPING_ENTITIES_TO_ISOFORMS + "_" + getTaxonomyId();
+        String collectionName = MongoCollections.COLL_MAPPING_ENTITIES_TO_ISOFORMS;
         ExternalDBUtils.dropCollection(collectionName);
         ExternalDBUtils.writeListToMongo(list, collectionName);
 

@@ -34,7 +34,6 @@ public class CommonConstants {
     public static final String COL_TRANSCRIPT = "transcript";
     public static final String COL_TRANSCRIPT_NAME = "transcriptName";
     public static final String COL_TRANSCRIPT_ID = "transcriptId";
-    public static final String COL_TRANSCRIPTS = "isoforms";
 
     public static final String COL_TRANSCRIPTION = "transcription";
     public static final String COL_UNTRANSLATED = "untranslated";
@@ -47,7 +46,6 @@ public class CommonConstants {
 
     public static final String COL_EXON = "exon";
     public static final String COL_EXON_ID = "exonId";
-    public static final String COL_EXON_NUMBER = "exonNumber";
     public static final String COL_EXONS = "exons";
 
     public static final String COL_CCDS_ID = "ccdsId";
@@ -61,12 +59,14 @@ public class CommonConstants {
     public static final String COL_ISOFORM_ID = "isoformId";
 
     public static final String COL_ISOFORMS = "isoforms";
-    public static final String COL_COORDINATES_ISOFORM = "isoformCoordinates";
 
     public static final String COL_MATCH = "match";
     public static final String COL_MAPPING = "mapping";
-    public static final String COL_MRNA_MAPPING = "mRNAMapping";
-    public static final String COL_PROTEIN_MAPPING = "proteinMapping";
+
+    public static final String COL_GENOMIC_POSITION = "genomicPosition";
+    public static final String COL_MRNA_POSITION = "mRNAPosition";
+    public static final String COL_UNIPROT_POSITION = "uniProtPosition";
+    public static final String COL_PDBSEQ_POSITION = "pdbSeqPosition";
 
     public static final String COL_ALTERNATIVE_EXONS = "alternativeExons";
     public static final String COL_HAS_ALTERNATIVE_EXONS = "hasAlternativeExons";

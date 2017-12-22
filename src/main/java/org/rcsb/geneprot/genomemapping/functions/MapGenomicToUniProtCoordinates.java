@@ -26,36 +26,62 @@ public class MapGenomicToUniProtCoordinates implements Function<Row, TranscriptT
         coordinates.setId(r.getInt(r.fieldIndex(CommonConstants.COL_ID)));
 
         PositionMapping start = new PositionMapping();
-        start.setGeneticPosition(r.getInt(r.fieldIndex(CommonConstants.COL_START)));
+        start.setGenomicPosition(r.getInt(r.fieldIndex(CommonConstants.COL_START)));
         coordinates.setStart(start);
 
         PositionMapping end = new PositionMapping();
-        end.setGeneticPosition(r.getInt(r.fieldIndex(CommonConstants.COL_END)));
+        end.setGenomicPosition(r.getInt(r.fieldIndex(CommonConstants.COL_END)));
         coordinates.setEnd(end);
 
         return coordinates;
     }
 
-    private static List<SegmentMapping> setProteinCoordinates(List<SegmentMapping> coordinates) {
+    private static List<SegmentMapping> setProteinCoordinatesOnForwardStrand(List<SegmentMapping> coordinates) {
 
         int mRNAPosEnd;
-        int mRNAPosStart = 0;
+        int mRNAPosStart = 1;
 
         for (SegmentMapping c : coordinates) {
 
-            mRNAPosEnd = mRNAPosStart + c.getEnd().getGeneticPosition()-c.getStart().getGeneticPosition();
+            mRNAPosEnd = mRNAPosStart + (c.getEnd().getGenomicPosition() - c.getStart().getGenomicPosition() + 1) - 1;
 
-            c.getStart().setmRNAPosition(mRNAPosStart+1);
+            c.getStart().setmRNAPosition(mRNAPosStart);
             c.getEnd().setmRNAPosition(mRNAPosEnd);
 
-            c.getStart().setUniProtPosition((int) Math.ceil(mRNAPosStart / 3.0f) + 1);
-            c.getEnd().setUniProtPosition((int)Math.ceil(mRNAPosEnd/3.0f));
+            c.getStart().setUniProtPosition((int) Math.ceil(mRNAPosStart / 3.0f));
+            c.getEnd().setUniProtPosition((int) Math.ceil(mRNAPosEnd/3.0f));
 
             mRNAPosStart = mRNAPosEnd+1;
         }
         return coordinates;
     }
 
+    private static List<SegmentMapping> setProteinCoordinatesOnReverseStrand(List<SegmentMapping> coordinates) {
+
+        int mRNAPosEnd;
+        int mRNAPosStart = 1;
+
+        for (SegmentMapping c : coordinates) {
+
+            Integer genStart = c.getEnd().getGenomicPosition();
+            Integer genEnd = c.getStart().getGenomicPosition();
+
+            mRNAPosEnd = mRNAPosStart + (c.getEnd().getGenomicPosition() - c.getStart().getGenomicPosition() + 1) - 1;
+
+            c.getStart().setmRNAPosition(mRNAPosStart);
+            c.getEnd().setmRNAPosition(mRNAPosEnd);
+
+            c.getStart().setUniProtPosition((int) Math.ceil(mRNAPosStart / 3.0f));
+            c.getEnd().setUniProtPosition((int) Math.ceil(mRNAPosEnd/3.0f));
+
+            c.getStart().setGenomicPosition(genStart);
+            c.getEnd().setGenomicPosition(genEnd);
+
+            mRNAPosStart = mRNAPosEnd+1;
+        }
+        return coordinates;
+    }
+    
     @Override
     public TranscriptToSequenceFeaturesMap call(Row row) throws Exception {
 
@@ -78,7 +104,11 @@ public class MapGenomicToUniProtCoordinates implements Function<Row, TranscriptT
         List<SegmentMapping> coordinates = new ArrayList<>();
         for (Object o : row.getList(row.fieldIndex(CommonConstants.COL_CODING)))
             coordinates.add(getGenomicCoordinates((Row) o));
-        coordinates = setProteinCoordinates(coordinates);
+
+        if (m.getOrientation().equals("+"))
+            coordinates = setProteinCoordinatesOnForwardStrand(coordinates);
+        else
+            coordinates = setProteinCoordinatesOnReverseStrand(coordinates);
 
         m.setCoordinates(coordinates);
 

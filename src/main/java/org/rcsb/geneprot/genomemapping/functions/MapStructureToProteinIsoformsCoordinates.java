@@ -85,12 +85,12 @@ public class MapStructureToProteinIsoformsCoordinates implements FlatMapFunction
 
                 PositionMapping start = new PositionMapping();
                 start.setUniProtPosition(m.getInt("unp_start"));
-                start.setSeqResPosition(m.getInt("pdb_start"));
+                start.setPdbSeqPosition(m.getInt("pdb_start"));
                 segment.setStart(start);
 
                 PositionMapping end = new PositionMapping();
                 end.setUniProtPosition(m.getInt("unp_end"));
-                end.setSeqResPosition(m.getInt("pdb_end"));
+                end.setPdbSeqPosition(m.getInt("pdb_end"));
                 segment.setEnd(end);
 
                 map.get(key).getCoordinates().add(segment);

@@ -13,9 +13,9 @@ import java.util.Map;
  *
  * Created by Yana Valasatava on 11/7/17.
  */
-public class LoadMappingIsoformsToHomologyModels extends AbstractLoader {
+public class LoadMappingHomologyModelsTpProteinIsoforms extends AbstractLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoadMappingIsoformsToHomologyModels.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoadMappingHomologyModelsTpProteinIsoforms.class);
 
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
     private static Map<String, String> mongoDBOptions = DBConnectionUtils.getMongoDBOptions();

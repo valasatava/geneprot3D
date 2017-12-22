@@ -14,7 +14,7 @@ import org.rcsb.geneprot.common.utils.ExternalDBUtils;
 import org.rcsb.geneprot.common.utils.SparkUtils;
 import org.rcsb.geneprot.genomemapping.constants.CommonConstants;
 import org.rcsb.geneprot.genomemapping.constants.MongoCollections;
-import org.rcsb.geneprot.genomemapping.functions.MapGeneticToStructure;
+import org.rcsb.geneprot.genomemapping.functions.SliceExonsCoordinatesStructureCentric;
 import org.rcsb.mojave.genomemapping.MultipleFeaturesMap;
 import org.rcsb.redwood.util.DBConnectionUtils;
 import org.slf4j.Logger;
@@ -29,15 +29,16 @@ import static org.apache.spark.sql.functions.col;
 /**
  * Created by Yana Valasatava on 11/15/17.
  */
-public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
+public class LoadViewOnCoordinatesStructureCentric extends AbstractLoader {
 
-    private static final Logger logger = LoggerFactory.getLogger(LoadViewOnStructureToGenomicCoordinates.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoadViewOnCoordinatesStructureCentric.class);
 
     private static SparkSession sparkSession = SparkUtils.getSparkSession();
     private static Map<String, String> mongoDBOptions = DBConnectionUtils.getMongoDBOptions();
 
     public static Dataset<Row> getTranscriptsToUniProtMapping() {
 
+        mongoDBOptions.put("spark.mongodb.input.partitionerOptions.numberOfPartitions", "200");
         mongoDBOptions.put("spark.mongodb.input.collection", MongoCollections.COLL_MAPPING_TRANSCRIPTS_TO_ISOFORMS + "_" + getTaxonomyId());
         JavaMongoRDD<Document> rdd = MongoSpark
                 .load(new JavaSparkContext(sparkSession.sparkContext()), ReadConfig.create(sparkSession)
@@ -65,6 +66,7 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
 
     public static Dataset<Row> getEntityToUniProtMapping() {
 
+        mongoDBOptions.put("spark.mongodb.input.partitionerOptions.numberOfPartitions", "200");
         mongoDBOptions.put("spark.mongodb.input.collection", MongoCollections.COLL_MAPPING_ENTITIES_TO_ISOFORMS + "_" + getTaxonomyId());
         JavaMongoRDD<Document> rdd = MongoSpark
                 .load(new JavaSparkContext(sparkSession.sparkContext()), ReadConfig.create(sparkSession)
@@ -78,8 +80,7 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
                                 CommonConstants.COL_CHAIN_ID + ": \"$" + CommonConstants.COL_CHAIN_ID + "\", " +
                                 CommonConstants.COL_MOLECULE_ID + ": \"$" + CommonConstants.COL_MOLECULE_ID + "\", " +
                                 CommonConstants.COL_COORDINATES + ": \"$" + CommonConstants.COL_COORDINATES + "\" " +
-                                " } }")
-                        ))
+                                " } }")))
                 .toDF()
                 .drop(col("_id"));
 
@@ -89,10 +90,10 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
     public static List<MultipleFeaturesMap> getTranscriptsToEntityView() {
 
         Dataset<Row> df1 = getEntityToUniProtMapping()
-                .withColumnRenamed(CommonConstants.COL_COORDINATES, "coordinatesMappingEntity");
+                .withColumnRenamed(CommonConstants.COL_COORDINATES, CommonConstants.COL_COORDINATES+"Entity");
 
         Dataset<Row> df2 = getTranscriptsToUniProtMapping()
-                .withColumnRenamed(CommonConstants.COL_COORDINATES, "coordinatesMappingGenomic");
+                .withColumnRenamed(CommonConstants.COL_COORDINATES, CommonConstants.COL_COORDINATES+"Genomic");
 
         Dataset<Row> df = df2
                 .join(df1, df2.col(CommonConstants.COL_MOLECULE_ID).equalTo(df1.col(CommonConstants.COL_MOLECULE_ID)), "inner")
@@ -100,8 +101,8 @@ public class LoadViewOnStructureToGenomicCoordinates extends AbstractLoader {
 
         JavaRDD<MultipleFeaturesMap> rdd = df
                 .toJavaRDD()
-                .map(new MapGeneticToStructure())
-                .filter(e -> e.getCoordinates().size()>0);
+                .map(new SliceExonsCoordinatesStructureCentric())
+                .filter( e -> e.getCoordinates().size() > 0 );
         List<MultipleFeaturesMap> results = rdd.collect();
 
         return results;

@@ -47,6 +47,7 @@ public class LoadMappingGeneTranscriptsToProteinIsoforms extends AbstractLoader 
 
     public static Dataset<Row> getTranscripts(String collectionName) {
 
+        mongoDBOptions.put("spark.mongodb.input.partitionerOptions.numberOfPartitions", "200");
         mongoDBOptions.put("spark.mongodb.input.collection", collectionName);
         JavaMongoRDD<Document> rdd = MongoSpark
                 .load(new JavaSparkContext(sparkSession.sparkContext()), ReadConfig.create(sparkSession)
