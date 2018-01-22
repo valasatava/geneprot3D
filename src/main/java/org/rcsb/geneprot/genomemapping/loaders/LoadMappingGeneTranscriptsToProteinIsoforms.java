@@ -72,7 +72,8 @@ public class LoadMappingGeneTranscriptsToProteinIsoforms extends AbstractLoader 
     public static Dataset<Row> getUniProtMapping() throws Exception {
 
         // TODO refactor this
-        String remote = UniProtConnection.getIdMappingLocation()+UniProtConnection.getHumanIdMappingFile();
+        //String remote = UniProtConnection.getIdMappingLocation()+UniProtConnection.getHumanIdMappingFile();
+        String remote = UniProtConnection.getIdMappingLocation()+UniProtConnection.getMouseIdMappingFile();
         String download = "/Users/yana/Downloads/tmp.gz";
 
         FTPDownloadFile.download( UniProtConnection.getServer(), UniProtConnection.getPort(),
@@ -87,7 +88,9 @@ public class LoadMappingGeneTranscriptsToProteinIsoforms extends AbstractLoader 
                     public Iterator<String[]> call(String[] ss) throws Exception {
                         List<String[]> list = new ArrayList<>();
                         for (String s : ss) {
-                            if (s.startsWith("ENST"))
+                            // TODO: refactor!
+                            //if (s.startsWith("ENST"))
+                            if (s.startsWith("ENSM"))
                                 list.add(new String[]{ss[0], s});
                         }
                         return list.iterator();

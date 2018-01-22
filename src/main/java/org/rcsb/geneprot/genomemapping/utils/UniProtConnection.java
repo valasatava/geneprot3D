@@ -12,7 +12,7 @@ public class UniProtConnection {
 
     private static String idMappingLocation = "/pub/databases/uniprot/current_release/knowledgebase/idmapping//by_organism/";
     private static String humanIdMappingFile = "HUMAN_9606_idmapping_selected.tab.gz";
-
+    private static String mouseIdMappingFile = "MOUSE_10090_idmapping_selected.tab.gz";
 
     public static String getServer() {
         return server;
@@ -36,5 +36,9 @@ public class UniProtConnection {
 
     public static String getHumanIdMappingFile() {
         return humanIdMappingFile;
+    }
+
+    public static String getMouseIdMappingFile() {
+        return mouseIdMappingFile;
     }
 }

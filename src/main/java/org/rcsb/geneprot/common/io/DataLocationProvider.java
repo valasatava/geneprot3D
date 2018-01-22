@@ -76,7 +76,7 @@ public class DataLocationProvider {
 		return humanGenomeAnnotationResourceFromEnsembl;
 	}
 
-	private static final String mouseGenomeAnnotationResourceFromEnsembl = "";
+	private static final String mouseGenomeAnnotationResourceFromEnsembl = "/Users/yana/data/flat/Mus_musculus.GRCm38.91.gtf";
 	public static String getMouseGenomeAnnotationResourceFromEnsembl() {
 		return mouseGenomeAnnotationResourceFromEnsembl;
 	}
